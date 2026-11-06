@@ -1,6 +1,6 @@
 extends Control
 
-signal tool_requested(index: int)
+signal slot_requested(index: int)
 signal bag_requested
 signal journal_requested
 signal pause_requested
@@ -18,7 +18,15 @@ var stock_label: Label
 var interaction_prompt: Button
 var location_label: Label
 
-var _tools: Array[Button] = []
+const AlmanacIcon := preload("res://almanac_icon.gd")
+const Bag := preload("res://inventory_grid.gd")
+const Weather := preload("res://valley_weather.gd")
+
+var _clock: AlmanacIcon
+var _weather: AlmanacIcon
+var _period: Label
+var _slots: Array[Button] = []
+var _quantities: Array[Label] = []
 var _cursor_hint: Label
 var _toast: PanelContainer
 var _toast_text: Label
@@ -26,7 +34,7 @@ var _toast_timer: Timer
 var _current_prompt := ""
 
 
-func build(tool_names: Array, tool_icons: Array) -> void:
+func build() -> void:
 	theme = UISkin.hud()
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -37,7 +45,23 @@ func build(tool_names: Array, tool_icons: Array) -> void:
 	_cursor_hint = _label(place, "Tab  ·  Free cursor", 18)
 
 	var almanac := _dock(Control.PRESET_TOP_RIGHT)
-	stats_label = _label(almanac, "", 29, true)
+	var date_row := HBoxContainer.new()
+	date_row.add_theme_constant_override("separation", 14)
+	almanac.add_child(date_row)
+	_clock = AlmanacIcon.new()
+	_clock.custom_minimum_size = Vector2(68, 68)
+	date_row.add_child(_clock)
+	var date_details := VBoxContainer.new()
+	date_details.size_flags_horizontal = SIZE_EXPAND_FILL
+	date_details.alignment = BoxContainer.ALIGNMENT_CENTER
+	date_row.add_child(date_details)
+	stats_label = _label(date_details, "", 29, true)
+	_period = _label(date_details, "", 17)
+	_weather = AlmanacIcon.new()
+	_weather.face = AlmanacIcon.Face.WEATHER
+	_weather.custom_minimum_size = Vector2(44, 44)
+	_weather.size_flags_vertical = SIZE_SHRINK_CENTER
+	date_row.add_child(_weather)
 	stock_label = _label(almanac, "", 21)
 	var rule := HSeparator.new()
 	almanac.add_child(rule)
@@ -52,19 +76,32 @@ func build(tool_names: Array, tool_icons: Array) -> void:
 	shortcuts.alignment = BoxContainer.ALIGNMENT_CENTER
 	shortcuts.add_theme_constant_override("separation", 8)
 	belt.add_child(shortcuts)
-	for index in range(tool_names.size()):
-		var button := _button(shortcuts, str(index + 1), tool_requested.emit.bind(index))
+	var hotbar := HBoxContainer.new()
+	hotbar.alignment = BoxContainer.ALIGNMENT_CENTER
+	hotbar.add_theme_constant_override("separation", 6)
+	belt.add_child(hotbar)
+	belt.move_child(hotbar, shortcuts.get_index())
+	for index in range(Bag.ROW_SIZE):
+		var button := _button(hotbar, "", slot_requested.emit.bind(index))
 		button.toggle_mode = true
-		button.custom_minimum_size = Vector2(86, 56)
-		button.tooltip_text = tool_names[index]
-		if not tool_icons[index].is_empty():
-			button.icon = load("res://assets/items/%s.svg" % tool_icons[index]) as Texture2D
-			button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-			button.expand_icon = true
-			button.add_theme_constant_override("icon_max_width", 34)
-		else:
-			button.text = "1  Hand"
-		_tools.append(button)
+		button.custom_minimum_size = Vector2(60, 56)
+		button.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		button.expand_icon = true
+		button.add_theme_constant_override("icon_max_width", 42)
+		_slots.append(button)
+		var count := Label.new()
+		count.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+		count.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
+		count.add_theme_font_size_override("font_size", 16)
+		count.add_theme_color_override("font_color", Color.WHITE)
+		count.add_theme_color_override("font_outline_color", UISkin.INK)
+		count.add_theme_constant_override("outline_size", 6)
+		button.add_child(count)
+		count.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+		count.offset_right = -5
+		count.offset_bottom = -3
+		_quantities.append(count)
 	_button(shortcuts, "I  Bag", bag_requested.emit)
 	_button(shortcuts, "J  Journal", journal_requested.emit)
 	_button(shortcuts, "Esc  Pause", pause_requested.emit)
@@ -74,8 +111,8 @@ func build(tool_names: Array, tool_icons: Array) -> void:
 	action.alignment = BoxContainer.ALIGNMENT_END
 	add_child(action)
 	action.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	action.offset_top = -250
-	action.offset_bottom = -168
+	action.offset_top = -318
+	action.offset_bottom = -224
 	crop_label = _label(action, "", 22)
 	crop_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	crop_label.add_theme_color_override("font_outline_color", UISkin.INK)
@@ -105,10 +142,30 @@ func show_notice(message: String) -> void:
 	_toast_timer.start(6.0)
 
 
-func set_tool(index: int, caption: String) -> void:
-	tool_label.text = caption
-	for slot in range(_tools.size()):
-		_tools[slot].set_pressed_no_signal(slot == index)
+func set_almanac(date: String, hour: float, weather: Weather.Kind) -> void:
+	stats_label.text = date
+	_period.text = "AM" if fposmod(hour, 24.0) < 12.0 else "PM"
+	if _clock.hour != hour:
+		_clock.hour = hour
+		_clock.queue_redraw()
+	if _weather.weather != weather or _weather.tooltip_text.is_empty():
+		_weather.weather = weather
+		_weather.tooltip_text = Weather.NAMES[weather]
+		_weather.queue_redraw()
+
+
+func set_hotbar(bag: Bag, selected: int, held_tool: String) -> void:
+	var stack := bag.stack_at(selected)
+	var item := stack.title if stack != null else "Empty slot"
+	tool_label.text = "%s  ·  Wheel to select  ·  F to use" % item
+	if stack == null or stack.kind != Bag.Kind.TOOL:
+		tool_label.text += "  ·  " + held_tool
+	for index in range(_slots.size()):
+		stack = bag.stack_at(index)
+		_slots[index].icon = stack.texture if stack != null else null
+		_slots[index].tooltip_text = stack.title if stack != null else "Empty slot"
+		_slots[index].set_pressed_no_signal(index == selected)
+		_quantities[index].text = str(stack.quantity) if stack != null and stack.quantity > 1 else ""
 
 
 func set_cursor_available(available: bool) -> void:

@@ -33,6 +33,7 @@ class GrowingCrop:
 const SEASON_SKY := ["#8eb5ac", "#83acb6", "#b0a18c", "#a7b7c4"]
 const FarmClock := preload("res://farm_clock.gd")
 const FOOD_PRICE := 2
+const BACKPACK_PRICES := [30, 80]
 const REPAIR_PRICE := 10
 const WATERING_UPGRADE_PRICE := 25
 const HARVEST_MILESTONES := [Vector2i(5, 8), Vector2i(20, 18), Vector2i(50, 35)]
@@ -180,6 +181,8 @@ var test_favor: SpinBox
 var test_resident_status: Label
 var inventory_menu: ActionMenu
 var inventory_grid: InventoryGrid
+var backpack_upgrade: Button
+var hotbar_slot := 0
 var market: MarketMenu
 
 var message := "Welcome to Clover Valley. Press J to see your first delivery orders."
@@ -221,8 +224,14 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
 		_look(event.relative)
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_set_cursor_released(false)
+	elif event is InputEventMouseButton and event.pressed:
+		match event.button_index:
+			MOUSE_BUTTON_LEFT:
+				_set_cursor_released(false)
+			MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN:
+				var direction := 1 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1
+				_select_hotbar(posmod(hotbar_slot + direction, InventoryGrid.ROW_SIZE))
+				get_viewport().set_input_as_handled()
 
 
 func _set_cursor_released(released: bool) -> void:
@@ -246,6 +255,8 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	match key.physical_keycode:
 		KEY_E:
 			_use_world_action()
+		KEY_F:
+			inventory_grid.use_slot(hotbar_slot)
 		KEY_1, KEY_2, KEY_3, KEY_4:
 			_select_belt_tool(key.physical_keycode - KEY_1)
 
@@ -260,7 +271,28 @@ func _select_belt_tool(index: int) -> void:
 		_exhaustion_message()
 	else:
 		_equip_tool(index as Tool)
+		for slot in range(InventoryGrid.ROW_SIZE):
+			var stack := inventory_grid.stack_at(slot)
+			if stack != null and stack.kind == InventoryGrid.Kind.TOOL and stack.item_id == index:
+				hotbar_slot = slot
+				break
 	_refresh()
+
+
+func _select_hotbar(index: int) -> void:
+	hotbar_slot = index
+	var stack := inventory_grid.stack_at(index)
+	if stack != null and stack.kind in [InventoryGrid.Kind.TOOL, InventoryGrid.Kind.SEED]:
+		if not stack.equipped:
+			inventory_grid.use_slot(index)
+	_refresh_hotbar()
+
+
+func _refresh_hotbar() -> void:
+	var held: String = TOOL_NAMES[equipped_tool]
+	if equipped_tool == Tool.WATERING_CAN and watering_upgraded:
+		held += " +"
+	hud.set_hotbar(inventory_grid, hotbar_slot, held)
 
 
 func _process(delta: float) -> void:
@@ -541,6 +573,8 @@ func _work_plot() -> void:
 		Plot.RIPE:
 			var plant := growing[target]
 			var crop := Catalog.crops[plant.id]
+			if not _bag_has_room(InventoryGrid.Kind.HARVEST, plant.id):
+				return
 			produce[plant.id] = produce.get(plant.id, 0) + 1
 			harvested += 1
 			sound.play_effect(FarmAudio.Effect.HARVEST, randf_range(0.96, 1.08))
@@ -679,7 +713,7 @@ func _update_orchard() -> void:
 
 func _pick_apple() -> void:
 	var fruit := _nearby_apple_tree()
-	if fruit == null:
+	if fruit == null or not _bag_has_room(InventoryGrid.Kind.HARVEST, Catalog.APPLE):
 		return
 	picked_apple_trees[scenery.orchard_fruit.find_key(fruit)] = true
 	fruit.hide()
@@ -1007,6 +1041,7 @@ func _save_farm() -> Error:
 		"coins": coins, "bread": rations, "seeds": seed_bag, "produce": produce,
 		"shipments": shipments, "picked_apple_trees": picked_apple_trees.keys(),
 		"tool": equipped_tool, "seed": equipped_seed, "slots": inventory_grid.save_slots(),
+		"backpack_rows": inventory_grid.unlocked_rows, "hotbar_slot": hotbar_slot,
 		"hour": clock.hour, "hunger": clock.hunger, "fatigue": clock.fatigue,
 		"repaired": cottage_repaired, "plots": beds, "indoors": indoors,
 		"position": avatar.position, "facing": facing_angle,
@@ -1048,6 +1083,8 @@ func _load_farm() -> void:
 	scenery.set_ground_season(season)
 	_restore_plots(state.get("plots"))
 	_restore_position(state)
+	inventory_grid.unlocked_rows = maxi(1, Save.count(state.get("backpack_rows"), InventoryGrid.MAX_ROWS, 1))
+	hotbar_slot = Save.count(state.get("hotbar_slot"), InventoryGrid.ROW_SIZE - 1)
 	inventory_grid.restore_slots(state.get("slots"))
 	_update_bag()
 	_update_held_tool()
@@ -1395,10 +1432,7 @@ func _refresh() -> void:
 	_update_needs()
 	hud.show_notice(message)
 	hud.location_label.text = "Home Cottage" if indoors else "Clover Valley"
-	var tool_name: String = TOOL_NAMES[equipped_tool]
-	if equipped_tool == Tool.WATERING_CAN and watering_upgraded:
-		tool_name += " +"
-	hud.set_tool(equipped_tool, tool_name)
+	_update_bag()
 	hud.stock_label.text = "%d coins  ·  %s seeds ×%d" % [
 		coins, Catalog.crops[equipped_seed].label, seed_bag.get(equipped_seed, 0)]
 	if market.visible:
@@ -1406,8 +1440,6 @@ func _refresh() -> void:
 	if food_menu.visible:
 		food_stock.text = "%d coins   /   %d bread in bag" % [coins, rations]
 		buy_food_button.disabled = coins < FOOD_PRICE
-	if inventory_menu.visible:
-		_update_bag()
 	if journal.visible:
 		_update_journal()
 	if collection_menu.visible:
@@ -1425,8 +1457,7 @@ func _refresh() -> void:
 
 
 func _update_needs() -> void:
-	hud.stats_label.text = "%s %d  ·  %s  ·  %s" % [
-		Catalog.SEASONS[season], Catalog.day_of_season(day), clock.clock_text(), Weather.NAMES[weather.kind]]
+	hud.set_almanac("%s %d" % [Catalog.SEASONS[season], Catalog.day_of_season(day)], clock.hour, weather.kind)
 	hud.hunger_meter.value = clock.hunger
 	hud.fatigue_meter.value = clock.fatigue
 	var appetite := "Fed"
@@ -1451,8 +1482,8 @@ func _build_hud() -> void:
 	add_child(layer)
 	hud = FarmHUD.new()
 	layer.add_child(hud)
-	hud.build(TOOL_NAMES, TOOL_ICONS)
-	hud.tool_requested.connect(_select_belt_tool)
+	hud.build()
+	hud.slot_requested.connect(_select_hotbar)
 	hud.bag_requested.connect(func() -> void: _toggle_menu(inventory_menu))
 	hud.journal_requested.connect(func() -> void: _toggle_menu(journal))
 	hud.pause_requested.connect(_pause_game)
@@ -1503,13 +1534,15 @@ func _build_action_menus(layer: CanvasLayer) -> void:
 	cooking_menu.close_requested.connect(_close_menu)
 
 	inventory_menu = _new_menu(layer, "Farm Bag")
-	inventory_menu.offset_left = -480
-	inventory_menu.offset_right = 480
+	inventory_menu.offset_left = -530
+	inventory_menu.offset_right = 530
 	inventory_menu.offset_top = -236
 	inventory_menu.offset_bottom = 236
 	inventory_grid = InventoryGrid.new()
 	inventory_menu.rows.add_child(inventory_grid)
 	inventory_grid.item_used.connect(_use_bag_item)
+	inventory_grid.stacks_changed.connect(_refresh_hotbar)
+	backpack_upgrade = inventory_menu.add_action("", _upgrade_backpack)
 	inventory_menu.add_action("Close", _close_menu)
 
 	journal = _new_menu(layer, "Valley Journal")
@@ -2137,6 +2170,32 @@ func _update_bag() -> void:
 		inventory_grid.add_stacks(items, InventoryGrid.Kind.HARVEST, id, crop.label,
 			produce.get(id, 0), "crop_%02d" % id, action)
 	inventory_grid.show_stacks(items)
+	backpack_upgrade.visible = inventory_grid.unlocked_rows < InventoryGrid.MAX_ROWS
+	if backpack_upgrade.visible:
+		var price: int = BACKPACK_PRICES[inventory_grid.unlocked_rows - 1]
+		backpack_upgrade.text = "Expand backpack to %d slots  ·  %d coins" % [
+			(inventory_grid.unlocked_rows + 1) * InventoryGrid.ROW_SIZE, price]
+		backpack_upgrade.disabled = coins < price
+
+
+func _upgrade_backpack() -> void:
+	var rows := inventory_grid.unlocked_rows
+	if rows >= InventoryGrid.MAX_ROWS or coins < BACKPACK_PRICES[rows - 1]:
+		return
+	coins -= BACKPACK_PRICES[rows - 1]
+	inventory_grid.unlocked_rows += 1
+	message = "Backpack expanded to %d slots." % (inventory_grid.unlocked_rows * InventoryGrid.ROW_SIZE)
+	sound.play_effect(FarmAudio.Effect.TRADE)
+	_refresh()
+	if not backpack_upgrade.visible or backpack_upgrade.disabled:
+		inventory_menu.focus_first_action()
+
+
+func _bag_has_room(kind: InventoryGrid.Kind, id: int) -> bool:
+	if inventory_grid.can_add(kind, id):
+		return true
+	message = "Backpack full. Free a slot or expand it in the Farm Bag."
+	return false
 
 
 func _use_bag_item(kind: InventoryGrid.Kind, id: int) -> void:
@@ -2154,6 +2213,9 @@ func _use_bag_item(kind: InventoryGrid.Kind, id: int) -> void:
 
 func _buy_food() -> void:
 	if coins < FOOD_PRICE:
+		return
+	if not _bag_has_room(InventoryGrid.Kind.BREAD, 0):
+		_refresh()
 		return
 	coins -= FOOD_PRICE
 	rations += 1
@@ -2250,6 +2312,9 @@ func _buy_seed(id: int) -> void:
 	var crop := Catalog.crops[id]
 	if not crop.grows_in(season) or coins < crop.seed_price():
 		return
+	if not _bag_has_room(InventoryGrid.Kind.SEED, id):
+		_refresh()
+		return
 	coins -= crop.seed_price()
 	seed_bag[id] = seed_bag.get(id, 0) + 1
 	equipped_seed = id
@@ -2302,6 +2367,10 @@ func _ship_selected_produce() -> void:
 
 
 func _retrieve_shipments() -> void:
+	if not inventory_grid.can_add_stacks(InventoryGrid.Kind.HARVEST, shipments):
+		message = "Free room in your backpack to return the shipment."
+		_refresh()
+		return
 	for id in shipments:
 		produce[id] = produce.get(id, 0) + shipments[id]
 	shipments.clear()
