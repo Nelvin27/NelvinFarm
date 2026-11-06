@@ -1,0 +1,11 @@
+[gd_scene format=3 uid="uid://b1gbnfyelcxgw"]
+
+[ext_resource type="Script" uid="uid://cakobrrq4kfvx" path="res://farm.gd" id="1"]
+
+[ext_resource type="Script" path="res://farm_scenery.gd" id="2"]
+
+[node name="Farm" type="Node3D" unique_id=1658857475]
+script = ExtResource("1")
+
+[node name="Scenery" type="Node3D" parent="."]
+script = ExtResource("2")
