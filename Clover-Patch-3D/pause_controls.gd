@@ -2,6 +2,7 @@ extends CanvasLayer
 
 signal resume_requested
 signal settings_changed
+signal save_requested
 
 const Settings := preload("res://game_settings.gd")
 const ActionMenu := preload("res://action_menu.gd")
@@ -9,6 +10,7 @@ const MENU_SCENE := preload("res://action_menu.tscn")
 
 var settings: Settings
 var pause_menu: ActionMenu
+var save_status: Label
 var options_menu: ActionMenu
 var graphics_menu: ActionMenu
 var audio_menu: ActionMenu
@@ -45,6 +47,10 @@ func _ready() -> void:
 	pause_menu.offset_bottom = 112
 	pause_menu.add_action("Resume", resume_requested.emit)
 	pause_menu.add_action("Settings", _show_options)
+	pause_menu.add_action("Save farm", save_requested.emit)
+	save_status = Label.new()
+	save_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	pause_menu.rows.add_child(save_status)
 
 	options_menu = _new_menu("Settings")
 	sensitivity_value = Label.new()
@@ -84,6 +90,7 @@ func _input(event: InputEvent) -> void:
 
 func open(current: Settings) -> void:
 	settings = current
+	save_status.text = ""
 	backdrop.show()
 	_show_pause()
 

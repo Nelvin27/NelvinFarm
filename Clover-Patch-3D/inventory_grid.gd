@@ -181,6 +181,28 @@ func show_stacks(items: Array[Stack]) -> void:
 	_draw_slots()
 
 
+func save_slots() -> Array[Vector3i]:
+	var saved: Array[Vector3i] = []
+	for stack in stacks:
+		saved.append(Vector3i(stack.kind, stack.item_id, stack.quantity) if stack != null else Vector3i.ZERO)
+	return saved
+
+
+func restore_slots(saved: Variant) -> void:
+	if not saved is Array:
+		return
+	stacks.clear()
+	for entry: Variant in saved:
+		var stack: Stack
+		if entry is Vector3i and entry.x >= Kind.BREAD and entry.x <= Kind.TOOL and entry.z > 0:
+			stack = Stack.new()
+			stack.kind = entry.x as Kind
+			stack.item_id = entry.y
+			stack.quantity = mini(entry.z, STACK_LIMIT)
+		stacks.append(stack)
+	# show_stacks reconciles these positions with the authoritative inventory and restores icons.
+
+
 func _copy_stack(source: Stack, quantity: int) -> Stack:
 	var stack := Stack.new()
 	stack.kind = source.kind

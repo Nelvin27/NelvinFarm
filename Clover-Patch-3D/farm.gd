@@ -5,7 +5,9 @@ enum Tool { HANDS, HOE, WATERING_CAN, SICKLE }
 enum Interaction { NONE, PLOT, SEEDS, FOOD, ENTER, EXIT, BED, REPAIR }
 
 const EDGE_MARGIN := 0.3
-const GOAL := 5
+const Save := preload("res://farm_save.gd")
+const Orders := preload("res://farm_orders.gd")
+const Weather := preload("res://valley_weather.gd")
 const WorldLayout := preload("res://world_layout.gd")
 const FarmAudio := preload("res://farm_audio.gd")
 const Settings := preload("res://game_settings.gd")
@@ -65,6 +67,11 @@ var facing_angle := PI / 2.0
 var plots: Dictionary[Vector2i, Plot] = {}
 var day := 1
 var harvested := 0
+var completed_orders := 0
+var weather: Weather
+var journal: ActionMenu
+var forecast_label: Label
+var order_buttons: Array[Button] = []
 var seed_bag: Dictionary[int, int] = {Catalog.TURNIP: 5}
 var produce: Dictionary[int, int] = {}
 var growing: Dictionary[Vector2i, GrowingCrop] = {}
@@ -90,6 +97,10 @@ var arms: Array[Node3D] = []
 var legs: Array[Node3D] = []
 var walk_phase := 0.0
 var walk_weight := 0.0
+var work_pose := 0.0
+var work_tween: Tween
+var work_particles: CPUParticles3D
+var work_particle_material: StandardMaterial3D
 var camera: Camera3D
 var camera_yaw := -PI / 2.0
 var camera_pitch := deg_to_rad(35.0)
@@ -111,7 +122,7 @@ var inventory_menu: ActionMenu
 var inventory_grid: InventoryGrid
 var market: MarketMenu
 
-var message := "Welcome to Clover Valley."
+var message := "Welcome to Clover Valley. Press J to see your first delivery orders."
 
 @onready var scenery: Scenery = $Scenery
 
@@ -124,6 +135,8 @@ func _input(event: InputEvent) -> void:
 		_toggle_menu(test_menu)
 	elif key.physical_keycode == KEY_I:
 		_toggle_menu(inventory_menu)
+	elif key.physical_keycode == KEY_J:
+		_toggle_menu(journal)
 	elif key.physical_keycode == KEY_ESCAPE:
 		if active_menu != null:
 			_close_menu()
@@ -159,6 +172,11 @@ func _unhandled_key_input(event: InputEvent) -> void:
 	match key.physical_keycode:
 		KEY_E:
 			_interact()
+		KEY_1, KEY_2, KEY_3, KEY_4:
+			if _is_exhausted():
+				_exhaustion_message()
+			else:
+				_equip_tool((key.physical_keycode - KEY_1) as Tool)
 		_:
 			return
 	_refresh()
@@ -179,6 +197,8 @@ func _process(delta: float) -> void:
 	_update_camera()
 	clock.tick(delta, distance > 0.0)
 	_update_daylight()
+	if weather.emitting:
+		weather.position = avatar.position + Vector3(0, 6.5, 0)
 	_update_needs()
 
 
@@ -246,6 +266,7 @@ func _animate_walk(distance: float, delta: float) -> void:
 		var side := -1.0 if index == 0 else 1.0
 		legs[index].rotation.x = swing * side * 0.65
 		arms[index].rotation.x = -swing * side * 0.46
+	arms[1].rotation.x += work_pose
 	farmer_model.position.y = absf(sin(walk_phase)) * walk_weight * 0.045
 
 
@@ -310,7 +331,8 @@ func _work_plot() -> void:
 		message = "Equip the %s from your bag first." % TOOL_NAMES[required]
 		return
 
-	match plots.get(target, Plot.EMPTY):
+	var action: Plot = plots.get(target, Plot.EMPTY)
+	match action:
 		Plot.EMPTY:
 			plots[target] = Plot.TILLED
 			sound.play_effect(FarmAudio.Effect.TILL)
@@ -327,7 +349,13 @@ func _work_plot() -> void:
 			growing[target] = GrowingCrop.new(equipped_seed, crop.harvest_day - 1)
 			plots[target] = Plot.PLANTED
 			sound.play_effect(FarmAudio.Effect.PLANT)
-			message = "%s planted. Equip the watering can to water it." % crop.label
+			if _rain_waters(equipped_seed):
+				plots[target] = Plot.WATERED
+				message = "%s planted and watered by rain." % crop.label
+			elif equipped_seed == Catalog.GRASS:
+				message = "%s planted. It grows without watering." % crop.label
+			else:
+				message = "%s planted. Press 3 to equip the Watering Can." % crop.label
 		Plot.PLANTED:
 			var plant := growing[target]
 			var crop := Catalog.crops[plant.id]
@@ -356,10 +384,22 @@ func _work_plot() -> void:
 			else:
 				growing.erase(target)
 				plots[target] = Plot.TILLED
-			if harvested == GOAL:
-				message = "Goal reached! You harvested %d crops." % GOAL
 	clock.do_farm_work()
 	_show_plot(target)
+	_animate_work(action, target)
+
+
+func _animate_work(action: Plot, target: Vector2i) -> void:
+	var angles := {Plot.EMPTY: -1.65, Plot.TILLED: -0.82, Plot.PLANTED: -1.18, Plot.RIPE: -1.08}
+	var colors := {Plot.EMPTY: "#ae7956", Plot.TILLED: "#e0cb87", Plot.PLANTED: "#87bfd4", Plot.RIPE: "#f6d474"}
+	if work_tween != null:
+		work_tween.kill()
+	work_tween = create_tween().set_trans(Tween.TRANS_SINE)
+	work_tween.tween_property(self, "work_pose", angles[action], 0.12)
+	work_tween.tween_property(self, "work_pose", 0.0, 0.28)
+	work_particle_material.albedo_color = Color(colors[action])
+	work_particles.position = _world(target) + Vector3.UP * 0.27
+	work_particles.restart()
 
 
 func _interaction(target: Vector2i) -> Interaction:
@@ -430,6 +470,7 @@ func _set_indoors(entering: bool) -> void:
 	camera_yaw = 0.0 if indoors else PI
 	avatar.position = (interior.get_node("Entry") as Marker3D).global_position if indoors else scenery.cottage_door + Vector3(0, 0, 0.38)
 	message = "Home Cottage" if indoors else "Clover Valley"
+	_update_weather()
 	_update_daylight()
 	_update_camera()
 
@@ -445,6 +486,8 @@ func _try_sleep() -> void:
 	_advance_day()
 	_update_daylight()
 	sound.play_effect(FarmAudio.Effect.SLEEP)
+	if _save_farm() != OK:
+		message += "  ·  Autosave failed."
 
 
 func _eat_item(kind: InventoryGrid.Kind, id: int) -> void:
@@ -473,10 +516,23 @@ func _repair_cottage() -> void:
 	else:
 		coins -= REPAIR_PRICE
 		cottage_repaired = true
-		scenery.show_cottage_repair()
-		(interior.get_node("Damaged") as Node3D).hide()
-		(interior.get_node("Repaired") as Node3D).show()
+		_show_cottage_repair()
 		message = "Cottage repaired! The roof and window are fixed."
+
+
+func _show_cottage_repair() -> void:
+	scenery.show_cottage_repair()
+	(interior.get_node("Damaged") as Node3D).hide()
+	(interior.get_node("Repaired") as Node3D).show()
+
+
+func _update_weather() -> void:
+	weather.position = avatar.position + Vector3(0, 6.5, 0)
+	weather.apply(Weather.forecast(day), not indoors)
+
+
+func _rain_waters(crop_id: int) -> bool:
+	return weather.kind == Weather.Kind.RAIN and crop_id != Catalog.GRASS
 
 
 func _advance_day() -> void:
@@ -484,21 +540,29 @@ func _advance_day() -> void:
 	var next_season := Catalog.season_for(day)
 	var changed := season != next_season
 	season = next_season
+	if changed:
+		completed_orders = 0
+	_update_weather()
 	var ripe := 0
+	var watered := 0
 	for tile in growing.keys():
 		var plant := growing[tile]
 		var crop := Catalog.crops[plant.id]
+		var previous: Plot = plots[tile]
 		if not crop.grows_in(season):
 			plots[tile] = Plot.TILLED
 			if plant.id == Catalog.GRASS:
 				plots[tile] = Plot.PLANTED
 			else:
 				growing.erase(tile)
-			_show_plot(tile)
 		elif plots[tile] == Plot.WATERED or (plant.id == Catalog.GRASS and plots[tile] == Plot.PLANTED):
 			plant.remaining = maxi(0, plant.remaining - 1)
 			plots[tile] = Plot.RIPE if plant.remaining == 0 else Plot.PLANTED
 			ripe += int(plots[tile] == Plot.RIPE)
+		if plots[tile] == Plot.PLANTED and _rain_waters(plant.id) and crop.grows_in(season):
+			plots[tile] = Plot.WATERED
+			watered += 1
+		if previous != plots[tile] or previous == Plot.WATERED or changed:
 			_show_plot(tile)
 
 	message = "Good morning! Remember to water your crops."
@@ -506,7 +570,9 @@ func _advance_day() -> void:
 		message = "Good morning! %d plot(s) are ready to harvest." % ripe
 	if changed:
 		scenery.set_ground_season(season)
-		message = "%s has begun. Check the market for seasonal seeds." % Catalog.SEASONS[season]
+		message = "%s has begun. New delivery orders are in your journal." % Catalog.SEASONS[season]
+	if watered > 0:
+		message += " Rain watered %d plot(s)." % watered
 
 
 func _ready() -> void:
@@ -527,15 +593,120 @@ func _ready() -> void:
 	add_child(pause_controls)
 	pause_controls.resume_requested.connect(_resume_game)
 	pause_controls.settings_changed.connect(_save_settings)
+	pause_controls.save_requested.connect(_manual_save)
 	_apply_settings()
 	sound.music.play()
 	avatar.position = layout.anchor("spawn")
 	avatar.rotation.y = facing_angle
+	_load_farm()
+	_update_weather()
 	_refresh()
 	_update_daylight()
 	_update_camera()
 	if DisplayServer.get_name() != "headless":
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _manual_save() -> void:
+	var error := _save_farm()
+	pause_controls.save_status.text = "Farm saved." if error == OK else "Could not save the farm."
+
+
+func _save_farm() -> Error:
+	# Reconcile stacks before saving so sales and deliveries cannot leave stale quantities.
+	_update_bag()
+	var beds := {}
+	for tile in plots:
+		var plant: GrowingCrop = growing.get(tile)
+		beds[tile] = Vector3i(plots[tile], plant.id if plant else -1, plant.remaining if plant else 0)
+	return Save.write({
+		"day": day, "harvested": harvested, "orders": completed_orders,
+		"coins": coins, "bread": rations, "seeds": seed_bag, "produce": produce,
+		"tool": equipped_tool, "seed": equipped_seed, "slots": inventory_grid.save_slots(),
+		"hour": clock.hour, "hunger": clock.hunger, "fatigue": clock.fatigue,
+		"repaired": cottage_repaired, "plots": beds, "indoors": indoors,
+		"position": avatar.position, "facing": facing_angle,
+		"camera_yaw": camera_yaw, "camera_pitch": camera_pitch,
+	})
+
+
+func _load_farm() -> void:
+	var state := Save.read()
+	if state.is_empty():
+		return
+	day = maxi(1, Save.count(state.get("day"), 1000000, 1))
+	season = Catalog.season_for(day)
+	harvested = Save.count(state.get("harvested"), 1000000)
+	completed_orders = Save.count(state.get("orders"), 7)
+	coins = Save.count(state.get("coins"), 1000000, coins)
+	rations = Save.count(state.get("bread"), 100000, rations)
+	_restore_stock(seed_bag, state.get("seeds"))
+	_restore_stock(produce, state.get("produce"))
+	equipped_seed = Save.count(state.get("seed"), Catalog.crops.size() - 1)
+	equipped_tool = Save.count(state.get("tool"), Tool.SICKLE, Tool.HOE) as Tool
+	clock.hour = Save.meter(state.get("hour"), FarmClock.MORNING, FarmClock.LAST_HOUR, clock.hour)
+	clock.hunger = Save.meter(state.get("hunger"), 0.0, FarmClock.FULL, clock.hunger)
+	clock.fatigue = Save.meter(state.get("fatigue"), 0.0, FarmClock.FULL, clock.fatigue)
+	cottage_repaired = state.get("repaired") == true
+	if cottage_repaired:
+		_show_cottage_repair()
+	scenery.set_ground_season(season)
+	_restore_plots(state.get("plots"))
+	_restore_position(state)
+	inventory_grid.restore_slots(state.get("slots"))
+	_update_bag()
+	_update_held_tool()
+	message = "Welcome back to Clover Valley."
+
+
+func _restore_stock(stock: Dictionary[int, int], saved: Variant) -> void:
+	if not saved is Dictionary:
+		return
+	stock.clear()
+	for id in range(Catalog.crops.size()):
+		var quantity := Save.count(saved.get(id), 100000)
+		if quantity > 0:
+			stock[id] = quantity
+
+
+func _restore_plots(saved: Variant) -> void:
+	if not saved is Dictionary:
+		return
+	for tile in visuals:
+		var bed: Variant = saved.get(tile)
+		if not bed is Vector3i or bed.x < Plot.TILLED or bed.x > Plot.RIPE:
+			continue
+		if bed.x == Plot.TILLED:
+			plots[tile] = Plot.TILLED
+		elif bed.y >= 0 and bed.y < Catalog.crops.size():
+			var crop := Catalog.crops[bed.y]
+			plots[tile] = bed.x as Plot
+			var nights := clampi(bed.z, 1, maxi(crop.harvest_day - 1, crop.regrowth))
+			growing[tile] = GrowingCrop.new(bed.y, 0 if bed.x == Plot.RIPE else nights)
+		_show_plot(tile)
+
+
+func _restore_position(state: Dictionary) -> void:
+	if state.get("indoors") == true:
+		_set_indoors(true)
+	var saved: Variant = state.get("position")
+	if saved is Vector3 and saved.is_finite():
+		var room_offset := Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.z) if indoors else Vector2.ZERO
+		var point := Vector2(saved.x, saved.z) - room_offset
+		var playable := (ROOM_BOUNDS if indoors else layout.bounds).grow(-EDGE_MARGIN)
+		var obstacles := ROOM_OBSTACLES if indoors else scenery.obstacles
+		if playable.grow(0.001).has_point(point):
+			var obstructed := false
+			for obstacle: Rect2 in obstacles:
+				if obstacle.grow(EDGE_MARGIN - 0.001).has_point(point):
+					obstructed = true
+					break
+			if not obstructed:
+				avatar.position = Vector3(saved.x, 0.0, saved.z)
+	facing_angle = Save.meter(state.get("facing"), -PI, PI, facing_angle)
+	avatar.rotation.y = facing_angle
+	camera_yaw = Save.meter(state.get("camera_yaw"), -PI, PI, camera_yaw)
+	camera_pitch = Save.meter(state.get("camera_pitch"), deg_to_rad(22), deg_to_rad(65), camera_pitch)
 
 
 func _apply_settings() -> void:
@@ -631,6 +802,30 @@ func _build_world() -> void:
 	avatar = Node3D.new()
 	add_child(avatar)
 	_build_farmer()
+	weather = Weather.new()
+	add_child(weather)
+
+	work_particles = CPUParticles3D.new()
+	work_particles.emitting = false
+	work_particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	work_particles.one_shot = true
+	work_particles.amount = 12
+	work_particles.lifetime = 0.5
+	work_particles.explosiveness = 1.0
+	work_particles.direction = Vector3.UP
+	work_particles.spread = 58.0
+	work_particles.initial_velocity_min = 0.85
+	work_particles.initial_velocity_max = 1.8
+	work_particles.gravity = Vector3(0, -5.5, 0)
+	work_particles.scale_amount_min = 0.55
+	work_particles.scale_amount_max = 1.2
+	work_particle_material = StandardMaterial3D.new()
+	work_particle_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	var chip := BoxMesh.new()
+	chip.size = Vector3(0.045, 0.045, 0.045)
+	chip.material = work_particle_material
+	work_particles.mesh = chip
+	add_child(work_particles)
 
 
 func _add_plot(tile: Vector2i) -> void:
@@ -649,6 +844,10 @@ func _update_daylight() -> void:
 	sun.light_color = Color("#9bb4ec").lerp(Color("#fff2dd"), daylight)
 	sun.light_energy = lerpf(0.08, 0.72, daylight)
 	sun.rotation_degrees.x = lerpf(-25.0, -55.0, daylight)
+	if not indoors and weather.kind != Weather.Kind.CLEAR:
+		lighting.background_color = lighting.background_color.lerp(Color("#687e89"), daylight * 0.52)
+		sun.light_energy *= 0.60
+		lighting.ambient_light_color = lighting.ambient_light_color.lerp(Color("#bdd3df"), 0.38)
 
 
 func _build_farmer() -> void:
@@ -767,7 +966,7 @@ func _update_interaction_targets() -> void:
 	if _blocked_by_fatigue(action):
 		interaction_prompt.text = "Exhausted  ·  Eat or sleep before working"
 	elif required != Tool.HANDS and equipped_tool != required:
-		interaction_prompt.text = "%s needed  ·  I opens your bag" % TOOL_NAMES[required]
+		interaction_prompt.text = "%s needed  ·  Press %d to equip" % [TOOL_NAMES[required], required + 1]
 	else:
 		interaction_prompt.text = "E   " + prompt
 	interaction_prompt.visible = active_menu == null and not prompt.is_empty()
@@ -787,11 +986,13 @@ func _refresh() -> void:
 		buy_food_button.disabled = coins < FOOD_PRICE
 	if inventory_menu.visible:
 		_update_bag()
+	if journal.visible:
+		_update_journal()
 
 
 func _update_needs() -> void:
-	stats_label.text = "%s %d  ·  %s  /  HARVEST %d OF %d" % [
-		Catalog.SEASONS[season], Catalog.day_of_season(day), clock.clock_text(), harvested, GOAL]
+	stats_label.text = "%s %d  ·  %s  ·  %s" % [
+		Catalog.SEASONS[season], Catalog.day_of_season(day), clock.clock_text(), Weather.NAMES[weather.kind]]
 	hunger_meter.value = clock.hunger
 	fatigue_meter.value = clock.fatigue
 	var appetite := "Fed"
@@ -814,13 +1015,14 @@ func _update_needs() -> void:
 func _build_hud() -> void:
 	var layer := CanvasLayer.new()
 	add_child(layer)
-	_hud_panel(layer, Vector2(32, 28), Vector2(356, 136))
+	_hud_panel(layer, Vector2(32, 28), Vector2(356, 166))
 	_hud_panel(layer, Vector2(1408, 28), Vector2(480, 100))
 	_hud_panel(layer, Vector2(1408, 143), Vector2(480, 134))
-	_hud_panel(layer, Vector2(32, 932), Vector2(1010, 67))
+	_hud_panel(layer, Vector2(32, 932), Vector2(1180, 67))
 	_hud_text(layer, Vector2(56, 40), "CLOVER PATCH", 38)
 	_hud_text(layer, Vector2(58, 87), "Clover Valley", 22)
 	tool_label = _hud_text(layer, Vector2(58, 117), "", 20)
+	_hud_text(layer, Vector2(58, 151), "1–4 Tools   ·   I Bag   ·   J Journal", 18)
 	stats_label = _hud_text(layer, Vector2(1432, 43), "", 23)
 	_hud_text(layer, Vector2(1432, 151), "FOOD", 19)
 	_hud_text(layer, Vector2(1432, 187), "FATIGUE", 19)
@@ -834,7 +1036,9 @@ func _build_hud() -> void:
 	crop_label = _hud_text(layer, Vector2(56, 840), "", 25)
 	crop_label.add_theme_color_override("font_outline_color", INK)
 	crop_label.add_theme_constant_override("outline_size", 10)
-	status_label = _hud_text(layer, Vector2(56, 948), "", 26)
+	status_label = _hud_text(layer, Vector2(56, 943), "", 22)
+	status_label.custom_minimum_size.x = 1128
+	status_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	market = MARKET_MENU_SCENE.instantiate() as MarketMenu
 	layer.add_child(market)
 	market.buy_requested.connect(_buy_seed)
@@ -878,6 +1082,22 @@ func _build_action_menus(layer: CanvasLayer) -> void:
 	inventory_grid.item_used.connect(_use_bag_item)
 	inventory_menu.add_action("Close", _close_menu)
 
+	journal = _new_menu(layer, "Valley Journal")
+	journal.offset_left = -395
+	journal.offset_right = 395
+	journal.offset_top = -215
+	journal.offset_bottom = 215
+	forecast_label = Label.new()
+	forecast_label.add_theme_font_size_override("font_size", 22)
+	journal.rows.add_child(forecast_label)
+	for index in range(3):
+		var delivery := journal.add_action("", _deliver_order.bind(index))
+		delivery.expand_icon = true
+		delivery.add_theme_constant_override("icon_max_width", 34)
+		delivery.add_theme_constant_override("h_separation", 12)
+		order_buttons.append(delivery)
+	journal.add_action("Close", _close_menu)
+
 	test_menu = _new_menu(layer, "Farm Test Menu")
 	test_menu.add_action("Add 100 coins", func() -> void:
 		coins += 100
@@ -895,6 +1115,51 @@ func _new_menu(layer: CanvasLayer, title: String) -> ActionMenu:
 	layer.add_child(menu)
 	menu.title.text = title
 	return menu
+
+
+func _update_journal() -> void:
+	forecast_label.text = "Today: %s  ·  Tomorrow: %s  ·  Crops harvested: %d\n%s deliveries · fulfilled from your bag" % [
+		Weather.NAMES[weather.kind], Weather.NAMES[Weather.forecast(day + 1)], harvested, Catalog.SEASONS[season]]
+	for index in range(order_buttons.size()):
+		var order: Vector3i = Orders.BOARDS[season][index]
+		var delivered := bool(completed_orders & (1 << index))
+		var stock := _delivery_stock(order.x)
+		var button := order_buttons[index]
+		var icon := "bread" if order.x == Orders.BREAD else "crop_%02d" % order.x
+		button.icon = load("res://assets/items/%s.svg" % icon) as Texture2D
+		button.add_theme_color_override("font_disabled_color", Color("#9ec997") if delivered else Color("#b7c4b6"))
+		button.text = "%s ×%d  ·  %d coins  ·  %s" % [
+			Orders.item_name(order.x), order.y, order.z,
+			"Delivered" if delivered else "%d/%d in bag" % [mini(stock, order.y), order.y]]
+		button.disabled = delivered or stock < order.y or _is_exhausted()
+		button.tooltip_text = "Eat or sleep before making a delivery." if _is_exhausted() else ""
+
+
+func _delivery_stock(id: int) -> int:
+	return rations if id == Orders.BREAD else produce.get(id, 0)
+
+
+func _deliver_order(index: int) -> void:
+	var flag := 1 << index
+	var order: Vector3i = Orders.BOARDS[season][index]
+	if _is_exhausted() or completed_orders & flag or _delivery_stock(order.x) < order.y:
+		return
+	if order.x == Orders.BREAD:
+		rations -= order.y
+	else:
+		produce[order.x] -= order.y
+	coins += order.z
+	completed_orders |= flag
+	sound.play_effect(FarmAudio.Effect.TRADE)
+	message = "Delivered %s ×%d and earned %d coins." % [Orders.item_name(order.x), order.y, order.z]
+	_refresh()
+	journal.focus_first_action()
+
+
+func _equip_tool(tool: Tool) -> void:
+	equipped_tool = tool
+	_update_held_tool()
+	message = "Tool: %s." % TOOL_NAMES[tool]
 
 
 func _update_bag() -> void:
@@ -923,9 +1188,7 @@ func _update_bag() -> void:
 func _use_bag_item(kind: InventoryGrid.Kind, id: int) -> void:
 	if kind == InventoryGrid.Kind.TOOL:
 		if not _is_exhausted() and id >= Tool.HOE and id <= Tool.SICKLE:
-			equipped_tool = Tool.HANDS if id == equipped_tool else id as Tool
-			_update_held_tool()
-			message = "Tool: %s." % TOOL_NAMES[equipped_tool]
+			_equip_tool(Tool.HANDS if id == equipped_tool else id as Tool)
 	elif kind == InventoryGrid.Kind.SEED:
 		if not _is_exhausted() and seed_bag.get(id, 0) > 0 and Catalog.crops[id].grows_in(season):
 			equipped_seed = id
