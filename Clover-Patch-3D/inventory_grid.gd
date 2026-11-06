@@ -367,6 +367,9 @@ func _draw_slots() -> void:
 		"%s ×%d%s" % [selected.title, selected.quantity, "\nEquipped" if selected.equipped else ""])
 	use_button.text = selected.action if selected != null and not selected.action.is_empty() else "Use item"
 	use_button.disabled = selected == null or selected.action.is_empty()
+	var has_reserve := _last_page() > 0
+	previous.visible = has_reserve
+	following.visible = has_reserve
 	previous.disabled = page == 0
 	following.disabled = page == _last_page()
 	page_label.text = "%d / %d slots unlocked  ·  First row is the hotbar" % [

@@ -26,7 +26,9 @@ Crop timing reference: [Spring](https://fogu.com/sos3/farm/spring_crops.html), [
 
 - Visit the **Valley Bakery** southeast of the home garden and press **E** by its stall. Bread costs **2 coins** and restores 35 food when eaten.
 - Use **1** for empty hands, **2** for the Hoe, **3** for the Watering Can, and **4** for the Sickle. **E** works the highlighted plot or uses the nearby object.
-- Press **Tab** to free the cursor. Click a tool slot, Bag, Journal, Pause, or the nearby action prompt. Press **Tab** again or click the world to return to camera control.
+- Press **Tab** to free the cursor. Click a hotbar slot, Bag, Journal, Pause, or the nearby action prompt. Press **Tab** again or click the world to return to camera control.
+- The hotbar mirrors the first 12 slots of the Farm Bag. Scroll the mouse wheel or click a slot to select it. Selecting a tool or seed equips it when available. Press **F** to use the selected item. Drag stacks in the bag to reorder the hotbar.
+- The backpack starts with 12 slots. Buy expansions in the Farm Bag to unlock 24 slots for **30 coins**, then 36 slots for **80 coins**. Older stacks beyond the unlocked rows and guaranteed rewards that exceed capacity remain accessible on the Reserve page.
 - Press **I** to open your bag. Drag stacks between slots on the current page. Matching stacks merge up to 64, and different items swap positions. Select an illustrated item slot to equip a tool or seed, or eat that item. Select the equipped tool again to put it away. Stacks hold up to 64 items, and more pages appear as your bag fills.
 - Press **F7** to open or close the Test menu. **Resident testing** lets you set exact favor, try the date and partnership thresholds, reset the selected resident’s romance or daily gift state, and stock their favorite and disliked gifts. You can open dialogue without earning the daily visit bonus, jump to the resident during work hours, or watch them leave home. The main menu still has the farm, time, and cottage shortcuts.
 - **E** prompts appear only within reach of the current plot, shop, door, bed, or repair sign.

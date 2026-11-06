@@ -256,6 +256,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_E:
 			_use_world_action()
 		KEY_F:
+			_update_bag()
 			inventory_grid.use_slot(hotbar_slot)
 		KEY_1, KEY_2, KEY_3, KEY_4:
 			_select_belt_tool(key.physical_keycode - KEY_1)
@@ -776,6 +777,8 @@ func _interact() -> void:
 		Interaction.CLOSED_PASS:
 			message = "A rockslide buried the old pass. The council closed the trail while the slope is still unstable."
 		Interaction.FISHING:
+			if not _bag_has_room(InventoryGrid.Kind.HARVEST, Catalog.POND_PERCH):
+				return
 			clock.do_farm_work()
 			fishing_menu.cast(0.2 * (skills.level(Skills.Skill.FISHING) - 1))
 			_show_menu(fishing_menu)

@@ -17,6 +17,6 @@ func add_action(caption: String, action: Callable, parent: Container = null) -> 
 func focus_first_action() -> void:
 	for child in rows.find_children("*", "Button", true, false):
 		var button := child as Button
-		if button.is_visible_in_tree() and not button.disabled:
+		if button.is_visible_in_tree() and not button.disabled and button.focus_mode != Control.FOCUS_NONE:
 			button.grab_focus()
 			return

@@ -157,9 +157,11 @@ func set_almanac(date: String, hour: float, weather: Weather.Kind) -> void:
 func set_hotbar(bag: Bag, selected: int, held_tool: String) -> void:
 	var stack := bag.stack_at(selected)
 	var item := stack.title if stack != null else "Empty slot"
+	if stack != null and stack.kind == Bag.Kind.TOOL and stack.equipped:
+		item = held_tool
+	else:
+		item += "  ·  Holding " + held_tool
 	tool_label.text = "%s  ·  Wheel to select  ·  F to use" % item
-	if stack == null or stack.kind != Bag.Kind.TOOL:
-		tool_label.text += "  ·  " + held_tool
 	for index in range(_slots.size()):
 		stack = bag.stack_at(index)
 		_slots[index].icon = stack.texture if stack != null else null
