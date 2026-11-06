@@ -1,0 +1,57 @@
+{
+  "id": "roan",
+  "order": 26,
+  "name": "Roan Bell",
+  "role": "Traveling musician",
+  "district": 3,
+  "romance": false,
+  "gifts": {
+    "favorite": 23,
+    "disliked": 22
+  },
+  "character": {
+    "motivation": "Knows a verse missing from the town song. Wants permission before turning anyone else's grief into a performance.",
+    "voice": "Attentive to rhythm. Usually ends on an image or a question.",
+    "connections": [
+      "opal",
+      "greta"
+    ],
+    "backstory": "Roan learned the town song with a verse about the low bank that people stopped singing after the flood. A request for a song about the hearing leaves him deciding whose words he has permission to use.",
+    "quest_hook": "Listen to the missing verse and help Roan ask the people it describes whether they want it sung at the next gathering."
+  },
+  "dialogue": {
+    "introduction": "The second verse is the one people stop singing. That's usually where the trouble is.",
+    "friendship": "A song can make somebody sound braver than they felt. I ask before I use a person's name now.",
+    "supper": "I played the second verse. Nobody sang along at first. By the last line, two people knew it.",
+    "hearing": "I've been asked for a song about the vote. I'm going to start by listening to the people who left the room.",
+    "favorite_gift": "An apple's a fair price for the second verse. Want to hear it?",
+    "disliked_gift": "Fodder in the fiddle case would keep the fiddle very quiet. I have other methods."
+  },
+  "appearance": {
+    "skin": "#d39e76",
+    "hair": "#79463b",
+    "cloth": "#825b79",
+    "accent": "#e8b873",
+    "haircut": "sweep",
+    "outfit": "long_coat",
+    "accessory": "lute",
+    "scale": 1.05
+  },
+  "routine": {
+    "depart": 10.0,
+    "break_at": 16.0,
+    "home": 22.0,
+    "work": [
+      14.5,
+      14.0
+    ],
+    "leisure": [
+      48.5,
+      5.0
+    ],
+    "job": "Practices by the meadow",
+    "hobby": "Plays for the commons crowd",
+    "leisure_area": "the commons",
+    "home_context": "Keeps a home near the commons route so neighbors can hear him practice before supper."
+  }
+}

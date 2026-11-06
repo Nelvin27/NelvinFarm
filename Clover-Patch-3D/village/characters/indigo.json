@@ -1,0 +1,57 @@
+{
+  "id": "indigo",
+  "order": 20,
+  "name": "Indigo Vale",
+  "role": "Surveyor",
+  "district": 2,
+  "romance": false,
+  "gifts": {
+    "favorite": 22,
+    "disliked": -1
+  },
+  "character": {
+    "motivation": "Her maps erased the flooded homes by using the council's legend. Wants the families to choose what goes back in.",
+    "voice": "Specific about distances and names, skeptical of tidy maps.",
+    "connections": [
+      "iona",
+      "orin"
+    ],
+    "backstory": "Indigo drew the official map after the flood using a council legend that omitted the damaged homes. Her mother had walked that road every day, and Orin still knows where the doors stood.",
+    "quest_hook": "Take the map to former residents and record the names they want restored, including any they want kept off public copies."
+  },
+  "dialogue": {
+    "introduction": "The old map calls this an empty valley. My mother was born in one of those empty places.",
+    "friendship": "I drew the road that goes nowhere. My mother walked it every morning before the flood.",
+    "supper": "People kept pointing out houses on the map I brought. I left the pencil there so they could draw them in.",
+    "hearing": "I'm putting the old houses back on the map. I'll use the names the families give me.",
+    "favorite_gift": "Good. I needed something dry to wrap the measuring rods in.",
+    "disliked_gift": "The survey bag smells like wet paper already. Please keep the bread."
+  },
+  "appearance": {
+    "skin": "#b8815b",
+    "hair": "#393343",
+    "cloth": "#53668e",
+    "accent": "#e5cba4",
+    "haircut": "part",
+    "outfit": "cape",
+    "accessory": "map",
+    "scale": 1.06
+  },
+  "routine": {
+    "depart": 7.0,
+    "break_at": 15.0,
+    "home": 20.0,
+    "work": [
+      12.5,
+      -11.0
+    ],
+    "leisure": [
+      58.5,
+      29.0
+    ],
+    "job": "Checks the orchard boundary stakes",
+    "hobby": "Surveys the bank at Reedmere",
+    "leisure_area": "Reedmere",
+    "home_context": "Picked the far end of the terrace so she could walk the ridge and sight back down the valley."
+  }
+}

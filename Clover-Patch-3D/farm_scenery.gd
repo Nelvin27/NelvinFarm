@@ -1,8 +1,10 @@
 extends Node3D
 
+const ResidentHouse := preload("res://resident_house.gd")
 const FarmMesh := preload("res://farm_mesh.gd")
 const WorldLayout := preload("res://world_layout.gd")
-const CREAM := Color("#e8ddbf")
+const Terrain := preload("res://terrain_mesh.gd")
+const Details := preload("res://valley_details.gd")
 const SEASON_GROUND := ["#94b871", "#8ba965", "#b39964", "#d0d8d3"]
 const Voxels := preload("res://voxel_assets.gd")
 
@@ -13,7 +15,14 @@ var cottage_door: Vector3
 var repair_sign: Vector3
 var food_counter: Vector3
 var market_area: Rect2
+var shipping_bin: Vector3
+var orchard_fruit: Dictionary[Vector3, Node3D] = {}
+var fishing_spots: Array[Vector3] = []
 var obstacles: Array[Rect2] = []
+var picnic_spots: Array[Vector3] = []
+var closed_passes: Array[Vector3] = []
+var wildlife: Array[Details] = []
+var resident_doors: Dictionary = {}
 
 
 func rebuild(layout: WorldLayout, preview := false) -> void:
@@ -21,35 +30,75 @@ func rebuild(layout: WorldLayout, preview := false) -> void:
 		remove_child(child)
 		child.queue_free()
 	obstacles.clear()
+	picnic_spots.clear()
+	closed_passes.clear()
+	wildlife.clear()
+	resident_doors.clear()
+	orchard_fruit.clear()
+	fishing_spots.clear()
+	layout.refresh_mountains()
 	_ground_patch(layout.bounds.grow(2.0), -0.31, 0.56, "#ffffff", Voxels.SOIL)
-	ground = _ground_patch(layout.bounds, -0.11, 0.25, SEASON_GROUND[0], Voxels.GRASS)
+	if layout.mountains.is_empty():
+		ground = _ground_patch(layout.bounds, -0.11, 0.25, SEASON_GROUND[0], Voxels.GRASS)
+	else:
+		ground = Terrain.surface(self, layout, layout.bounds, 0.015, Voxels.GRASS, SEASON_GROUND[0], Voxels.SOIL)
 	for entity in layout.entities:
-		_build_entity(entity, preview)
+		_build_entity(layout, entity, preview)
 
 
-func _build_entity(entity: Dictionary, preview: bool) -> void:
-	var at := WorldLayout.position_of(entity)
+func _build_entity(layout: WorldLayout, entity: Dictionary, preview: bool) -> void:
+	var authored := WorldLayout.position_of(entity)
+	var at := layout.grounded(authored)
 	var size: Array = entity.get("size", [1.0, 1.0])
 	var area := Rect2(Vector2(at.x, at.z) - Vector2(size[0], size[1]) * 0.5, Vector2(size[0], size[1]))
 	match entity["kind"]:
 		"grass":
 			FarmMesh.tile(self, at, Vector3(1, 0.11, 1), Voxels.GRASS, entity.get("color", "#98b572"))
 		"path":
-			_ground_patch(area, at.y, 0.012, "#ffffff", Voxels.PATH)
+			if layout.mountains.is_empty():
+				_ground_patch(area, at.y, 0.012, "#ffffff", Voxels.PATH)
+			else:
+				Terrain.surface(self, layout, area, maxf(authored.y, 0.035) + 0.006, Voxels.PATH, "#ffffff")
 		"pond":
-			_build_pond(area)
+			_build_pond(area, at.y)
+			for index in range(2):
+				_add_wildlife(at + Vector3.UP * 0.065, area.size * (0.25 + index * 0.07),
+					false, 2.5 + index * 6.0)
+		"ridge_barrier":
+			obstacles.append(area)
+		"closed_pass":
+			obstacles.append(Details.closed_pass(self, at))
+			closed_passes.append(at + Vector3.RIGHT * 1.3)
+		"picnic":
+			obstacles.append(Details.picnic(self, at))
+			picnic_spots.append(at)
+		"bunting":
+			Details.bunting(self, at)
+		"butterflies":
+			for index in range(3):
+				_add_wildlife(at + Vector3.UP * (1.0 + index * 0.23),
+					Vector2(1.15 + index * 0.28, 0.85 + index * 0.22), true, index * 1.8 + at.x + 100.0)
 		"plot":
 			if preview:
 				FarmMesh.tile(self, at + Vector3.UP * 0.042, Vector3(0.97, 0.15, 0.97), Voxels.SOIL)
 		"fence":
 			_build_fence(at, float(entity.get("length", 1.0)), float(entity.get("yaw", 0.0)))
 		"tree", "apple_tree":
-			Voxels.tree(self, at, float(entity.get("scale", 1.0)), entity["kind"] == "apple_tree")
+			var fruit := Voxels.tree(self, at, float(entity.get("scale", 1.0)), entity["kind"] == "apple_tree")
+			if fruit != null:
+				orchard_fruit[authored] = fruit
 		"purple_flower", "yellow_flower":
 			var tint := "#a87fb9" if entity["kind"] == "purple_flower" else "#ddbd64"
 			Voxels.flower(self, at, float(entity.get("scale", 0.65)), tint)
 		"sign":
-			_place_waypoint(at, str(entity.get("label", "Clover Valley")))
+			_place_signpost(at)
+		"lamp":
+			FarmMesh.box(self, at + Vector3.UP * 0.65, Vector3(0.16, 1.3, 0.16), "#665044")
+			FarmMesh.box(self, at + Vector3.UP * 1.39, Vector3(0.27, 0.29, 0.27), "#ebbd6e", true)
+			FarmMesh.box(self, at + Vector3.UP * 1.57, Vector3(0.35, 0.09, 0.35), "#635044")
+			FarmMesh.box(self, at + Vector3.UP * 1.22, Vector3(0.34, 0.09, 0.34), "#635044")
+		"resident_house":
+			obstacles.append(ResidentHouse.build(self, at, entity, resident_doors))
 		"cottage":
 			_build_cottage(at)
 		"seed_market":
@@ -58,19 +107,35 @@ func _build_entity(entity: Dictionary, preview: bool) -> void:
 			_build_food_stall(at)
 		"spawn":
 			if preview:
-				_place_waypoint(at, "Player spawn")
+				_place_signpost(at)
 
 
-func _build_pond(area: Rect2) -> void:
+func _add_wildlife(at: Vector3, radius: Vector2, flight: bool, phase: float) -> void:
+	var animal := Details.new()
+	add_child(animal)
+	animal.populate(at, radius, flight, phase)
+	wildlife.append(animal)
+
+
+func update_wildlife(delta: float) -> void:
+	for animal in wildlife:
+		animal.advance(delta)
+
+
+func _build_pond(area: Rect2, height: float) -> void:
 	obstacles.append(area)
-	_ground_patch(area.grow(0.38), 0.019, 0.028, "#e1d0b3", Voxels.PATH)
-	_ground_patch(area, 0.037, 0.018, "#ffffff", Voxels.WATER)
+	var spot := Vector3(area.get_center().x, height, area.position.y - 0.65)
+	fishing_spots.append(spot)
+	FarmMesh.tile(self, spot + Vector3.UP * 0.04, Vector3(1.3, 0.13, 1.16), Voxels.WOOD)
+	_place_signpost(spot + Vector3(0.85, 0, -0.22))
+	_ground_patch(area.grow(0.38), height + 0.019, 0.028, "#e1d0b3", Voxels.PATH)
+	_ground_patch(area, height + 0.037, 0.018, "#ffffff", Voxels.WATER)
 	for index in range(7):
 		var x := area.position.x + area.size.x * (0.09 + index * 0.1314)
 		var ripples_z := area.position.y + area.size.y * (0.25 + sin(index * 3.0) * 0.13)
 		var lilies_z := area.position.y + area.size.y * (0.70 + cos(index * 2.0) * 0.12)
-		FarmMesh.box(self, Vector3(x, 0.05, ripples_z), Vector3(0.38, 0.012, 0.035), "#94bcb7")
-		FarmMesh.box(self, Vector3(x, 0.065, lilies_z), Vector3(0.32, 0.035, 0.24), "#6c935b")
+		FarmMesh.box(self, Vector3(x, height + 0.05, ripples_z), Vector3(0.38, 0.012, 0.035), "#94bcb7")
+		FarmMesh.box(self, Vector3(x, height + 0.065, lilies_z), Vector3(0.32, 0.035, 0.24), "#6c935b")
 
 
 func _build_fence(at: Vector3, length: float, yaw: float) -> void:
@@ -88,7 +153,7 @@ func _build_fence(at: Vector3, length: float, yaw: float) -> void:
 
 
 func set_ground_season(season: int) -> void:
-	var surface := ground.material_override as StandardMaterial3D
+	var surface := ground.get_active_material(0) as StandardMaterial3D
 	surface.albedo_color = Color(SEASON_GROUND[season])
 
 
@@ -102,16 +167,9 @@ func _ground_patch(area: Rect2, y: float, height: float, color: String, texture:
 	return FarmMesh.tile(self, Vector3(center.x, y, center.y), Vector3(area.size.x, height, area.size.y), texture, color)
 
 
-func _place_waypoint(at: Vector3, caption: String) -> void:
+func _place_signpost(at: Vector3) -> void:
 	FarmMesh.box(self, at + Vector3.UP * 0.42, Vector3(0.12, 0.84, 0.12), "#8b6750")
-	var sign := Label3D.new()
-	sign.position = at + Vector3.UP * 0.96
-	sign.text = caption
-	sign.font_size = 36
-	sign.pixel_size = 0.01
-	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	sign.modulate = CREAM
-	add_child(sign)
+	FarmMesh.box(self, at + Vector3.UP * 0.79, Vector3(0.48, 0.24, 0.09), "#ad8960")
 
 
 func _build_cottage(at: Vector3) -> void:
@@ -154,7 +212,16 @@ func _build_cottage(at: Vector3) -> void:
 	FarmMesh.box(repaired_roof, Vector3(0.48, 1.4, -2.77), Vector3(0.075, 0.68, 0.055), "#544231")
 	FarmMesh.box(repaired_roof, Vector3(0, 0.16, 3.04), Vector3(1.30, 0.025, 0.24), "#758a54")
 	repaired_roof.hide()
-	_place_waypoint(repair_sign, "Cottage Repairs")
+	_place_signpost(repair_sign)
+	_build_shipping_bin(cottage_door + Vector3(-2.45, 0, 0.7))
+
+
+func _build_shipping_bin(at: Vector3) -> void:
+	shipping_bin = at
+	obstacles.append(Rect2(at.x - 0.55, at.z - 0.36, 1.1, 0.72))
+	FarmMesh.tile(self, at + Vector3.UP * 0.28, Vector3(1.1, 0.56, 0.72), Voxels.WOOD)
+	FarmMesh.box(self, at + Vector3.UP * 0.57, Vector3(1.16, 0.10, 0.78), "#664531")
+	_place_signpost(at + Vector3(0, 0, -0.38))
 
 
 func _build_roof(roof: Node3D, damaged: bool) -> void:
@@ -190,7 +257,7 @@ func _build_food_stall(at: Vector3) -> void:
 	for loaf in range(3):
 		FarmMesh.box(stall, Vector3((loaf - 1) * 0.35, 0.90, 0.03),
 			Vector3(0.25, 0.16, 0.31), "#c99d64")
-	_place_waypoint(at + Vector3(-0.92, 0, 0), "Valley Bakery")
+	_place_signpost(at + Vector3(-0.92, 0, 0))
 
 
 func _build_market_stall(at: Vector3) -> void:
@@ -205,12 +272,3 @@ func _build_market_stall(at: Vector3) -> void:
 	for stripe in range(5):
 		var color := "#d3b795" if stripe % 2 == 0 else "#a76761"
 		FarmMesh.box(stall, Vector3(0, 1.43, (stripe - 2) * 0.32), Vector3(1.04, 0.13, 0.32), color)
-
-	var sign := Label3D.new()
-	sign.text = "SEED MARKET"
-	sign.font_size = 42
-	sign.pixel_size = 0.008
-	sign.position.y = 1.79
-	sign.billboard = BaseMaterial3D.BILLBOARD_ENABLED
-	sign.modulate = CREAM
-	stall.add_child(sign)

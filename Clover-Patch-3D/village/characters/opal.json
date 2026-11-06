@@ -1,0 +1,57 @@
+{
+  "id": "opal",
+  "order": 31,
+  "name": "Opal North",
+  "role": "Bell keeper",
+  "district": 3,
+  "romance": false,
+  "gifts": {
+    "favorite": 5,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Rang the bell during the flood. Wants somebody else to learn how to call the valley together.",
+    "voice": "Careful pacing and language about sound and distance.",
+    "connections": [
+      "otto",
+      "roan"
+    ],
+    "backstory": "Opal rang the bell until the floodwater reached the low road. Across the pond, some people heard it as a wedding call and stayed where they were.",
+    "quest_hook": "Work with Opal and Otto to choose a flood signal residents can recognize by sound or lamplight, then try it from both banks."
+  },
+  "dialogue": {
+    "introduction": "We ring for births and storms. I still don't know what we're supposed to ring when somebody finally comes home.",
+    "friendship": "When the water rose, I rang until the rope burned my hands. Across the pond, somebody thought it was a wedding.",
+    "supper": "I rang once when the last person got a plate. I think that could be the sound for coming home.",
+    "hearing": "The bell can announce the next hearing. I'll teach somebody else to ring it too.",
+    "favorite_gift": "I'll leave it below the bell. Nobody thinks to look up and see who put it there.",
+    "disliked_gift": "Please don't bring fish up the bell tower. I have enough trouble with the gulls."
+  },
+  "appearance": {
+    "skin": "#d8ac8c",
+    "hair": "#d9cfbe",
+    "cloth": "#77648a",
+    "accent": "#edc27b",
+    "haircut": "bob",
+    "outfit": "cape",
+    "accessory": "bell",
+    "scale": 0.97
+  },
+  "routine": {
+    "depart": 7.0,
+    "break_at": 16.0,
+    "home": 21.0,
+    "work": [
+      17.5,
+      16.0
+    ],
+    "leisure": [
+      35.5,
+      -8
+    ],
+    "job": "Checks the meadow bell",
+    "hobby": "Checks the uphill warning route",
+    "leisure_area": "Highbank Terrace",
+    "home_context": "Chose the high terrace after learning how differently people heard the flood bell below."
+  }
+}

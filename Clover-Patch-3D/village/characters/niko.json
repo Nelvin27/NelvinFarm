@@ -1,0 +1,58 @@
+{
+  "id": "niko",
+  "order": 5,
+  "name": "Niko Voss",
+  "role": "Repair apprentice",
+  "district": 0,
+  "romance": false,
+  "gifts": {
+    "favorite": 22,
+    "disliked": 0
+  },
+  "character": {
+    "motivation": "Wants to be trusted with a repair people will notice. Takes extra shifts to avoid admitting that he likes company.",
+    "voice": "Earnest, self-deprecating, explains things by taking them apart.",
+    "connections": [
+      "sol",
+      "pip"
+    ],
+    "backstory": "Niko learned carpentry on flood salvage, practicing on pieces Sol had already judged too damaged to reuse. He wants a public repair that residents can trust him to finish.",
+    "quest_hook": "Give Niko a chance to build the hearing noticeboard and ask the families what it should protect from rain and what it should make easy to read."
+  },
+  "dialogue": {
+    "introduction": "If a hinge squeaks, at least it has the decency to tell you where it hurts.",
+    "friendship": "Sol lets me fix things twice. The first time I learn what broke. The second time I learn what I broke.",
+    "supper": "They asked me to fix a wobbling bench. I thought I'd been invited to sit. Turns out it was both.",
+    "hearing": "I can build a proper public noticeboard. I'd like the hinges to outlast whoever's in office.",
+    "favorite_gift": "I needed stuffing for a drafty window. This will do nicely.",
+    "disliked_gift": "A turnip rolls off every workbench I own. Trust me on this."
+  },
+  "appearance": {
+    "skin": "#bd8259",
+    "hair": "#583535",
+    "cloth": "#44747a",
+    "accent": "#e79e69",
+    "haircut": "tuft",
+    "outfit": "overalls",
+    "accessory": "mallet",
+    "scale": 0.97
+  },
+  "routine": {
+    "depart": 8.5,
+    "break_at": 14.0,
+    "home": 19.0,
+    "work": [
+      60.5,
+      -8
+    ],
+    "leisure": [
+      8.5,
+      9
+    ],
+    "job": "Fixes broken tools",
+    "hobby": "Looks for spare parts near Market Lane",
+    "leisure_area": "the commons",
+    "work_area": "repair yard",
+    "home_context": "Settled next to Sol so the pair can sort salvage and work on repairs together."
+  }
+}

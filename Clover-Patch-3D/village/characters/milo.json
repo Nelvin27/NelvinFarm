@@ -1,0 +1,57 @@
+{
+  "id": "milo",
+  "order": 14,
+  "name": "Milo Brook",
+  "role": "Weather watcher",
+  "district": 1,
+  "romance": false,
+  "gifts": {
+    "favorite": 5,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Learned to track rain after the flood. Wants a public record the next council cannot set aside.",
+    "voice": "Keen observer. Makes weather sound bodily and nearby.",
+    "connections": [
+      "vera",
+      "indigo"
+    ],
+    "backstory": "Before the flood, Milo recorded storms when rain reached his own house. After seeing how much warning the low bank lost, he started making observations downstream and keeping copies outside the council office.",
+    "quest_hook": "Help Milo and Vera compare the warning times along the river and choose where to post the next storm reading."
+  },
+  "dialogue": {
+    "introduction": "Storm clouds have elbows. If you see one sticking out, get your laundry in.",
+    "friendship": "I used to mark a storm when it reached our house. Now I mark it when it reaches the first house downstream.",
+    "supper": "I watched the clouds all afternoon. Sometimes the useful thing about weather is that it gives people something else to talk about.",
+    "hearing": "I can keep a public rain book. It'll start with the readings people say they can't remember.",
+    "favorite_gift": "I'll put it outside and see how long it stays open before the rain.",
+    "disliked_gift": "I don't clean fish indoors. The last storm got into the smell and kept it there."
+  },
+  "appearance": {
+    "skin": "#e4b58c",
+    "hair": "#735748",
+    "cloth": "#7c8891",
+    "accent": "#e7cc89",
+    "haircut": "part",
+    "outfit": "cape",
+    "accessory": "gauge",
+    "scale": 0.95
+  },
+  "routine": {
+    "depart": 6.5,
+    "break_at": 16.0,
+    "home": 20.0,
+    "work": [
+      -5.5,
+      15.0
+    ],
+    "leisure": [
+      43.5,
+      28.0
+    ],
+    "job": "Records the morning weather",
+    "hobby": "Reads the clouds above the green",
+    "leisure_area": "Village Green",
+    "home_context": "Chose the inland end of Reedmere Walk to compare hill weather with readings downstream."
+  }
+}

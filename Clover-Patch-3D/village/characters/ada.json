@@ -1,0 +1,57 @@
+{
+  "id": "ada",
+  "order": 15,
+  "name": "Ada Wren",
+  "role": "Soup volunteer",
+  "district": 1,
+  "romance": false,
+  "gifts": {
+    "favorite": 0,
+    "disliked": 5
+  },
+  "character": {
+    "motivation": "Uses shared food to get people into the same room. Wants the valley to keep feeding people after the dispute ends.",
+    "voice": "Direct, grounded in kitchens and physical work.",
+    "connections": [
+      "mara",
+      "sana"
+    ],
+    "backstory": "Ada ran a soup pot from Maraâ€™s back step while the displaced families waited for news of their leases. Once the relief money stopped, she kept serving by taking whatever the farms could spare.",
+    "quest_hook": "The next supper needs a regular supply of food. Ada has to decide how much she can ask of neighbors who are already giving."
+  },
+  "dialogue": {
+    "introduction": "Soup is a good place to put the ugly vegetables. A town should have a place like that too.",
+    "friendship": "If you want someone to talk, give them a potato to peel. They can look at their hands while they decide.",
+    "supper": "Three people asked for the soup recipe. The useful part is how much water to add when another person walks in.",
+    "hearing": "I'm making soup for the next meeting. Everyone gets a bowl before anyone gets a turn to speak.",
+    "favorite_gift": "I'll put it in with the last of yesterday's potatoes.",
+    "disliked_gift": "A flower's nice. Right now I'd rather have something I can cut into the soup."
+  },
+  "appearance": {
+    "skin": "#88583f",
+    "hair": "#ccc0aa",
+    "cloth": "#996448",
+    "accent": "#e7bb78",
+    "haircut": "bun",
+    "outfit": "apron",
+    "accessory": "bowl",
+    "scale": 0.94
+  },
+  "routine": {
+    "depart": 9.0,
+    "break_at": 15.0,
+    "home": 20.0,
+    "work": [
+      -4.5,
+      13.0
+    ],
+    "leisure": [
+      32.5,
+      5
+    ],
+    "job": "Sorts donated pantry goods",
+    "hobby": "Serves soup beside Mara at the commons",
+    "leisure_area": "the commons",
+    "home_context": "Lives next to Mara so they can carry food between their kitchens and share the cost of supper."
+  }
+}

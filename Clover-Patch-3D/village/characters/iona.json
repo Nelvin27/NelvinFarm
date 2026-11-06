@@ -1,0 +1,74 @@
+{
+  "id": "iona",
+  "order": 0,
+  "name": "Iona Vale",
+  "role": "Council keeper",
+  "district": 0,
+  "romance": false,
+  "gifts": {
+    "favorite": 24,
+    "disliked": 22
+  },
+  "character": {
+    "motivation": "Counts chairs before people arrive. Wants the council to earn back the trust she once mistook for quiet.",
+    "voice": "Measured, practical, lets an uncomfortable pause sit.",
+    "connections": [
+      "indigo",
+      "greta"
+    ],
+    "backstory": "Iona took over the council book after the flood and inherited minutes that recorded the sale without recording the tenantsâ€™ objections. For years she read falling attendance as acceptance.",
+    "quest_hook": "Help Iona plan a follow-up meeting around the people who stopped coming and let them set the first item on the agenda."
+  },
+  "dialogue": {
+    "introduction": "I count the chairs before a meeting. Empty ones tell you who has stopped expecting an answer.",
+    "friendship": "The easiest meeting I ever chaired was the one where nobody believed it could change anything.",
+    "supper": "A spare place is a promise. Next time I need to send invitations before the room fills.",
+    "hearing": "I can keep a clinic open without letting an emergency vote stand in for consent.",
+    "opening": "Your cottage is still dry. Three families lost theirs the night the gate opened. Ask Tess, Vera, and Orin what the council left out.",
+    "waiting_hearing": "Leave the deed with me tonight. The tenants deserve notice before anyone votes. Come back tomorrow.",
+    "open_hearing": "We have the missing lease list, the gatekeeper's account, and the tenants' deed. The room is waiting for your recommendation.",
+    "hearings": [
+      "I've posted the ledger. People are reading it in pairs. Some are furious at me. At least they can argue over the same page now.",
+      "The displaced families voted to put the leases in a shared trust. The clinic gets its lease back. The council has to ask before it sells anything now.",
+      "We sealed the names and opened a claims fund. The families have a place to come forward privately. Some neighbors still think I've hidden the whole thing."
+    ],
+    "favorite_gift": "I'll share the perch with the clerk. She's missed supper twice this week.",
+    "disliked_gift": "Save the fodder for somebody with a hungry animal."
+  },
+  "appearance": {
+    "skin": "#d4a17e",
+    "hair": "#55404c",
+    "cloth": "#655782",
+    "accent": "#dfbe7e",
+    "haircut": "part",
+    "outfit": "coat",
+    "accessory": "ledger",
+    "scale": 1.04
+  },
+  "routine": {
+    "depart": 8.0,
+    "break_at": 13.0,
+    "home": 19.0,
+    "work": [
+      0.5,
+      7.0
+    ],
+    "leisure": [
+      44.5,
+      5
+    ],
+    "job": "Checks council petitions",
+    "hobby": "Reads old petitions at the commons",
+    "leisure_area": "the commons",
+    "home_context": "Chose a home within walking distance of the market petitions and Tess's archive.",
+    "story_stop": {
+      "after": "hearing",
+      "at": [
+        1.5,
+        7
+      ],
+      "area": "Market Lane",
+      "activity": "Makes time for neighbors after the hearing"
+    }
+  }
+}

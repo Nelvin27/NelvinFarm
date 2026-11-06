@@ -1,6 +1,9 @@
 extends Node
 
-enum Effect { GRASS_STEP, WOOD_STEP, TILL, PLANT, WATER, HARVEST, MENU, SLEEP, EAT, TRADE }
+enum Effect {
+	GRASS_STEP, WOOD_STEP, TILL, PLANT, WATER, HARVEST, MENU, SLEEP, EAT, TRADE,
+	FISHING_CAST, FISHING_BITE, FISHING_CATCH, FRUIT_PLUCK,
+}
 
 const THEME := preload("res://assets/audio/clover_theme.ogg")
 const EFFECTS: Dictionary[Effect, AudioStream] = {
@@ -14,6 +17,10 @@ const EFFECTS: Dictionary[Effect, AudioStream] = {
 	Effect.SLEEP: preload("res://assets/audio/sleep.wav"),
 	Effect.EAT: preload("res://assets/audio/eat.wav"),
 	Effect.TRADE: preload("res://assets/audio/trade.wav"),
+	Effect.FISHING_CAST: preload("res://assets/audio/fishing_cast.wav"),
+	Effect.FISHING_BITE: preload("res://assets/audio/fishing_bite.wav"),
+	Effect.FISHING_CATCH: preload("res://assets/audio/fishing_catch.wav"),
+	Effect.FRUIT_PLUCK: preload("res://assets/audio/fruit_pluck.wav"),
 }
 const METERS_PER_STEP := 0.88
 

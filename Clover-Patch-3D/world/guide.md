@@ -1,0 +1,44 @@
+# Rebuilding Clover Valley
+
+Give the AI this guide and [clover_valley.json](clover_valley.json). Ask it to use the current map as the baseline and change the requested area in place. For a full rebuild, preserve the gameplay anchors, resident routes, and story relationships described here. The JSON is the shared source for both the game and World Builder.
+
+## What the map should feel like
+
+Clover Valley is a walkable farming village shaped by an old flood. The dry farm cottage, the uphill escape route, the old waterline, and the newer homes give the story a physical setting. Read [The High-Water Mark](../village/STORY.md) before moving neighborhoods or story landmarks. Use blocky terrain, dirt paths, trees, fences, lanterns, and distinctive roofs to guide players. Keep text labels out of the 3D world. Builder names and journal directions are fine.
+
+| Area | What to preserve when rebuilding |
+| --- | --- |
+| Home Farm and Market Lane | Keep the cottage, fields, and farm access lanes on level ground. Preserve the direct route to the seed market and bakery. Keep existing farm plots in place because saves identify crops by grid position. |
+| Willow Pond and Clover Meadow | Willow Pond is the older water landmark tied to the flood. Keep the bank accessible for fishing and witness routes. Keep the meadow open around the Valley Supper at X/Z `[14, 16.5]`, including space for residents around the table. |
+| Highbank Terrace | Keep the uphill lantern route recognizable. Orin moved above the flood line. Sol and Niko live near each other and the repair yard. |
+| Bread Lane | Connect it to the bakery and market. Keep Mara next to Ada and Tess near Iona so their daily routes make sense. |
+| Orchard Row | Keep the route to the existing orchards and replacement gardens. Lark, Joel, Faye, and Ness belong near one another. |
+| Reedmere Walk | Lead from Sana and Vera’s homes toward the newer pond. Bea, Hollis, and Ren live near the water. Keep an open approach to the bank. |
+| Northern ridges | Use broad terraces with whole-block rises and a readable trail. Keep routine destinations and the connections between them on level ground, since villager navigation excludes raised terrain. |
+
+## Layout contract
+
+Home Farm has level reserves for later upgrades. The coordinates below list inclusive tile centers in X/Z. Keep the footprints clear and use the existing lanes to reach their edges.
+
+| Reserve | X | Z | Size | Elevation |
+| --- | --- | --- | --- | --- |
+| Cottage expansion | −18.5 to −8.5 | 1 to 8 | 11 × 8 | 0 |
+| Outbuilding yard north of the cottage | −20.5 to −12.5 | −8 to −2 | 9 × 7 | 0 |
+| North field beside the ridge trail | −4.5 to 4.5 | −13 to −7 | 10 × 7 | 0 |
+| South field off the old pass road | −23.5 to −12.5 | 17 to 24 | 12 × 8 | 0 |
+
+- Keep `version: 1`. Bounds are `[min_x, min_z, width, depth]`. The current map uses `[-43, -62, 168, 132]`. Width and depth must each be 8–200 units. The layout supports up to 5,000 entities, and every entity center must be inside the bounds. Keep approaches inside the playable side of the ridge.
+- Entity positions are `[x, y, z]`. Y is an offset above the terrain. Keep exactly one each of `spawn`, `cottage`, `seed_market`, and `bakery`. Their current positions are `[-5.5, 0, 0]`, `[-12.5, 0, 6]`, `[4.5, 0.06, 2.5]`, and `[8.5, 0, 6]`, respectively.
+- Farm plots use unique positions with half-integer X, integer Z, and Y set to 0. Use existing entity kinds and fields from the [layout validator](../world_layout.gd). If a rebuild needs a new kind, update the game and World Builder validators and scenery together.
+- For `path`, `pond`, `mountain`, and `ridge_barrier`, `size` is `[width, depth]`. Mountain `height` must be greater than 0 and at most 16. The four ridge barriers overlap at the corners and stop movement behind the visible slopes. Keep the old pass approachable from the east so the player can inspect the rockslide.
+- Put picnic tables beside trails on level ground, with room to approach the benches. Use bunting at gathering places and butterfly groups near gardens. Ponds add their own ducks. Keep the Supper clearing and fishing platforms open.
+
+## Houses and routines
+
+Keep one `resident_house` for each of the 32 residents. Set `resident` to the character’s JSON filename stem and `street` to the name used by the Resident Directory. Use `style` (0–3), `color`, `trim`, and `detail` to give each house character. Houses face positive Z. Leave a clear, level approach at `[x, z + 2]` so the door can open and the resident can step out and join their route. Residents stay inside during home hours. The entrance is for resident animations and has no player interaction.
+
+If you move a workplace, hangout, or story landmark, check the matching [character files](../village/characters). Update affected `routine.work`, `routine.leisure`, and optional `routine.story_stop.at` coordinates and their journal directions. These are `[x, z]` points. Check each route from the doorstep to work, then leisure or the story stop, and back home. Use the resident’s backstory, connections, and `routine.home_context` when deciding where to place their house or change their neighbors.
+
+## Verify the rebuilt area
+
+Open the shared JSON in World Builder, frame the valley, and save it through the editor. Restart the game and walk from spawn to the cottage, both shops, the meadow, and the rebuilt area. Use **F7 → Resident testing → Go to house just before departure** to check the doorway and first leg of the route for residents whose lots or paths changed. Confirm that fishing banks, event spaces, and paths around buildings are reachable. Run the Godot checks listed in the [repository authoring guide](../../AGENTS.md).

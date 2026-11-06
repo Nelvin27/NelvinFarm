@@ -1,0 +1,57 @@
+{
+  "id": "del",
+  "order": 24,
+  "name": "Del Stone",
+  "role": "Quarry foreman",
+  "district": 3,
+  "romance": false,
+  "gifts": {
+    "favorite": -1,
+    "disliked": 5
+  },
+  "character": {
+    "motivation": "Was paid to clear flood-damaged houses. Wants the rebuilding work to go to the families he once helped displace.",
+    "voice": "Halting when personal, decisive about labor and pay.",
+    "connections": [
+      "orin",
+      "greta"
+    ],
+    "backstory": "Del was hired to clear the flooded cottages after the council sold the plots. He had wages to pay and accepted the clearance list without checking whether the people named on it had finished collecting their things.",
+    "quest_hook": "Del wants to offer the families first refusal on the bridge work. One of them would rather he return something from the clearance yard."
+  },
+  "dialogue": {
+    "introduction": "Everybody wants a bridge. Ask where they want the stone cut and suddenly it's a different meeting.",
+    "friendship": "My hands shook the first time I was asked to take down a house. I sharpened every tool twice that morning.",
+    "supper": "I sat by the door. In case anyone needed to leave, I wanted there to be somebody they could ask to move.",
+    "hearing": "I'll ask who wants paid work on the next bridge. I know a few people we didn't ask last time.",
+    "favorite_gift": "I'll take half to the apprentice. He thinks skipping lunch saves time.",
+    "disliked_gift": "The quarry dust will turn that flower gray before I get home."
+  },
+  "appearance": {
+    "skin": "#bc8260",
+    "hair": "#57413e",
+    "cloth": "#68666e",
+    "accent": "#cf9f6d",
+    "haircut": "beard",
+    "outfit": "coat",
+    "accessory": "hammer",
+    "scale": 1.1
+  },
+  "routine": {
+    "depart": 7.0,
+    "break_at": 13.0,
+    "home": 18.0,
+    "work": [
+      17.5,
+      12.0
+    ],
+    "leisure": [
+      46.5,
+      27.0
+    ],
+    "job": "Inspects stone near the meadow",
+    "hobby": "Walks the green",
+    "leisure_area": "Village Green",
+    "home_context": "Lives close to the repair yard and the salvaged stone he was hired to clear."
+  }
+}

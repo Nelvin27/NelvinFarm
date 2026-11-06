@@ -5,7 +5,11 @@ enum Season { SPRING, SUMMER, FALL, WINTER }
 const DAYS_PER_SEASON := 30
 const SEASONS := ["Spring", "Summer", "Fall", "Winter"]
 const TURNIP := 0
+const MOONDROP := 5
 const GRASS := 22
+const SEED_COUNT := 23
+const APPLE := SEED_COUNT
+const POND_PERCH := 24
 
 
 class Crop:
@@ -64,6 +68,8 @@ static var crops: Array[Crop] = [
 	Crop.new("Magic Flower", Season.FALL, 11, 0, "#798fb7", false),
 	Crop.new("Sunsweet Flower", Season.FALL, 11, 0, "#cfb477", false),
 	Crop.new("Fodder Grass", Season.SPRING, 2, 1, "#799954", false, true),
+	Crop.new("Orchard Apple", Season.FALL, 2, 0, "#b85c50"),
+	Crop.new("Pond Perch", Season.SPRING, 4, 0, "#80a7a0"),
 ]
 
 

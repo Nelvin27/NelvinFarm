@@ -1,0 +1,57 @@
+{
+  "id": "bram",
+  "order": 6,
+  "name": "Bram Pike",
+  "role": "Weighmaster",
+  "district": 0,
+  "romance": false,
+  "gifts": {
+    "favorite": 0,
+    "disliked": 23
+  },
+  "character": {
+    "motivation": "Believes precise books can protect ordinary people. Has to face what even an accurate ledger can leave out.",
+    "voice": "Exact language, rarely volunteers a feeling directly.",
+    "connections": [
+      "mara",
+      "hollis"
+    ],
+    "backstory": "Bram weighed emergency flour deliveries for the bakery during the flood. The totals were correct, but families who picked up supplies under somebody elseâ€™s name disappeared from his records.",
+    "quest_hook": "Compare Maraâ€™s receipts with Bramâ€™s tallies and ask the families how they want their deliveries recorded."
+  },
+  "dialogue": {
+    "introduction": "A scale won't tell you what something is worth. It only tells you what you can prove.",
+    "friendship": "When the flour shipment was short, Mara gave me her receipt. She trusted me to count it honestly. I still think about that.",
+    "supper": "I miscounted the bowls because people kept moving over to make room. I'm willing to be wrong about that.",
+    "hearing": "The figures balance. The damage doesn't. A ledger can only do the first part.",
+    "favorite_gift": "That's a sound turnip. I'd buy a crate if they were all like this.",
+    "disliked_gift": "Apples make me think of the shipment we weighed twice. I'll pass."
+  },
+  "appearance": {
+    "skin": "#b67e58",
+    "hair": "#66504a",
+    "cloth": "#635d51",
+    "accent": "#cbb36d",
+    "haircut": "cropped",
+    "outfit": "vest",
+    "accessory": "scale",
+    "scale": 1.08
+  },
+  "routine": {
+    "depart": 7.0,
+    "break_at": 13.0,
+    "home": 18.5,
+    "work": [
+      6.5,
+      8.0
+    ],
+    "leisure": [
+      47.5,
+      5.0
+    ],
+    "job": "Weighs produce for market",
+    "hobby": "Takes a slow lunch at the commons",
+    "leisure_area": "the commons",
+    "home_context": "Lives close to the bakery that received the flour he weighed during the flood."
+  }
+}

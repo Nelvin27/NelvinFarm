@@ -1,0 +1,57 @@
+{
+  "id": "aya",
+  "order": 25,
+  "name": "Aya Cove",
+  "role": "Meadow ranger",
+  "district": 3,
+  "romance": false,
+  "gifts": {
+    "favorite": 5,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Protects nesting sites and old footpaths. Wants restoration to make room for what grew after people left.",
+    "voice": "Uses directions and details from tracks, grass, and birds.",
+    "connections": [
+      "faye",
+      "willa"
+    ],
+    "backstory": "Aya was marking the meadow paths when the flood cut off the low road. The bank she redirected people around has since become a nesting site, and some families now want that route restored.",
+    "quest_hook": "Walk the proposed route with Aya and Willa and decide where to move the footpath before nesting season."
+  },
+  "dialogue": {
+    "introduction": "Follow the muddy tracks around the flowers. Something smaller than you already found the path.",
+    "friendship": "I watch the nesting places the way other people watch their front windows.",
+    "supper": "We moved the tables off the meadow grass. A skylark landed there before the dishes were dry.",
+    "hearing": "If we mark the old paths again, leave a little room for everything that moved in while we were gone.",
+    "favorite_gift": "I can show Pip how to keep the petals when they're done.",
+    "disliked_gift": "Please keep the fish away from the nesting grass. It brings the foxes straight through."
+  },
+  "appearance": {
+    "skin": "#9d6650",
+    "hair": "#38353b",
+    "cloth": "#5a795e",
+    "accent": "#e2aa65",
+    "haircut": "braids",
+    "outfit": "cape",
+    "accessory": "field_hat",
+    "scale": 1.04
+  },
+  "routine": {
+    "depart": 6.5,
+    "break_at": 15.0,
+    "home": 20.0,
+    "work": [
+      18.5,
+      16.0
+    ],
+    "leisure": [
+      66.5,
+      32.0
+    ],
+    "job": "Checks the meadow trails",
+    "hobby": "Makes a second round at Reedmere",
+    "leisure_area": "Reedmere",
+    "home_context": "Lives on the way to the reed beds so she can check the nesting path before visitors arrive."
+  }
+}

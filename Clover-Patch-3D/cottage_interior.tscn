@@ -159,6 +159,9 @@ position = Vector3(0, 0, 2.12)
 [node name="Bedside" type="Marker3D" parent="."]
 position = Vector3(-1.65, 0, -0.4)
 
+[node name="Kitchen" type="Marker3D" parent="."]
+position = Vector3(1.7, 0, -1.96)
+
 [node name="Damaged" type="Node3D" parent="."]
 
 [node name="Board" type="MeshInstance3D" parent="Damaged"]

@@ -1,0 +1,57 @@
+{
+  "id": "willa",
+  "order": 27,
+  "name": "Willa Bracken",
+  "role": "Basket weaver",
+  "district": 3,
+  "romance": false,
+  "gifts": {
+    "favorite": 22,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Uses weaving to make useful things from broken reed bundles. Wants to be invited for something besides extra hands.",
+    "voice": "Unhurried, notices texture and the people at the edge of a group.",
+    "connections": [
+      "aya",
+      "kit"
+    ],
+    "backstory": "Willa learned to weave with reeds from the low bank. After the flood she used spare baskets to carry belongings up from the landing, and some families never came back to collect them.",
+    "quest_hook": "Help Willa contact the owners of two remaining baskets and ask what they would like done with the contents."
+  },
+  "dialogue": {
+    "introduction": "The bottom of a basket gives out before the handle. Check what you've been asking it to carry.",
+    "friendship": "My mother taught me the loose weave so people could see what they were carrying.",
+    "supper": "I put extra napkins by the empty seat. When somebody finally sat there, nobody stopped the meal.",
+    "hearing": "I'm weaving document baskets. The new papers ought to have someplace better to go than a drawer.",
+    "favorite_gift": "I can test the loose weave with this. See how it holds the short strands?",
+    "disliked_gift": "Fish goes through the bottom of the sample basket. I've demonstrated that enough."
+  },
+  "appearance": {
+    "skin": "#ad7558",
+    "hair": "#705246",
+    "cloth": "#897753",
+    "accent": "#e4c897",
+    "haircut": "braids",
+    "outfit": "apron",
+    "accessory": "basket",
+    "scale": 0.98
+  },
+  "routine": {
+    "depart": 8.0,
+    "break_at": 14.0,
+    "home": 19.0,
+    "work": [
+      15.5,
+      13.0
+    ],
+    "leisure": [
+      60.5,
+      30.0
+    ],
+    "job": "Weaves baskets in the meadow",
+    "hobby": "Looks for reeds by the pond",
+    "leisure_area": "Reedmere",
+    "home_context": "Settled near the reeds and the old ferry crew, who helped bring people's belongings uphill."
+  }
+}

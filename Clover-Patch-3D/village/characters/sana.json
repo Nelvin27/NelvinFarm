@@ -1,0 +1,61 @@
+{
+  "id": "sana",
+  "order": 11,
+  "name": "Sana Bell",
+  "role": "Clinic keeper",
+  "district": 1,
+  "romance": false,
+  "gifts": {
+    "favorite": -1,
+    "disliked": 22
+  },
+  "character": {
+    "motivation": "Kept the clinic going by asking for favors and accepting money she was afraid to question.",
+    "voice": "Careful with names. Gives people a practical job when they are upset.",
+    "connections": [
+      "vera",
+      "ada"
+    ],
+    "backstory": "Sana was caring for six patients when Vera opened the gate to spare the clinic. She accepted help that kept the doors open after the flood and later learned the sale of flooded plots helped pay for it.",
+    "quest_hook": "Help Sana arrange a clinic visit for former tenants and let them decide what kind of care or acknowledgment they want from her."
+  },
+  "dialogue": {
+    "introduction": "On my first winter here I learned which windows to knock on when the clinic ran out of blankets.",
+    "friendship": "I remember all six patients from that night. I don't know all the names of the people in the cottages.",
+    "supper": "I liked seeing the clinic bowls on a table where nobody was sick. We could use more evenings like that.",
+    "hearing": "The clinic will stay open. I want the people who kept it open to be able to come through its door.",
+    "supper_choices": [
+      "The empty chair made me wonder who needed an invitation from me.",
+      "I heard them thank the clinic. Next year I want a family from downstream at our table."
+    ],
+    "favorite_gift": "I can split this between the patients who missed breakfast.",
+    "disliked_gift": "Leave the hay outside, please. The little boy in the front room coughs when it comes in."
+  },
+  "appearance": {
+    "skin": "#8a573f",
+    "hair": "#3d3037",
+    "cloth": "#c2d4bc",
+    "accent": "#784c67",
+    "haircut": "bun",
+    "outfit": "apron",
+    "accessory": "clinic_bag",
+    "scale": 1.02
+  },
+  "routine": {
+    "depart": 8.0,
+    "break_at": 13.5,
+    "home": 20.0,
+    "work": [
+      -4.5,
+      12.0
+    ],
+    "leisure": [
+      56.5,
+      27
+    ],
+    "job": "Prepares the clinic supplies",
+    "hobby": "Checks in on families along the bank",
+    "leisure_area": "Reedmere",
+    "home_context": "Settled on the upland approach to Reedmere Walk so she can reach the bank families and the market road."
+  }
+}

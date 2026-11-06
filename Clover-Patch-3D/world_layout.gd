@@ -2,16 +2,23 @@ extends RefCounted
 
 const DEFAULT_PATH := "res://world/clover_valley.json"
 const GRID_ORIGIN := Vector3(-5.5, 0, -3.0)
+const MOUNTAIN_SIZE := [16.0, 16.0]
+const MOUNTAIN_HEIGHT := 5.0
+const MAX_MOUNTAIN_HEIGHT := 16.0
 const REQUIRED := ["cottage", "seed_market", "bakery", "spawn"]
 const LABELS := {
 	"grass": "Grass tile", "path": "Dirt path", "pond": "Pond", "plot": "Farm plot",
 	"fence": "Fence", "tree": "Tree", "apple_tree": "Apple tree",
 	"purple_flower": "Purple flower", "yellow_flower": "Yellow flower", "sign": "Sign",
 	"cottage": "Cottage", "seed_market": "Seed market", "bakery": "Bakery", "spawn": "Player spawn",
+	"mountain": "Mountain", "resident_house": "Resident house", "lamp": "Lantern post",
+	"ridge_barrier": "Ridge barrier", "closed_pass": "Closed pass", "picnic": "Picnic table",
+	"bunting": "Bunting", "butterflies": "Butterflies",
 }
 
 var bounds := Rect2()
 var entities: Array[Dictionary] = []
+var mountains: Array[Dictionary] = []
 
 
 func read(path: String) -> Error:
@@ -31,6 +38,7 @@ func read(path: String) -> Error:
 	var loaded: Array[Dictionary] = []
 	var singletons := {}
 	var plots := {}
+	var homeowners := {}
 	for item: Variant in items:
 		if not item is Dictionary or not LABELS.has(item.get("kind")) or not _numbers(item.get("position"), 3):
 			return ERR_INVALID_DATA
@@ -38,8 +46,12 @@ func read(path: String) -> Error:
 		var at := position_of(item)
 		if not next_bounds.has_point(Vector2(at.x, at.z)):
 			return ERR_INVALID_DATA
-		if kind in ["path", "pond"] and item.has("size"):
+		if kind in ["path", "pond", "mountain", "ridge_barrier"] and item.has("size"):
 			if not _numbers(item["size"], 2) or item["size"][0] <= 0 or item["size"][1] <= 0 or item["size"][0] > 200 or item["size"][1] > 200:
+				return ERR_INVALID_DATA
+		if kind == "mountain":
+			var height: Variant = item.get("height", MOUNTAIN_HEIGHT)
+			if not (height is float or height is int) or not is_finite(float(height)) or height <= 0 or height > MAX_MOUNTAIN_HEIGHT:
 				return ERR_INVALID_DATA
 		for key in ["length", "scale", "yaw"]:
 			if item.has(key) and (not (item[key] is float or item[key] is int) or not is_finite(float(item[key]))):
@@ -48,6 +60,18 @@ func read(path: String) -> Error:
 			return ERR_INVALID_DATA
 		if float(item.get("scale", 1.0)) <= 0.0 or float(item.get("scale", 1.0)) > 10.0:
 			return ERR_INVALID_DATA
+		if kind == "resident_house":
+			var resident: Variant = item.get("resident", "")
+			if not resident is String or (not resident.is_empty() and (not resident.is_valid_identifier() or homeowners.has(resident))):
+				return ERR_INVALID_DATA
+			if not resident.is_empty():
+				homeowners[resident] = true
+			for field in ["street", "color", "trim", "detail"]:
+				if not item.get(field, "") is String:
+					return ERR_INVALID_DATA
+			var style: Variant = item.get("style", 0)
+			if not (style is int or style is float) or style != int(style) or style < 0 or style > 3:
+				return ERR_INVALID_DATA
 		if kind in REQUIRED:
 			if singletons.has(kind):
 				return ERR_INVALID_DATA
@@ -62,6 +86,7 @@ func read(path: String) -> Error:
 		return ERR_INVALID_DATA
 	bounds = next_bounds
 	entities = loaded
+	refresh_mountains()
 	return OK
 
 
@@ -88,6 +113,35 @@ func anchor(kind: String) -> Vector3:
 		if item["kind"] == kind:
 			return position_of(item)
 	return Vector3.ZERO
+
+
+func refresh_mountains() -> void:
+	mountains.clear()
+	for entity in entities:
+		if entity["kind"] != "mountain":
+			continue
+		var at := position_of(entity)
+		var size: Array = entity.get("size", MOUNTAIN_SIZE)
+		mountains.append({
+			"center": Vector2(at.x, at.z),
+			"radius": Vector2(size[0], size[1]) * 0.5,
+			"height": float(entity.get("height", MOUNTAIN_HEIGHT)),
+		})
+
+
+func elevation(at: Vector2) -> float:
+	# Sample the same one-unit column for movement, props, and the terrain mesh.
+	var cell := Vector2(floorf(at.x) + 0.5, floorf(at.y + 0.5))
+	var highest := 0.0
+	for mountain in mountains:
+		var offset: Vector2 = (cell - mountain["center"]) / mountain["radius"]
+		var falloff := maxf(0.0, 1.0 - offset.length_squared())
+		highest = maxf(highest, mountain["height"] * falloff * falloff)
+	return roundf(highest)
+
+
+func grounded(at: Vector3) -> Vector3:
+	return at + Vector3.UP * elevation(Vector2(at.x, at.z))
 
 
 static func position_of(entity: Dictionary) -> Vector3:

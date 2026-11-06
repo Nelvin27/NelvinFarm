@@ -6,6 +6,7 @@ signal save_requested
 
 const Settings := preload("res://game_settings.gd")
 const ActionMenu := preload("res://action_menu.gd")
+const UISkin := preload("res://farm_ui_theme.gd")
 const MENU_SCENE := preload("res://action_menu.tscn")
 
 var settings: Settings
@@ -42,10 +43,10 @@ func _ready() -> void:
 	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	backdrop.hide()
 
-	pause_menu = _new_menu("Paused")
+	pause_menu = _new_menu("Taking a breather")
 	pause_menu.offset_top = -112
 	pause_menu.offset_bottom = 112
-	pause_menu.add_action("Resume", resume_requested.emit)
+	pause_menu.add_action("Resume farming", resume_requested.emit)
 	pause_menu.add_action("Settings", _show_options)
 	pause_menu.add_action("Save farm", save_requested.emit)
 	save_status = Label.new()
@@ -106,6 +107,7 @@ func close() -> void:
 func _new_menu(caption: String) -> ActionMenu:
 	var menu := MENU_SCENE.instantiate() as ActionMenu
 	add_child(menu)
+	menu.theme = UISkin.menu()
 	menu.title.text = caption
 	return menu
 

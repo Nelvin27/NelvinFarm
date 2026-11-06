@@ -23,8 +23,13 @@ var palette: OptionButton
 var entity_list: ItemList
 var selection_label: Label
 var sign_text: LineEdit
+var house_street: LineEdit
+var house_style: OptionButton
+var house_detail: OptionButton
+const HOUSE_DETAILS := ["planter", "crate", "bench", "woodpile"]
 var width: SpinBox
 var depth: SpinBox
+var height: SpinBox
 var rotation_choice: CheckButton
 var status: Label
 var file_dialog: FileDialog
@@ -134,9 +139,26 @@ func _build_panel() -> void:
 	sign_text = LineEdit.new()
 	sign_text.placeholder_text = "Sign text"
 	rows.add_child(sign_text)
+	house_street = LineEdit.new()
+	house_street.placeholder_text = "Street name (used in the journal)"
+	rows.add_child(house_street)
+	var house_options := _row()
+	house_style = OptionButton.new()
+	for label in ["Cedar roof", "Moss roof", "Clay roof", "Slate roof"]:
+		house_style.add_item(label)
+	house_options.add_child(house_style)
+	house_detail = OptionButton.new()
+	for detail in HOUSE_DETAILS:
+		house_detail.add_item(detail.capitalize())
+	house_options.add_child(house_detail)
+	house_options.hide()
+	house_street.hide()
 	var dimensions := _row()
 	width = _number(dimensions, "Width / length")
 	depth = _number(dimensions, "Depth")
+	height = _number(dimensions, "Height")
+	height.max_value = Layout.MAX_MOUNTAIN_HEIGHT
+	height.get_parent().hide()
 	rotation_choice = CheckButton.new()
 	rotation_choice.text = "North–south fence"
 	rows.add_child(rotation_choice)
@@ -180,7 +202,7 @@ func _number(parent: Container, caption: String) -> SpinBox:
 	group.add_child(label)
 	var number := SpinBox.new()
 	number.min_value = 0.5
-	number.max_value = 50.0
+	number.max_value = 200.0
 	number.step = 0.1
 	number.value = 1.0
 	group.add_child(number)
@@ -202,7 +224,8 @@ func _unhandled_input(event: InputEvent) -> void:
 		var from: Variant = _ground(event.position - event.relative)
 		var to: Variant = _ground(event.position)
 		if from != null and to != null:
-			camera.position += from - to
+			var shift: Vector3 = from - to
+			camera.position += Vector3(shift.x, 0, shift.z)
 		return
 	if not event is InputEventMouseButton or not event.pressed:
 		return
@@ -222,11 +245,32 @@ func _unhandled_input(event: InputEvent) -> void:
 			camera.size = clampf(camera.size * (0.85 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 1.17), 6.0, 200.0)
 			var after: Variant = _ground(event.position)
 			if after != null:
-				camera.position += point - after
+				var shift: Vector3 = point - after
+				camera.position += Vector3(shift.x, 0, shift.z)
 
 
 func _ground(pixel: Vector2) -> Variant:
-	return GROUND.intersects_ray(camera.project_ray_origin(pixel), camera.project_ray_normal(pixel))
+	var origin := camera.project_ray_origin(pixel)
+	var direction := camera.project_ray_normal(pixel)
+	var flat: Variant = GROUND.intersects_ray(origin, direction)
+	if flat == null or layout.mountains.is_empty():
+		return flat
+	var end := origin.distance_to(flat)
+	var previous := maxf(0.0, (origin.y - Layout.MAX_MOUNTAIN_HEIGHT) / -direction.y)
+	while previous < end:
+		var next := minf(end, previous + 0.5)
+		var at := origin + direction * next
+		if at.y <= layout.elevation(Vector2(at.x, at.z)):
+			for iteration in range(8):
+				var middle := (previous + next) * 0.5
+				at = origin + direction * middle
+				if at.y <= layout.elevation(Vector2(at.x, at.z)):
+					next = middle
+				else:
+					previous = middle
+			return origin + direction * next
+		previous = next
+	return flat
 
 
 func _frame_valley() -> void:
@@ -281,6 +325,10 @@ func _pick(at: Vector3) -> void:
 
 func _select(index: int) -> void:
 	selected = index
+	height.get_parent().hide()
+	house_street.hide()
+	house_style.get_parent().hide()
+	sign_text.hide()
 	if index < 0:
 		entity_list.deselect_all()
 		selection_label.text = "No entity selected"
@@ -290,10 +338,22 @@ func _select(index: int) -> void:
 		entity_list.select(index)
 		entity_list.ensure_current_is_visible()
 		selection_label.text = Layout.LABELS[kind]
-		sign_text.text = str(entity.get("label", ""))
-		var size: Array = entity.get("size", [1, 1])
+		if kind == "sign" or kind == "resident_house":
+			sign_text.show()
+			sign_text.placeholder_text = "Resident ID (e.g. mara)" if kind == "resident_house" else "Sign text"
+			sign_text.text = str(entity.get("resident" if kind == "resident_house" else "label", ""))
+		if kind == "resident_house":
+			house_street.text = str(entity.get("street", ""))
+			house_style.select(int(entity.get("style", 0)))
+			house_detail.select(maxi(0, HOUSE_DETAILS.find(entity.get("detail", "planter"))))
+			house_street.show()
+			house_style.get_parent().show()
+		var size: Array = entity.get("size", Layout.MOUNTAIN_SIZE if kind == "mountain" else [1, 1])
 		width.value = float(entity.get("length", size[0]))
 		depth.value = float(size[1])
+		if kind == "mountain":
+			height.value = float(entity.get("height", Layout.MOUNTAIN_HEIGHT))
+			height.get_parent().show()
 		rotation_choice.set_pressed_no_signal(absf(float(entity.get("yaw", 0))) == 90.0)
 	_update_outline()
 
@@ -301,7 +361,7 @@ func _select(index: int) -> void:
 func _update_outline() -> void:
 	outline.visible = selected >= 0 and not previewing_interior
 	if outline.visible:
-		outline.position = Layout.position_of(layout.entities[selected])
+		outline.position = layout.grounded(Layout.position_of(layout.entities[selected]))
 
 
 func _valid_position(at: Vector3, kind: String, except := -1) -> bool:
@@ -331,8 +391,11 @@ func _place(at: Vector3) -> void:
 	var entity := {"kind": kind}
 	position.y = 0.065 if kind == "path" else 0.0
 	Layout.set_position(entity, position)
-	if kind == "pond":
+	if kind in ["pond", "ridge_barrier"]:
 		entity["size"] = [4, 3]
+	elif kind == "mountain":
+		entity["size"] = Layout.MOUNTAIN_SIZE.duplicate()
+		entity["height"] = Layout.MOUNTAIN_HEIGHT
 	elif kind == "sign":
 		entity["label"] = "Clover Valley"
 	layout.entities.append(entity)
@@ -363,15 +426,34 @@ func _apply_properties() -> void:
 		"sign":
 			_remember()
 			entity["label"] = sign_text.text.left(90)
-		"path", "pond":
+		"resident_house":
+			var owner := sign_text.text.strip_edges().to_lower()
+			if not owner.is_empty():
+				if not owner.is_valid_identifier():
+					_status("Use a character file ID, such as mara.")
+					return
+				for index in range(layout.entities.size()):
+					if index != selected and layout.entities[index].get("resident") == owner:
+						_status("That resident already has a house.")
+						return
+			_remember()
+			entity["resident"] = owner
+			entity["street"] = house_street.text.strip_edges().left(60)
+			entity["style"] = house_style.selected
+			entity["detail"] = HOUSE_DETAILS[house_detail.selected]
+		"path", "pond", "ridge_barrier":
 			_remember()
 			entity["size"] = [width.value, depth.value]
+		"mountain":
+			_remember()
+			entity["size"] = [width.value, depth.value]
+			entity["height"] = height.value
 		"fence":
 			_remember()
 			entity["length"] = width.value
 			entity["yaw"] = 90.0 if rotation_choice.button_pressed else 0.0
 		_:
-			_status("Properties apply to signs, paths, ponds, and fences.")
+			_status("Properties apply to signs, paths, ponds, fences, mountains, ridge barriers, and resident houses.")
 			return
 	_rebuild(selected)
 	_status("Updated entity properties.")
@@ -409,6 +491,8 @@ func _rebuild(index: int) -> void:
 	for item in layout.entities:
 		var at := Layout.position_of(item)
 		var label: String = item.get("label", Layout.LABELS[item["kind"]])
+		if item["kind"] == "resident_house" and not str(item.get("resident", "")).is_empty():
+			label = "%s’s house" % str(item.resident).capitalize()
 		entity_list.add_item("%s  ·  %.1f, %.1f" % [label, at.x, at.z])
 	_select(index)
 

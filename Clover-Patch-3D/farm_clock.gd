@@ -2,7 +2,7 @@ extends RefCounted
 
 const MORNING := 6.0
 const LAST_HOUR := 26.0
-const HOURS_PER_SECOND := 1.0 / 12.0
+const HOURS_PER_SECOND := 1.0 / 24.0
 const SLEEP_FATIGUE := 65.0
 const EXHAUSTED := 90.0
 const FULL := 100.0
@@ -15,18 +15,28 @@ var fatigue := 0.0
 func tick(delta: float, walking: bool) -> void:
 	hour = minf(hour + delta * HOURS_PER_SECOND, LAST_HOUR)
 	var activity := 1.5 if walking else 1.0
-	hunger = maxf(0.0, hunger - delta * 0.18 * activity)
-	fatigue = minf(FULL, fatigue + delta * 0.36 * activity)
+	hunger = maxf(0.0, hunger - delta * 0.09 * activity)
+	fatigue = minf(FULL, fatigue + delta * 0.18 * activity)
 
 
-func do_farm_work() -> void:
+func do_farm_work(fatigue_cost := 6.0) -> void:
 	hunger = maxf(0.0, hunger - 1.2)
-	fatigue = minf(FULL, fatigue + 6.0)
+	fatigue = minf(FULL, fatigue + fatigue_cost)
 
 
 func eat(amount: float, recovery: float) -> void:
 	hunger = minf(FULL, hunger + amount)
 	fatigue = maxf(0.0, fatigue - recovery)
+
+
+func take_picnic_break() -> bool:
+	const BREAK_HOURS := 0.5
+	if fatigue <= 0.0 or hour + BREAK_HOURS > LAST_HOUR:
+		return false
+	var rested_fatigue := maxf(0.0, fatigue - 12.0)
+	tick(BREAK_HOURS / HOURS_PER_SECOND, false)
+	fatigue = rested_fatigue
+	return true
 
 
 func rest() -> void:

@@ -1,0 +1,57 @@
+{
+  "id": "bea",
+  "order": 13,
+  "name": "Bea Nett",
+  "role": "Net mender",
+  "district": 1,
+  "romance": false,
+  "gifts": {
+    "favorite": 22,
+    "disliked": 5
+  },
+  "character": {
+    "motivation": "Mends nets, notices who stopped bringing them, and refuses to let Hollis quietly retire from everybody's life.",
+    "voice": "Matter-of-fact offers with dry affection.",
+    "connections": [
+      "hollis",
+      "ren"
+    ],
+    "backstory": "Bea kept the ferry nets working through the evacuation, then watched Hollis leave his best net untouched when the crossings stopped. She has been setting aside a matching length of cord for years.",
+    "quest_hook": "Ask Hollis what he wants the mended net to be used for, then help Bea finish it for that purpose."
+  },
+  "dialogue": {
+    "introduction": "If I mend your net, bring it back dirty. I'd like to know you actually used it.",
+    "friendship": "Hollis never asks me to mend his best net. He hangs it by the door as if someone might still knock for it.",
+    "supper": "I brought a fishing net to hold the rolls. Mara says if I bring it again she'll line it with a clean cloth.",
+    "hearing": "I've started mending Hollis's best net. He hasn't asked me to stop.",
+    "favorite_gift": "Excellent. I can lay the wet net on that instead of the floorboards.",
+    "disliked_gift": "Sweet flowers near a drying net attract the wrong sort of company."
+  },
+  "appearance": {
+    "skin": "#ad744e",
+    "hair": "#594134",
+    "cloth": "#6a7e87",
+    "accent": "#dbab76",
+    "haircut": "braids",
+    "outfit": "apron",
+    "accessory": "net",
+    "scale": 0.98
+  },
+  "routine": {
+    "depart": 8.0,
+    "break_at": 14.0,
+    "home": 18.0,
+    "work": [
+      -3.5,
+      14.0
+    ],
+    "leisure": [
+      58.5,
+      27.0
+    ],
+    "job": "Mends fishing nets",
+    "hobby": "Checks the nets by Reedmere",
+    "leisure_area": "Reedmere",
+    "home_context": "Lives next to Hollis so she can mend nets with him if he ever brings his out again."
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "id": "cyrus",
+  "order": 30,
+  "name": "Cyrus Finch",
+  "role": "Tea merchant",
+  "district": 3,
+  "romance": false,
+  "gifts": {
+    "favorite": 23,
+    "disliked": 22
+  },
+  "character": {
+    "motivation": "Keeps track of which tea cups belong to which neighbors. Wants families to feel welcome while they make claims.",
+    "voice": "Dry commercial jokes with deliberate moments of generosity.",
+    "connections": [
+      "ada",
+      "hollis"
+    ],
+    "backstory": "Cyrus carried hot water to the ferry landing the night the river rose. Years later he still recognizes the displaced familiesâ€™ old orders faster than he recognizes their names.",
+    "quest_hook": "Help Cyrus host a small claims-day tea where visitors can choose whether to meet the council or simply sit together."
+  },
+  "dialogue": {
+    "introduction": "People bring me gossip for free. I charge for the hot water.",
+    "friendship": "I used to remember orders instead of names. The ones who stopped coming were the ones I only knew by their tea.",
+    "supper": "I brought the chipped cups. They went first. People knew which ones they'd used before.",
+    "hearing": "The next pot is for the families coming in with claims. After that, people can argue and buy their own.",
+    "favorite_gift": "I'll slice this into the next pot. Tell me if the tea tastes too sweet.",
+    "disliked_gift": "The dry grass takes on the scent of everything in the cupboard. I'll pass."
+  },
+  "appearance": {
+    "skin": "#87573e",
+    "hair": "#423137",
+    "cloth": "#486c67",
+    "accent": "#cfaa71",
+    "haircut": "beard",
+    "outfit": "vest",
+    "accessory": "tea",
+    "scale": 1
+  },
+  "routine": {
+    "depart": 8.0,
+    "break_at": 15.0,
+    "home": 20.0,
+    "work": [
+      15.5,
+      12.0
+    ],
+    "leisure": [
+      51.5,
+      5.0
+    ],
+    "job": "Sets out tea in the meadow",
+    "hobby": "Pours an afternoon cup at the commons",
+    "leisure_area": "the commons",
+    "home_context": "Lives at the end of Orchard Row with a short walk down Reedmere Walk, where former ferry customers pass."
+  }
+}

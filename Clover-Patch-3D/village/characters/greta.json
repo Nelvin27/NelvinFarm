@@ -1,0 +1,62 @@
+{
+  "id": "greta",
+  "order": 29,
+  "name": "Greta Tarn",
+  "role": "Retired councilor",
+  "district": 3,
+  "romance": false,
+  "gifts": {
+    "favorite": 0,
+    "disliked": 5
+  },
+  "character": {
+    "motivation": "Voted to authorize the flood diversion. Wants to name her own choice before her memory gets used as an excuse.",
+    "voice": "Starts with official language, then corrects herself into specifics.",
+    "connections": [
+      "iona",
+      "vera"
+    ],
+    "backstory": "Greta voted to authorize the diversion after asking for more time. When the council later sold the flooded land, she let the emergency vote stand as the explanation for both decisions.",
+    "quest_hook": "Greta wants to record what she said at each meeting. Help her decide how to respond when another councilor remembers the vote differently."
+  },
+  "dialogue": {
+    "introduction": "We called it an emergency meeting. That made it easier to forget whose emergencies came first.",
+    "friendship": "I remember asking for a second vote. I also remember voting yes when they said there wasn't time.",
+    "supper": "I started counting the people who had stayed away. Then Ada handed me a bowl and told me to count the people who could still be invited.",
+    "hearing": "I can name the people who voted. I can name the person I was trying to protect when I did.",
+    "hearings": [
+      "I found my name on the page. I knew I'd signed it. Seeing it from the other side of the noticeboard felt different.",
+      "I handed the trust my old council key. I had to ask who should take it. That felt right.",
+      "I hope people file their claims. I also hope the fund doesn't give the council another excuse to speak for them."
+    ],
+    "favorite_gift": "A turnip I can put in the oven without asking what anybody thinks. Thank you.",
+    "disliked_gift": "I've had flowers at enough council meetings. Today I'd rather leave the vase empty."
+  },
+  "appearance": {
+    "skin": "#e0b18e",
+    "hair": "#c0b8b0",
+    "cloth": "#675675",
+    "accent": "#c4a5a4",
+    "haircut": "bun",
+    "outfit": "long_coat",
+    "accessory": "brooch",
+    "scale": 0.98
+  },
+  "routine": {
+    "depart": 9.0,
+    "break_at": 14.0,
+    "home": 18.0,
+    "work": [
+      16.5,
+      15.0
+    ],
+    "leisure": [
+      42.5,
+      5
+    ],
+    "job": "Walks the meadow",
+    "hobby": "Meets old neighbors at the commons",
+    "leisure_area": "the commons",
+    "home_context": "Lives above the old flood line, where the decisions she once made feel very far away."
+  }
+}

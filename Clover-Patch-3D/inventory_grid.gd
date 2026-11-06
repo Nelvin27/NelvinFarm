@@ -1,10 +1,15 @@
 extends VBoxContainer
 
+signal stacks_changed
 signal item_used(kind: Kind, item_id: int)
 
 enum Kind { BREAD, SEED, HARVEST, TOOL }
 
-const PAGE_SIZE := 36
+const UISkin := preload("res://farm_ui_theme.gd")
+const ITEM_TYPES := ["Provisions", "Seeds", "Harvest & finds", "Tools"]
+const ROW_SIZE := 12
+const MAX_ROWS := 3
+const PAGE_SIZE := ROW_SIZE * MAX_ROWS
 const STACK_LIMIT := 64
 
 
@@ -25,10 +30,13 @@ var stacks: Array[Stack] = []
 var slots: Array[Button] = []
 var icons: Array[TextureRect] = []
 var counts: Array[Label] = []
+var unlocked_rows := 1
 var page := 0
 var selection := -1
 var using_slot := -1
 var details: Label
+var item_type: Label
+var preview_icon: TextureRect
 var page_label: Label
 var use_button: Button
 var previous: Button
@@ -36,17 +44,43 @@ var following: Button
 
 
 func _ready() -> void:
+	add_theme_constant_override("separation", 12)
+	var body := HBoxContainer.new()
+	body.add_theme_constant_override("separation", 18)
+	add_child(body)
 	var grid := GridContainer.new()
-	grid.columns = 9
+	grid.columns = ROW_SIZE
 	grid.add_theme_constant_override("h_separation", 6)
 	grid.add_theme_constant_override("v_separation", 6)
-	add_child(grid)
+	body.add_child(grid)
 	for index in range(PAGE_SIZE):
 		_add_slot(grid, index)
 
+	var card := PanelContainer.new()
+	card.custom_minimum_size.x = 265
+	card.size_flags_horizontal = SIZE_EXPAND_FILL
+	card.add_theme_stylebox_override("panel", UISkin.box(
+		Color("#f5dfb7"), Color("#c69b68"), 12, Vector2(16, 14)))
+	body.add_child(card)
+	var inspection := VBoxContainer.new()
+	inspection.add_theme_constant_override("separation", 8)
+	card.add_child(inspection)
+	item_type = Label.new()
+	item_type.add_theme_font_size_override("font_size", 17)
+	inspection.add_child(item_type)
+	preview_icon = TextureRect.new()
+	preview_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+	preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	preview_icon.custom_minimum_size.y = 94
+	inspection.add_child(preview_icon)
 	details = Label.new()
-	details.add_theme_font_size_override("font_size", 22)
-	add_child(details)
+	details.theme_type_variation = &"FarmHeading"
+	details.add_theme_font_size_override("font_size", 24)
+	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	details.size_flags_vertical = SIZE_EXPAND_FILL
+	inspection.add_child(details)
+	use_button = _add_button(inspection, "Use item", _use_selected)
 
 	var actions := HBoxContainer.new()
 	add_child(actions)
@@ -56,13 +90,12 @@ func _ready() -> void:
 	page_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	actions.add_child(page_label)
 	following = _add_button(actions, "Next", _move_page.bind(1))
-	use_button = _add_button(self, "Use item", _use_selected)
 	_draw_slots()
 
 
 func _add_slot(grid: GridContainer, index: int) -> void:
 	var button := Button.new()
-	button.custom_minimum_size = Vector2(70, 70)
+	button.custom_minimum_size = Vector2(54, 58)
 	button.toggle_mode = true
 	button.pressed.connect(_select.bind(index))
 	button.set_drag_forwarding(_drag_slot.bind(index), _can_drop_on_slot.bind(index),
@@ -71,6 +104,7 @@ func _add_slot(grid: GridContainer, index: int) -> void:
 	slots.append(button)
 
 	var icon := TextureRect.new()
+	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -87,6 +121,7 @@ func _add_slot(grid: GridContainer, index: int) -> void:
 	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	count.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
 	count.add_theme_font_size_override("font_size", 20)
+	count.add_theme_color_override("font_color", Color.WHITE)
 	count.add_theme_color_override("font_outline_color", Color("#292523"))
 	count.add_theme_constant_override("outline_size", 8)
 	button.add_child(count)
@@ -157,7 +192,8 @@ func show_stacks(items: Array[Stack]) -> void:
 		var quantity := remaining[key]
 		if quantity == 0:
 			continue
-		for stack in stacks:
+		for index in range(unlocked_rows * ROW_SIZE):
+			var stack := stack_at(index)
 			if stack != null and stack.key() == key:
 				var added := mini(quantity, STACK_LIMIT - stack.quantity)
 				stack.quantity += added
@@ -166,11 +202,10 @@ func show_stacks(items: Array[Stack]) -> void:
 					break
 		while quantity > 0:
 			var stack := _copy_stack(templates[key], mini(quantity, STACK_LIMIT))
-			var empty := stacks.find(null)
-			if empty == -1:
-				stacks.append(stack)
-			else:
-				stacks[empty] = stack
+			var empty := _empty_slot()
+			if empty >= stacks.size():
+				stacks.resize(empty + 1)
+			stacks[empty] = stack
 			quantity -= stack.quantity
 
 	while not stacks.is_empty() and stacks.back() == null:
@@ -179,6 +214,35 @@ func show_stacks(items: Array[Stack]) -> void:
 		selection = -1
 	page = mini(page, _last_page())
 	_draw_slots()
+	stacks_changed.emit()
+
+
+func _empty_slot() -> int:
+	for index in range(unlocked_rows * ROW_SIZE):
+		if stack_at(index) == null:
+			return index
+	for index in range(PAGE_SIZE, stacks.size()):
+		if stacks[index] == null:
+			return index
+	return maxi(PAGE_SIZE, stacks.size())
+
+
+func can_add(kind: Kind, id: int, quantity := 1) -> bool:
+	return can_add_stacks(kind, {id: quantity})
+
+
+func can_add_stacks(kind: Kind, quantities: Dictionary) -> bool:
+	var remaining := quantities.duplicate()
+	var empty := 0
+	for index in range(unlocked_rows * ROW_SIZE):
+		var stack := stack_at(index)
+		if stack == null:
+			empty += 1
+		elif stack.kind == kind and remaining.has(stack.item_id):
+			remaining[stack.item_id] = maxi(0, remaining[stack.item_id] - (STACK_LIMIT - stack.quantity))
+	for quantity: int in remaining.values():
+		empty -= ceili(float(quantity) / STACK_LIMIT)
+	return empty >= 0
 
 
 func save_slots() -> Array[Vector3i]:
@@ -200,6 +264,14 @@ func restore_slots(saved: Variant) -> void:
 			stack.item_id = entry.y
 			stack.quantity = mini(entry.z, STACK_LIMIT)
 		stacks.append(stack)
+	var reserve: Array[Stack] = []
+	for index in range(unlocked_rows * ROW_SIZE, mini(PAGE_SIZE, stacks.size())):
+		if stacks[index] != null:
+			reserve.append(stacks[index])
+			stacks[index] = null
+	if not reserve.is_empty():
+		stacks.resize(maxi(PAGE_SIZE, stacks.size()))
+		stacks.append_array(reserve)
 	# show_stacks reconciles these positions with the authoritative inventory and restores icons.
 
 
@@ -215,13 +287,13 @@ func _copy_stack(source: Stack, quantity: int) -> Stack:
 	return stack
 
 
-func _stack_at(slot: int) -> Stack:
+func stack_at(slot: int) -> Stack:
 	return stacks[slot] if slot >= 0 and slot < stacks.size() else null
 
 
 func _drag_slot(_at: Vector2, index: int) -> Variant:
 	var source := page * PAGE_SIZE + index
-	var stack := _stack_at(source)
+	var stack := stack_at(source)
 	if stack == null:
 		return null
 	var preview := TextureRect.new()
@@ -238,10 +310,10 @@ func _can_drop_on_slot(_at: Vector2, data: Variant, index: int) -> bool:
 		return false
 	var source: int = data.get("source", -1)
 	var target := page * PAGE_SIZE + index
-	var stack := _stack_at(source)
-	if stack == null or stack != data.get("stack") or source == target:
+	var stack := stack_at(source)
+	if _is_locked(target) or stack == null or stack != data.get("stack") or source == target:
 		return false
-	var destination := _stack_at(target)
+	var destination := stack_at(target)
 	return destination == null or destination.key() != stack.key() or destination.quantity < STACK_LIMIT
 
 
@@ -251,7 +323,7 @@ func _drop_on_slot(at: Vector2, data: Variant, index: int) -> void:
 	var source: int = data["source"]
 	var target := page * PAGE_SIZE + index
 	var stack := stacks[source]
-	var destination := _stack_at(target)
+	var destination := stack_at(target)
 	if target >= stacks.size():
 		stacks.resize(target + 1)
 	if destination != null and destination.key() == stack.key():
@@ -265,54 +337,78 @@ func _drop_on_slot(at: Vector2, data: Variant, index: int) -> void:
 		stacks[source] = destination
 	selection = target
 	_draw_slots()
+	stacks_changed.emit()
 
 
 func _last_page() -> int:
 	return maxi(0, ceili(float(stacks.size()) / PAGE_SIZE) - 1)
 
 
+func _is_locked(slot: int) -> bool:
+	return slot < PAGE_SIZE and slot >= unlocked_rows * ROW_SIZE
+
+
 func _draw_slots() -> void:
 	for index in range(PAGE_SIZE):
 		var slot := page * PAGE_SIZE + index
-		var stack := _stack_at(slot)
+		var stack := stack_at(slot)
+		var locked := _is_locked(slot)
+		slots[index].disabled = locked
+		slots[index].text = "×" if locked else ""
 		slots[index].focus_mode = Control.FOCUS_ALL if stack != null else Control.FOCUS_NONE
 		slots[index].set_pressed_no_signal(slot == selection)
-		slots[index].tooltip_text = stack.title if stack != null else ""
+		slots[index].tooltip_text = "Locked · Upgrade your backpack" if locked else (stack.title if stack != null else "")
 		icons[index].texture = stack.texture if stack != null else null
 		counts[index].text = str(stack.quantity) if stack != null else ""
-	var selected := _stack_at(selection)
-	details.text = "Drag stacks to rearrange them, or select one to use it." if selected == null else (
-		"%s ×%d%s" % [selected.title, selected.quantity, "  ·  Equipped" if selected.equipped else ""])
+	var selected := stack_at(selection)
+	item_type.text = "IN YOUR BAG" if selected == null else ITEM_TYPES[selected.kind].to_upper()
+	preview_icon.texture = selected.texture if selected != null else null
+	details.text = "Select an item. Drag stacks to rearrange them." if selected == null else (
+		"%s ×%d%s" % [selected.title, selected.quantity, "\nEquipped" if selected.equipped else ""])
 	use_button.text = selected.action if selected != null and not selected.action.is_empty() else "Use item"
 	use_button.disabled = selected == null or selected.action.is_empty()
 	previous.disabled = page == 0
 	following.disabled = page == _last_page()
-	page_label.text = "Page %d / %d" % [page + 1, _last_page() + 1]
+	page_label.text = "%d / %d slots unlocked  ·  First row is the hotbar" % [
+		unlocked_rows * ROW_SIZE, PAGE_SIZE] if page == 0 else "Reserve · %d / %d" % [page, _last_page()]
 
 
 func _select(index: int) -> void:
 	var slot := page * PAGE_SIZE + index
-	if _stack_at(slot) == null:
+	if stack_at(slot) == null:
 		slots[index].set_pressed_no_signal(false)
 		return
 	selection = slot
 	_draw_slots()
 
 
+func focus_first_item() -> bool:
+	for button in slots:
+		if button.focus_mode == Control.FOCUS_ALL:
+			button.grab_focus()
+			return true
+	return false
+
+
 func _move_page(direction: int) -> void:
 	page += direction
 	selection = -1
 	_draw_slots()
-	if _stack_at(page * PAGE_SIZE) != null:
-		slots[0].grab_focus()
+	focus_first_item()
 
 
 func _use_selected() -> void:
 	if use_button.disabled:
 		return
-	var stack := stacks[selection]
-	using_slot = selection
+	use_slot(selection)
+	if use_button.disabled:
+		focus_first_item()
+
+
+func use_slot(index: int) -> void:
+	var stack := stack_at(index)
+	if stack == null or stack.action.is_empty():
+		return
+	using_slot = index
 	item_used.emit(stack.kind, stack.item_id)
 	using_slot = -1
-	if selection == -1 and _stack_at(page * PAGE_SIZE) != null:
-		slots[0].grab_focus()

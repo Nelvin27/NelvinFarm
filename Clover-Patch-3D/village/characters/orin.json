@@ -1,0 +1,74 @@
+{
+  "id": "orin",
+  "order": 17,
+  "name": "Orin Slate",
+  "role": "Stonecutter",
+  "district": 2,
+  "romance": true,
+  "gifts": {
+    "favorite": 22,
+    "disliked": 5
+  },
+  "character": {
+    "motivation": "Returned with his father's key and the tenants' deed. Wants control over how the family's story is used.",
+    "voice": "Plain, reserved, specific about objects and places.",
+    "connections": [
+      "indigo",
+      "sable"
+    ],
+    "backstory": "Orinâ€™s family lost its house after Vera opened the gate. He kept the old key and the tenantsâ€™ deed after the farmerâ€™s grandmother asked him to burn the copy, and he returned to town with both.",
+    "quest_hook": "Help Orin decide what to do with the key after the hearing. Let him choose whether the deed and key belong together."
+  },
+  "dialogue": {
+    "introduction": "My father kept a key to a house under the pond. It was the only thing he took when they told him to leave.",
+    "friendship": "When I first came back, I slept with the old key in my boot. I don't do that anymore. I still check that it's there.",
+    "supper": "I was glad there was room. Next year, ask me where I'd like to sit.",
+    "hearing": "They can call the deed evidence. To me it's a receipt for a house we never agreed to sell.",
+    "witness": "Your grandmother signed the sale. She made me promise to burn the tenants' copy. I didn't. When you inherited her farm, you inherited the only dry parcel in the deal.",
+    "after_testimony": "I don't need my father's house back. I need the next family to have a say before they lose theirs.",
+    "date": "Walk the old road with me. I want to show you where I'm going, and where I came from.",
+    "supper_choices": [
+      "Seeing the place set for us made it easier to stay.",
+      "They thanked the clinic. I was glad for Sana. I wish somebody had asked what happened to our street."
+    ],
+    "partner": "Yes. I'd like to make some plans that start with the house I live in now.",
+    "favorite_gift": "That'll pad a box of carved stone. Better than the rags I was using.",
+    "disliked_gift": "I know where that kind of flower grows. I don't want it by the bed."
+  },
+  "appearance": {
+    "skin": "#b48262",
+    "hair": "#44373b",
+    "cloth": "#776157",
+    "accent": "#aebdb4",
+    "haircut": "sweep",
+    "outfit": "vest",
+    "accessory": "chisel",
+    "scale": 1.08
+  },
+  "routine": {
+    "depart": 7.5,
+    "break_at": 13.0,
+    "home": 18.0,
+    "work": [
+      10.5,
+      -10.0
+    ],
+    "leisure": [
+      48.5,
+      -12
+    ],
+    "job": "Cuts replacement gate stones",
+    "hobby": "Walks the uphill road with the old key",
+    "leisure_area": "Highbank Terrace",
+    "home_context": "Took a stone house uphill after his family lost its cottage below the gate.",
+    "story_stop": {
+      "after": "testimony",
+      "at": [
+        11.5,
+        -10
+      ],
+      "area": "orchard edge",
+      "activity": "Traces the route of the old cottages"
+    }
+  }
+}

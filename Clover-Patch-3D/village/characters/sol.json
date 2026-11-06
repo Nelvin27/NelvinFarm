@@ -1,0 +1,57 @@
+{
+  "id": "sol",
+  "order": 22,
+  "name": "Sol Flint",
+  "role": "Carpenter",
+  "district": 2,
+  "romance": false,
+  "gifts": {
+    "favorite": 22,
+    "disliked": 5
+  },
+  "character": {
+    "motivation": "Reuses timber from houses lost in the flood. Wants to return a few pieces before people forget where they came from.",
+    "voice": "Thinks aloud through weight, wear, and repairs.",
+    "connections": [
+      "niko",
+      "mara"
+    ],
+    "backstory": "Sol reused boards from flooded homes when dry timber was scarce. Some went into repairs around town, including the farmerâ€™s cottage, and he can still recognize pieces by old nail holes and sun marks.",
+    "quest_hook": "Sort the remaining salvage with Sol and ask its former owners what they want returned, reused, or left where it is."
+  },
+  "dialogue": {
+    "introduction": "Some of the boards in your cottage used to be kitchen tables. Look underneath sometime.",
+    "friendship": "I can tell which way a table faced by the sun mark. There are whole summers in some of those boards.",
+    "supper": "The bench Niko fixed held six of us. I told him after, so he could spend the meal eating.",
+    "hearing": "If they rebuild, I'd like to make a few doors. I have some old brass that the families might recognize.",
+    "favorite_gift": "I can use that to stop the new chair legs scratching the cart.",
+    "disliked_gift": "That flower would last an hour in my workshop. Give it to someone who'll see it."
+  },
+  "appearance": {
+    "skin": "#a46d4e",
+    "hair": "#51403d",
+    "cloth": "#9d6845",
+    "accent": "#d8b184",
+    "haircut": "beard",
+    "outfit": "overalls",
+    "accessory": "saw",
+    "scale": 1.1
+  },
+  "routine": {
+    "depart": 8.0,
+    "break_at": 13.0,
+    "home": 18.0,
+    "work": [
+      18.5,
+      -11.0
+    ],
+    "leisure": [
+      61.5,
+      -8
+    ],
+    "job": "Cuts lumber at the orchard edge",
+    "hobby": "Checks in at the repair yard",
+    "leisure_area": "repair yard",
+    "home_context": "Keeps his workshop close to Niko and above the damp that ruins salvaged boards."
+  }
+}

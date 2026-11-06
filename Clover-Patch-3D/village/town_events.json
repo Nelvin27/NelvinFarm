@@ -1,0 +1,450 @@
+{
+  "ada": {
+    "title": "The last bowl",
+    "prompt": "Ada has one bowl of stew left. A courier is due late, but the child waiting at her table has already asked for seconds.",
+    "choices": [
+      {
+        "label": "Split the bowl now",
+        "reply": "Ada pours two smaller bowls and puts bread beside the first. She asks the child to help set out the second."
+      },
+      {
+        "label": "Keep a bowl for the courier",
+        "reply": "Ada sets the lid back on. The child helps her write a note so the courier knows whose place was saved."
+      }
+    ]
+  },
+  "aya": {
+    "title": "A path through the reeds",
+    "prompt": "Aya finds fresh bootprints around the nesting bank. Someone has left stepping stones that lead straight past a nest.",
+    "choices": [
+      {
+        "label": "Mark a path around the nest",
+        "reply": "Aya uses the stones to mark a bend well away from the bank. By noon, the footprints follow it."
+      },
+      {
+        "label": "Move the stones to the old path",
+        "reply": "Aya carries the first stone herself. At the old path she finds a smaller set of tracks following the boots."
+      }
+    ]
+  },
+  "bea": {
+    "title": "The ferry knot",
+    "prompt": "Bea is mending Hollis’s best net. A knot in the corner is strong enough, and it is the first one he taught her to tie.",
+    "choices": [
+      {
+        "label": "Keep the old knot",
+        "reply": "Bea mends around it. She pulls it once with both hands before putting the net down."
+      },
+      {
+        "label": "Ask Hollis to show you the knot",
+        "reply": "Hollis ties it slowly enough for both of you to follow. Bea leaves him the last loose end."
+      }
+    ]
+  },
+  "bram": {
+    "title": "Two names, one sack",
+    "prompt": "Bram’s old tally lists one sack under Mara’s name. Two families remember dividing it on the bakery steps.",
+    "choices": [
+      {
+        "label": "Ask both families how to record it",
+        "reply": "Bram leaves space for both accounts. He uses the back of the page when the front runs out of room."
+      },
+      {
+        "label": "Keep the tally and add a note",
+        "reply": "Bram copies the weight as written, then adds a note in his own hand about where the flour went."
+      }
+    ]
+  },
+  "cyrus": {
+    "title": "The chipped cup",
+    "prompt": "Cyrus has set out a chipped cup for a customer who has been gone for years. A new visitor reaches for it.",
+    "choices": [
+      {
+        "label": "Offer the cup to the visitor",
+        "reply": "Cyrus pours the tea. He sets out a second cup in case the old customer ever comes back."
+      },
+      {
+        "label": "Ask about the old customer",
+        "reply": "Cyrus tells you her name, then asks the visitor which cup they would like to use."
+      }
+    ]
+  },
+  "del": {
+    "title": "First refusal",
+    "prompt": "Del has one paid shift left on a repair crew. A former tenant wants the work, but the apprentice already brought tools.",
+    "choices": [
+      {
+        "label": "Ask the two workers to split the shift",
+        "reply": "Del goes to find a second hammer and pays both workers for the time they actually spend."
+      },
+      {
+        "label": "Give the apprentice the booked shift",
+        "reply": "Del keeps his word to the apprentice and asks the former tenant which work they want first next week."
+      }
+    ]
+  },
+  "elias": {
+    "title": "The unnamed jar",
+    "prompt": "Elias finds a jar of seeds with only a water stain where the label should be. He thinks it came from a flooded garden.",
+    "choices": [
+      {
+        "label": "Save a row for the seeds",
+        "reply": "Elias marks the row as a trial and puts a clean envelope aside for the next harvest."
+      },
+      {
+        "label": "Ask the former gardeners to identify them",
+        "reply": "Elias takes the jar down to the lane. Two people disagree about the variety and both offer to help grow it."
+      }
+    ]
+  },
+  "faye": {
+    "title": "The old hive stand",
+    "prompt": "Faye finds her old hive stand on land that changed hands after the flood. The new owner has repaired the legs.",
+    "choices": [
+      {
+        "label": "Ask whether the stand can be shared",
+        "reply": "Faye and the owner agree to talk before bringing bees back. She offers to show them how to check the shade."
+      },
+      {
+        "label": "Set up a new stand together",
+        "reply": "Faye asks for help carrying two boards. She measures the site twice before choosing where the bees will go."
+      }
+    ]
+  },
+  "greta": {
+    "title": "The draft minutes",
+    "prompt": "Greta brings two drafts of the same meeting. One names her vote. The other says the decision was unanimous.",
+    "choices": [
+      {
+        "label": "Ask to keep both drafts together",
+        "reply": "Greta writes the date on both copies and adds her name to the one that left it out."
+      },
+      {
+        "label": "Ask Greta to write her own account",
+        "reply": "Greta crosses out the first sentence twice. She starts again with where she was sitting when the vote was called."
+      }
+    ]
+  },
+  "hollis": {
+    "title": "An oar on the bank",
+    "prompt": "Hollis carries an old oar to the landing and rests it against a post. He asks how far you think the water has moved.",
+    "choices": [
+      {
+        "label": "Walk the bank with him",
+        "reply": "Hollis stops at a flat stone and shows you where the ferry used to scrape bottom."
+      },
+      {
+        "label": "Stay at the landing and listen",
+        "reply": "Hollis sits beside the oar. After a while he tells you the name of the first person he learned to ferry."
+      }
+    ]
+  },
+  "indigo": {
+    "title": "The road in pencil",
+    "prompt": "Indigo has drawn the drowned road in pencil. A former resident has asked her to leave their house off the public map.",
+    "choices": [
+      {
+        "label": "Mark the road and keep the house private",
+        "reply": "Indigo inks the road. She puts the house on a separate sheet and asks where that sheet should be kept."
+      },
+      {
+        "label": "Invite the resident to finish the map",
+        "reply": "Indigo hands them the pencil. They draw the bend before deciding whether to draw their home."
+      }
+    ]
+  },
+  "iona": {
+    "title": "The empty chair",
+    "prompt": "Iona sets out chairs for a small meeting. She has one invitation left and two people who have stopped coming.",
+    "choices": [
+      {
+        "label": "Ask who has been waiting longest",
+        "reply": "Iona checks her notes and goes to deliver the invitation in person."
+      },
+      {
+        "label": "Find room for another chair",
+        "reply": "Iona takes a chair from behind her desk and puts both invitations in her coat pocket."
+      }
+    ]
+  },
+  "joel": {
+    "title": "A tree in the wrong pot",
+    "prompt": "A sapling Joel promised to a displaced family has outgrown its pot. Their new garden has room for a smaller tree.",
+    "choices": [
+      {
+        "label": "Offer the family a choice of trees",
+        "reply": "Joel brings two pots out into the light and lets the family see how each would grow."
+      },
+      {
+        "label": "Find a temporary spot for the larger tree",
+        "reply": "Joel moves it into the nursery bed and leaves the name tag on until the family decides."
+      }
+    ]
+  },
+  "kit": {
+    "title": "The gate test",
+    "prompt": "Kit has built a model gate for the old field. The hinge works until a lamb leans on it.",
+    "choices": [
+      {
+        "label": "Help brace the hinge",
+        "reply": "Kit tries the brace with his elbow. He asks Willa to hold the other end while he tests it again."
+      },
+      {
+        "label": "Ask Willa where the old gate stood",
+        "reply": "Willa shows Kit the worn patch by the path. He redraws the model before making another hinge."
+      }
+    ]
+  },
+  "lark": {
+    "title": "The branch across the line",
+    "prompt": "One of Lark’s apple branches reaches over a disputed garden boundary. The fruit is ready to pick.",
+    "choices": [
+      {
+        "label": "Invite the neighbor to share the harvest",
+        "reply": "Lark carries two baskets out. The neighbor starts on the low branch while Lark holds it steady."
+      },
+      {
+        "label": "Ask where the next tree should go",
+        "reply": "Lark sets the ladder down and walks the boundary with the neighbor before making another planting mark."
+      }
+    ]
+  },
+  "mara": {
+    "title": "The oven goes cold",
+    "prompt": "Mara has enough fuel for one more batch. The bakery has paid orders waiting, and Ada needs bread for supper.",
+    "choices": [
+      {
+        "label": "Ask the customers to share the batch",
+        "reply": "Mara makes smaller loaves and explains the split to each customer as they arrive."
+      },
+      {
+        "label": "Fill the paid orders and help Ada plan another meal",
+        "reply": "Mara finishes the orders. She gives Ada yesterday’s crusts to toast over the soup pot."
+      }
+    ]
+  },
+  "milo": {
+    "title": "Two rain readings",
+    "prompt": "Milo measured less rain by the market than Vera did downstream. A council note asks him to file just one figure.",
+    "choices": [
+      {
+        "label": "Post both readings with their locations",
+        "reply": "Milo puts both numbers on the board. A neighbor adds a third reading from farther downriver."
+      },
+      {
+        "label": "Recheck the gauges with Vera",
+        "reply": "They find one gauge under a drip line. Milo keeps the old readings and marks what changed."
+      }
+    ]
+  },
+  "mina": {
+    "title": "A jar with a name",
+    "prompt": "Mina finds a jar marked for a customer who left after the flood. The customer has come back to visit family.",
+    "choices": [
+      {
+        "label": "Offer the jar unopened",
+        "reply": "Mina brings it out with the label still attached and lets the customer decide when to open it."
+      },
+      {
+        "label": "Ask whether to open it together",
+        "reply": "Mina fetches two spoons. The customer reads the label aloud before she breaks the seal."
+      }
+    ]
+  },
+  "ness": {
+    "title": "The scrap bucket",
+    "prompt": "Ness finds clean vegetable scraps mixed with spoiled packing paper in the shared bucket. Nobody wants to claim the mistake.",
+    "choices": [
+      {
+        "label": "Sort the bucket with Ness",
+        "reply": "Ness works beside you and shows which scraps can still go into the heap."
+      },
+      {
+        "label": "Put up a sorting example by the bucket",
+        "reply": "Ness sets out a small tray with examples. The next neighbor to arrive asks where to put their onion skins."
+      }
+    ]
+  },
+  "niko": {
+    "title": "The noticeboard in the rain",
+    "prompt": "Rain has worked behind the new noticeboard. Niko can hide the damage with paint or take the panel down to fix the seam.",
+    "choices": [
+      {
+        "label": "Help take the panel down",
+        "reply": "Niko sets the wet boards in the sun and asks Sol to check the seam before he hangs them again."
+      },
+      {
+        "label": "Put up a temporary board together",
+        "reply": "Niko transfers every notice to a spare board first. The wet one can dry without making anyone miss a meeting."
+      }
+    ]
+  },
+  "opal": {
+    "title": "The wrong bell",
+    "prompt": "Opal tries a new storm signal. Otto recognizes it, but two people on the far bank think it means a gathering.",
+    "choices": [
+      {
+        "label": "Try a second signal with Otto’s lamp",
+        "reply": "Otto shields the flame and lifts it on the last ring. Both people on the far bank wave back."
+      },
+      {
+        "label": "Ask the far bank to suggest a rhythm",
+        "reply": "Opal listens while someone taps three beats on the railing. She tries it back before writing it down."
+      }
+    ]
+  },
+  "orin": {
+    "title": "The key on the table",
+    "prompt": "Orin puts the old house key beside his copy of the deed. A neighbor has asked to display them together.",
+    "choices": [
+      {
+        "label": "Ask what he wants people to see",
+        "reply": "Orin says the deed can be read. He slips the key back into his pocket."
+      },
+      {
+        "label": "Offer to help describe the key instead",
+        "reply": "Orin dictates two plain lines about the door it opened. He keeps the key in his hand while you write."
+      }
+    ]
+  },
+  "otto": {
+    "title": "A lamp for the bend",
+    "prompt": "Otto’s favorite lamp needs a new glass pane. A volunteer has come to learn the route and offers to take it home to repair.",
+    "choices": [
+      {
+        "label": "Walk the route with the volunteer",
+        "reply": "Otto shows them every turn and carries the damaged lamp himself. At the bend he hands it over."
+      },
+      {
+        "label": "Help repair the lamp before the walk",
+        "reply": "Otto holds the new glass while the volunteer seats it. They light it together before going out."
+      }
+    ]
+  },
+  "pip": {
+    "title": "A kite for two",
+    "prompt": "Pip has enough paper for one big kite. Kit wants to fly it over the old field, while Aya is watching a nest there.",
+    "choices": [
+      {
+        "label": "Find a meadow spot with Aya",
+        "reply": "Pip and Kit try the kite somewhere Aya suggests. It catches the wind without crossing the reeds."
+      },
+      {
+        "label": "Build a smaller kite for the lane",
+        "reply": "Pip trims the wings and gives Kit the string. They take turns running between the posts."
+      }
+    ]
+  },
+  "ren": {
+    "title": "A quiet fishing spot",
+    "prompt": "Ren is fishing above the old front step Orin described. Orin has stopped on the bank without a rod.",
+    "choices": [
+      {
+        "label": "Ask Orin where he would rather stand",
+        "reply": "Ren reels in and follows Orin to a patch of shade. They stay there awhile before Ren casts again."
+      },
+      {
+        "label": "Pack up the rods and sit awhile",
+        "reply": "Ren sets the rods down. Orin sits beside you and points out where the road turned."
+      }
+    ]
+  },
+  "roan": {
+    "title": "The missing verse",
+    "prompt": "Roan has been asked to sing the old town song. The missing verse names a family he has yet to speak to.",
+    "choices": [
+      {
+        "label": "Help him ask the family first",
+        "reply": "Roan leaves the verse for another day. He takes the long way home to stop at their door."
+      },
+      {
+        "label": "Suggest an instrumental ending",
+        "reply": "Roan plays the last melody without the words. A listener hums it quietly from the back bench."
+      }
+    ]
+  },
+  "sable": {
+    "title": "A letter without an address",
+    "prompt": "Sable has a letter for a former tenant. The council wants the delivery address, and the tenant has asked to keep it private.",
+    "choices": [
+      {
+        "label": "Offer to carry a sealed reply",
+        "reply": "Sable keeps the address in their own book and gives you a sealed reply to take back."
+      },
+      {
+        "label": "Ask the tenant how to receive future mail",
+        "reply": "Sable arranges a pickup at the bakery and writes down only the place the tenant agreed to share."
+      }
+    ]
+  },
+  "sana": {
+    "title": "The clinic’s spare bench",
+    "prompt": "Sana wants to meet families who stopped using the clinic after the flood. A councilor offers to attend the meeting.",
+    "choices": [
+      {
+        "label": "Offer a private visit first",
+        "reply": "Sana asks which families would like her to come alone and gives them a choice of days."
+      },
+      {
+        "label": "Set out a bench for an open conversation",
+        "reply": "Sana puts chairs outside and leaves the clinic door open. She asks the councilor to listen before taking notes."
+      }
+    ]
+  },
+  "sol": {
+    "title": "The marked board",
+    "prompt": "Sol recognizes an old threshold in a pile of usable timber. The family who owned it has been asking what happened to their door.",
+    "choices": [
+      {
+        "label": "Take the board back to the family",
+        "reply": "Sol wraps it in a cloth so the worn edge will survive the walk. He lets them unwrap it themselves."
+      },
+      {
+        "label": "Ask whether to reuse it in a shared repair",
+        "reply": "Sol sets it apart from the pile and waits for the family to decide where they want it to go."
+      }
+    ]
+  },
+  "tess": {
+    "title": "The ledger copy",
+    "prompt": "Tess is preparing a copy of the flood records. A former tenant wants their account preserved but asks to leave their name out of the public copy.",
+    "choices": [
+      {
+        "label": "Prepare a public and a private copy",
+        "reply": "Tess puts the tenant’s account in both copies and seals the name with their permission."
+      },
+      {
+        "label": "Ask the tenant to review the wording",
+        "reply": "Tess sets her pen down and reads the account back. The tenant changes the last sentence before signing it."
+      }
+    ]
+  },
+  "vera": {
+    "title": "The second key",
+    "prompt": "Vera has cut a second key for the floodgate. She is ready to hand it to someone downstream, but nobody has agreed on how both keys should be used.",
+    "choices": [
+      {
+        "label": "Ask the low bank to write the rule with her",
+        "reply": "Vera brings the key to the meeting and leaves it on the table while people talk through a drill."
+      },
+      {
+        "label": "Practice a handoff before assigning the key",
+        "reply": "Vera walks the route with a volunteer and writes down where they lost time. They agree to try again before choosing a keeper."
+      }
+    ]
+  },
+  "willa": {
+    "title": "The basket on the shelf",
+    "prompt": "Willa finds a basket of belongings from the landing that nobody has claimed. The label is still tied to its handle.",
+    "choices": [
+      {
+        "label": "Help trace the name privately",
+        "reply": "Willa wraps the basket and asks Sable to make the first contact. She leaves it closed."
+      },
+      {
+        "label": "Ask what the family wants done with it",
+        "reply": "Willa writes a short note offering delivery or a quiet pickup. She keeps the basket ready by the door."
+      }
+    ]
+  }
+}

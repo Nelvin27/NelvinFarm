@@ -1,0 +1,57 @@
+{
+  "id": "kit",
+  "order": 28,
+  "name": "Kit Dawn",
+  "role": "Young shepherd",
+  "district": 3,
+  "romance": false,
+  "gifts": {
+    "favorite": -1,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Wants to build a proper gate and prove he can keep a small flock together.",
+    "voice": "Open, playful, short bursts of enthusiasm.",
+    "connections": [
+      "pip",
+      "willa"
+    ],
+    "backstory": "Kit grew up hearing adults call the old field empty. He learned from Willa that families had once kept gardens there and began sketching a new gate for a small flock.",
+    "quest_hook": "Help Kit test a model gate, then ask the people who remember the field whether they want livestock there again."
+  },
+  "dialogue": {
+    "introduction": "I told the lamb to stay here. I think it heard me and made a different plan.",
+    "friendship": "I told a lamb about school once. It ate the end of my homework. Best listener I've had.",
+    "supper": "Can we have supper outside again? I want to show Pip which end of the kite is supposed to go up.",
+    "hearing": "Does this mean we can use the old field? I know exactly where I'd put the first gate.",
+    "favorite_gift": "Can I take it out to the fence? Food tastes better when the lamb's looking at you.",
+    "disliked_gift": "I can't bring a fish home again. The lamb rolled on the last one."
+  },
+  "appearance": {
+    "skin": "#c98e64",
+    "hair": "#553b31",
+    "cloth": "#75815c",
+    "accent": "#ebbe7a",
+    "haircut": "tuft",
+    "outfit": "vest",
+    "accessory": "crook",
+    "scale": 0.85
+  },
+  "routine": {
+    "depart": 7.0,
+    "break_at": 15.0,
+    "home": 18.0,
+    "work": [
+      19.5,
+      17.0
+    ],
+    "leisure": [
+      39.5,
+      29.0
+    ],
+    "job": "Checks the meadow grazing",
+    "hobby": "Walks the green before heading in",
+    "leisure_area": "Village Green",
+    "home_context": "Lives on the green side of the orchard neighborhood, within walking distance of the meadow flock."
+  }
+}

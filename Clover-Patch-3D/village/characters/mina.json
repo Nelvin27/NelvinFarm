@@ -1,0 +1,57 @@
+{
+  "id": "mina",
+  "order": 21,
+  "name": "Mina Ash",
+  "role": "Jam maker",
+  "district": 2,
+  "romance": false,
+  "gifts": {
+    "favorite": 23,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Preserves the orchard's best fruit and hesitates to open the jars. Wants to share one good year while it is happening.",
+    "voice": "Mischievous and candid, turns a correction into a joke.",
+    "connections": [
+      "lark",
+      "mara"
+    ],
+    "backstory": "Mina saved jars from the years when the orchard had enough fruit to share. Among her older orders are names the public record lost after the flood, and some belonged to people who have since moved away.",
+    "quest_hook": "Ask permission to share the old orders and help Mina choose a jar to open when its original customer returns."
+  },
+  "dialogue": {
+    "introduction": "I made preserves the year the apples failed. Mostly pears, if I'm being honest.",
+    "friendship": "My sister says I bottle things because I'm afraid to eat them while they're good. She isn't entirely wrong.",
+    "supper": "I opened the last plum jar. We scraped it clean with bread instead of saving a spoonful.",
+    "hearing": "I found the old orders for the flooded cottages. I'm going to ask before I put anybody's name up.",
+    "favorite_gift": "I'll try one jar with less sugar so you can still taste this.",
+    "disliked_gift": "Fish in the jam kitchen is a mistake you only have to make once."
+  },
+  "appearance": {
+    "skin": "#ecc19b",
+    "hair": "#5f3941",
+    "cloth": "#9f5268",
+    "accent": "#f0c9a2",
+    "haircut": "bob",
+    "outfit": "apron",
+    "accessory": "jam",
+    "scale": 0.97
+  },
+  "routine": {
+    "depart": 9.0,
+    "break_at": 15.0,
+    "home": 19.0,
+    "work": [
+      16.5,
+      -10.0
+    ],
+    "leisure": [
+      56.5,
+      12.0
+    ],
+    "job": "Sorts fruit for preserves",
+    "hobby": "Trades jars on Orchard Row",
+    "leisure_area": "Orchard Row",
+    "home_context": "Chose Bread Lane to stay close to the customers whose names she kept on her old jar orders."
+  }
+}

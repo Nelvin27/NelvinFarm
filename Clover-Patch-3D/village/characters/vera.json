@@ -1,0 +1,68 @@
+{
+  "id": "vera",
+  "order": 8,
+  "name": "Vera Holt",
+  "role": "Gate engineer",
+  "district": 1,
+  "romance": false,
+  "gifts": {
+    "favorite": 24,
+    "disliked": 5
+  },
+  "character": {
+    "motivation": "Opened the floodgate to save the clinic. Wants someone downstream to share authority over the next gate.",
+    "voice": "Blunt, mechanical vocabulary. Speaks plainly about consequences.",
+    "connections": [
+      "sana",
+      "milo"
+    ],
+    "backstory": "Vera opened the floodgate to protect six patients at the clinic, knowing the diverted water would reach the leased cottages. The council later sold those flooded plots to fund the clinic, a decision that changed how she understood what she had saved.",
+    "quest_hook": "Inspect the gate with Vera and invite someone from downstream to help write the rules for holding and using its second key."
+  },
+  "dialogue": {
+    "introduction": "People blame the river because it can't stand up at a hearing.",
+    "friendship": "My daughter asked if I would open the gate again. I asked how many patients were inside. She said I'd missed the question.",
+    "supper": "I stayed near the kitchen door. Sana brought my bowl there without asking me to move.",
+    "hearing": "I'll train a second gatekeeper. Next time somebody downstream should know exactly what I'm doing.",
+    "witness": "I opened the gate. The flood would have hit the clinic with six patients inside. I diverted it into the leased cottages. The council paid for the clinic afterward with money from selling those same flooded plots.",
+    "after_testimony": "I want the next gate to have two keys. One for the engineer and one for somebody who actually lives downstream.",
+    "favorite_gift": "I know how to clean this with one good knife. Stay for a piece if you've time.",
+    "disliked_gift": "The last bouquet at the gate was a thank-you from somebody I couldn't help. I'd rather leave it there."
+  },
+  "appearance": {
+    "skin": "#9f644d",
+    "hair": "#343841",
+    "cloth": "#557381",
+    "accent": "#dda459",
+    "haircut": "part",
+    "outfit": "overalls",
+    "accessory": "key",
+    "scale": 1.04
+  },
+  "routine": {
+    "depart": 7.5,
+    "break_at": 14.0,
+    "home": 19.0,
+    "work": [
+      -4.5,
+      14.0
+    ],
+    "leisure": [
+      57.5,
+      29
+    ],
+    "job": "Checks the old water line",
+    "hobby": "Compares the new bank with the old flood line",
+    "leisure_area": "Reedmere",
+    "home_context": "Lives near Sana and keeps the old and new banks in walking distance after opening the gate to save the clinic.",
+    "story_stop": {
+      "after": "testimony",
+      "at": [
+        -3.5,
+        11
+      ],
+      "area": "west of Willow Pond",
+      "activity": "Walks the old gate route again"
+    }
+  }
+}

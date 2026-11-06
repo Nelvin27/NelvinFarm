@@ -24,7 +24,7 @@ func _ready() -> void:
 
 func set_season(season: Catalog.Season, equipped: int) -> void:
 	seeds.clear()
-	for id in range(Catalog.crops.size()):
+	for id in range(Catalog.SEED_COUNT):
 		var crop := Catalog.crops[id]
 		if crop.grows_in(season):
 			seeds.add_item(crop.label, id)

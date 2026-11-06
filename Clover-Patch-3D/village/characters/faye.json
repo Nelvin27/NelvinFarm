@@ -1,0 +1,57 @@
+{
+  "id": "faye",
+  "order": 18,
+  "name": "Faye Ember",
+  "role": "Beekeeper",
+  "district": 2,
+  "romance": false,
+  "gifts": {
+    "favorite": 5,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Moves hives away from disputes she cannot control. Wants neighbors to ask before making plans for her land.",
+    "voice": "Observant and wry. Uses comparisons to bee behavior when they fit.",
+    "connections": [
+      "aya",
+      "lark"
+    ],
+    "backstory": "Faye lost access to several hive stands after the flooded plots changed hands. She moved the remaining hives herself and stopped asking neighbors to help once people started treating temporary sites as permanent.",
+    "quest_hook": "Walk the old hive boundary with Faye and the families before she decides whether to bring the bees back."
+  },
+  "dialogue": {
+    "introduction": "Somebody moved my hives in the night. The bees have forgiven them. I'm still thinking.",
+    "friendship": "A hive that loses its queen sounds wrong before it looks wrong. I wish I had listened sooner at home.",
+    "supper": "I brought honey and left before dessert. Too many people asking me to tell the story of the hives.",
+    "hearing": "I can put hives back by the old boundary if the families want them. I'll wait to be asked.",
+    "favorite_gift": "I'll see if the bees have noticed where this grows.",
+    "disliked_gift": "Fish near a hive gets every wasp in the valley interested. No, thank you."
+  },
+  "appearance": {
+    "skin": "#e0ab80",
+    "hair": "#714a39",
+    "cloth": "#b48747",
+    "accent": "#f2d79a",
+    "haircut": "bob",
+    "outfit": "coat",
+    "accessory": "bee_hat",
+    "scale": 1.01
+  },
+  "routine": {
+    "depart": 8.0,
+    "break_at": 15.0,
+    "home": 19.0,
+    "work": [
+      20.5,
+      -9.0
+    ],
+    "leisure": [
+      46.5,
+      15.0
+    ],
+    "job": "Checks the hives at the orchard edge",
+    "hobby": "Looks for new flowers on Orchard Row",
+    "leisure_area": "Orchard Row",
+    "home_context": "Keeps space next to the nursery to feed the hives she moved after the leases changed hands."
+  }
+}

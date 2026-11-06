@@ -9,7 +9,7 @@ const WOOD := preload("res://assets/voxel/wood.png")
 const ROOF := preload("res://assets/voxel/roof.png")
 
 
-static func tree(parent: Node3D, at: Vector3, size: float, apple: bool) -> void:
+static func tree(parent: Node3D, at: Vector3, size: float, apple: bool) -> Node3D:
 	var root := Node3D.new()
 	root.position = at
 	root.scale = Vector3.ONE * size
@@ -19,9 +19,13 @@ static func tree(parent: Node3D, at: Vector3, size: float, apple: bool) -> void:
 	Meshes.box(root, Vector3(-0.12, 1.27, 0.02), Vector3(1.11, 0.39, 0.92), "#679351")
 	Meshes.box(root, Vector3(0.14, 1.47, -0.10), Vector3(0.72, 0.29, 0.78), "#7ea258")
 	Meshes.box(root, Vector3(-0.10, 1.64, -0.02), Vector3(0.46, 0.20, 0.51), "#8aaa61")
-	if apple:
-		for fruit in [Vector3(-0.38, 1.25, 0.50), Vector3(0.30, 1.09, 0.43), Vector3(0.43, 1.33, -0.31)]:
-			Meshes.box(root, fruit, Vector3(0.13, 0.15, 0.13), "#b85c50")
+	if not apple:
+		return null
+	var fruit_cluster := Node3D.new()
+	root.add_child(fruit_cluster)
+	for fruit in [Vector3(-0.38, 1.25, 0.50), Vector3(0.30, 1.09, 0.43), Vector3(0.43, 1.33, -0.31)]:
+		Meshes.box(fruit_cluster, fruit, Vector3(0.18, 0.19, 0.18), "#b85c50")
+	return fruit_cluster
 
 
 static func flower(parent: Node3D, at: Vector3, size: float, tint: String) -> void:

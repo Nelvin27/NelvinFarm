@@ -1,0 +1,59 @@
+{
+  "id": "lark",
+  "order": 16,
+  "name": "Lark Dunn",
+  "role": "Orchard keeper",
+  "district": 2,
+  "romance": true,
+  "gifts": {
+    "favorite": 23,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Kept the orchard after a sibling left. Wants to choose what belongs to the future instead of preserving everything.",
+    "voice": "Patient, attentive to seasons, with occasional sharp jokes.",
+    "connections": [
+      "mina",
+      "joel"
+    ],
+    "backstory": "Lark stayed to keep the orchard running after his brother left. The flood turned a familiar route between homes and trees into a disputed boundary, and Lark kept tending both sides until someone asked him to stop.",
+    "quest_hook": "Walk the orchard boundary with Lark and a former tenant and decide together where to plant the next tree."
+  },
+  "dialogue": {
+    "introduction": "The tree I thought was dead gave me four apples. I've been less quick to write things off since.",
+    "friendship": "I thought keeping the old orchard alive was the same thing as keeping my family together. Then my brother left, and the trees kept blooming.",
+    "supper": "I brought jam with the date on the lid. Mina teased me for waiting three years to open it.",
+    "hearing": "If the leases change, I'll walk the orchard boundary with whoever gets a key.",
+    "date": "Come pick apples with me sometime. I'll tell you why I kept the tree everyone wanted cut down.",
+    "partner": "Yes. I'd like to plant something together and see what it does.",
+    "favorite_gift": "Listen to that stem. It came off the branch at just the right moment.",
+    "disliked_gift": "Fish near the windfalls brings crows. Please take it somewhere else."
+  },
+  "appearance": {
+    "skin": "#cb9571",
+    "hair": "#584036",
+    "cloth": "#74895d",
+    "accent": "#e3b266",
+    "haircut": "braids",
+    "outfit": "overalls",
+    "accessory": "apple",
+    "scale": 1.03
+  },
+  "routine": {
+    "depart": 7.0,
+    "break_at": 14.0,
+    "home": 19.0,
+    "work": [
+      17.5,
+      -9.0
+    ],
+    "leisure": [
+      36.5,
+      14.0
+    ],
+    "job": "Checks fruit on the orchard trees",
+    "hobby": "Walks the gardens along Orchard Row",
+    "leisure_area": "Orchard Row",
+    "home_context": "Took the nearest Orchard Row lot to his old walk back to the fruit trees."
+  }
+}

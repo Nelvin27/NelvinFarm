@@ -1,0 +1,58 @@
+{
+  "id": "otto",
+  "order": 3,
+  "name": "Otto Fen",
+  "role": "Lamplighter",
+  "district": 0,
+  "romance": false,
+  "gifts": {
+    "favorite": 23,
+    "disliked": 5
+  },
+  "character": {
+    "motivation": "A widower who keeps the old lamps lit. Wants someone younger to learn the routes while he can still walk them.",
+    "voice": "Short sentences with quiet, incidental tenderness.",
+    "connections": [
+      "opal",
+      "hollis"
+    ],
+    "backstory": "Otto lit the bend above the low road during the flood so people coming up from the ferry could see where to turn. His late husband helped tend that lamp, and Otto still leaves it burning on quiet nights.",
+    "quest_hook": "Walk the lamp route with Otto and a new volunteer. Ask him which lamps he wants to hand over and which he wants to keep tending."
+  },
+  "dialogue": {
+    "introduction": "People think I light the lamps for them. Mostly I light them so I can see who is walking home alone.",
+    "friendship": "I leave one lamp burning by the bend. My husband always said a light has a job even when nobody sees it.",
+    "supper": "I took an extra lamp to the supper. When the wind took it, three people leaned in to relight it.",
+    "hearing": "I'll light the old road again. Knowing where it led makes that feel different.",
+    "favorite_gift": "I'll eat this one on the walk. That's when I can hear it snap.",
+    "disliked_gift": "The flower is pretty. The lamplight draws enough moths already."
+  },
+  "appearance": {
+    "skin": "#d4ae88",
+    "hair": "#d3c4a8",
+    "cloth": "#414d64",
+    "accent": "#e6b85c",
+    "haircut": "cropped",
+    "outfit": "long_coat",
+    "accessory": "lamp",
+    "scale": 0.98
+  },
+  "routine": {
+    "depart": 10.0,
+    "break_at": 16.0,
+    "home": 22.0,
+    "work": [
+      30.5,
+      -8
+    ],
+    "leisure": [
+      5.5,
+      8
+    ],
+    "job": "Repairs lamp housings",
+    "hobby": "Checks the Market Lane lamps",
+    "leisure_area": "the commons",
+    "home_context": "Lives on the uphill approach so he can keep the lamp above the low road burning.",
+    "work_area": "the Highbank lamp"
+  }
+}

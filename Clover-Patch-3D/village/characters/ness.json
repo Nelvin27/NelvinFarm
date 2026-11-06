@@ -1,0 +1,57 @@
+{
+  "id": "ness",
+  "order": 23,
+  "name": "Ness Reed",
+  "role": "Compost keeper",
+  "district": 2,
+  "romance": false,
+  "gifts": {
+    "favorite": 0,
+    "disliked": -1
+  },
+  "character": {
+    "motivation": "Collects scraps from neighbors who would rather not be seen carrying them. Wants compost taken seriously as shared work.",
+    "voice": "Earthy and unsentimental. Gets to the point fast.",
+    "connections": [
+      "elias",
+      "ada"
+    ],
+    "backstory": "Ness took kitchen scraps from the flood relief meals and used the compost in garden beds that needed new soil. Neighbors still use those beds, though few remember where the soil came from.",
+    "quest_hook": "Help Ness turn the informal scrap rounds into a shared arrangement that gives the cooks and growers a say."
+  },
+  "dialogue": {
+    "introduction": "It takes a little rot to make a decent garden. People are harder to convince.",
+    "friendship": "Elias used to ask if I could make the heap smell better. Now he brings me his kitchen bucket after dark.",
+    "supper": "The scraps came back sorted. That's the closest this valley has come to agreeing on anything all week.",
+    "hearing": "Give me the spoiled paperwork. I'll leave the parts with people's names alone.",
+    "favorite_gift": "If you won't eat it, the heap will. That one still looks fine to me.",
+    "disliked_gift": "Bread goes to Mara's table first. I don't want to be the reason it didn't."
+  },
+  "appearance": {
+    "skin": "#896047",
+    "hair": "#43383b",
+    "cloth": "#6b744d",
+    "accent": "#c2a270",
+    "haircut": "tuft",
+    "outfit": "vest",
+    "accessory": "bucket",
+    "scale": 1.02
+  },
+  "routine": {
+    "depart": 7.5,
+    "break_at": 14.0,
+    "home": 18.0,
+    "work": [
+      21.5,
+      -10.0
+    ],
+    "leisure": [
+      69.5,
+      14.0
+    ],
+    "job": "Turns the orchard compost",
+    "hobby": "Collects garden scraps on Orchard Row",
+    "leisure_area": "Orchard Row",
+    "home_context": "Took a garden lot near Joel and Faye where compost from the relief kitchens can still be put to use."
+  }
+}

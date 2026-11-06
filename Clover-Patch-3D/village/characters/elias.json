@@ -1,0 +1,59 @@
+{
+  "id": "elias",
+  "order": 2,
+  "name": "Elias Reed",
+  "role": "Seed merchant",
+  "district": 0,
+  "romance": true,
+  "gifts": {
+    "favorite": 0,
+    "disliked": 22
+  },
+  "character": {
+    "motivation": "Keeps family seeds and suspects his father benefited from the flood deal. Wants to name the debt in public himself.",
+    "voice": "Dry wit, careful qualifiers, plant metaphors used sparingly.",
+    "connections": [
+      "ness",
+      "mara"
+    ],
+    "backstory": "Elias learned seed saving from his father, who accepted a dry plot after the council sold the flooded land. The seed merchant has kept the old jars even as he has grown uneasy about what made the family business possible.",
+    "quest_hook": "Help Elias trace which families supplied the seeds, then ask them whether they want seed shares, credit, or both."
+  },
+  "dialogue": {
+    "introduction": "I keep the crooked seeds. Sometimes those are the only ones that remember how to grow here.",
+    "friendship": "I can't prove my crooked seeds grow better. I can tell you which jar I reach for when it's my field.",
+    "supper": "I brought a jar for the table. People kept asking what was in it. Next year I'd like them to know.",
+    "hearing": "My father accepted one of those dry plots. I'd rather put his name in the record myself.",
+    "date": "I'll save you a seat by the seed trays. Tell me which one you'd plant if you had to leave before harvest.",
+    "partner": "Yes. I've already put two chairs by the seed trays. You can pick which one is yours.",
+    "favorite_gift": "A good turnip. Would you let me see the seed it came from?",
+    "disliked_gift": "I have nowhere dry to keep the grass. The nursery could use it."
+  },
+  "appearance": {
+    "skin": "#c59568",
+    "hair": "#593c31",
+    "cloth": "#59704a",
+    "accent": "#dac07b",
+    "haircut": "sweep",
+    "outfit": "vest",
+    "accessory": "seed_pouch",
+    "scale": 1.01
+  },
+  "routine": {
+    "depart": 7.0,
+    "break_at": 15.0,
+    "home": 18.0,
+    "work": [
+      3.5,
+      4.0
+    ],
+    "leisure": [
+      12.5,
+      -9.0
+    ],
+    "job": "Sorts seed orders",
+    "hobby": "Checks the orchard seedlings",
+    "leisure_area": "orchard edge",
+    "home_context": "Stores his family's seed jars in a dry house close to the market road."
+  }
+}

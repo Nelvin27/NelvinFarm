@@ -1,0 +1,66 @@
+{
+  "id": "mara",
+  "order": 1,
+  "name": "Mara Flint",
+  "role": "Baker",
+  "district": 0,
+  "romance": true,
+  "gifts": {
+    "favorite": -1,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Feeds people before asking why they came. Fears the bakery cannot afford to keep being everyone's refuge.",
+    "voice": "Warm and concrete. Talks in quantities and kitchen details.",
+    "connections": [
+      "sol",
+      "bram",
+      "ada"
+    ],
+    "backstory": "Mara learned to bake beside her mother, who gave away bread when the displaced families came up from the river. Years later, people still come to the bakery hungry, and Mara is carrying more of that cost than the village sees.",
+    "quest_hook": "Help Mara and Ada set up a rotating supper contribution so the bakery can keep offering a meal without paying for it alone."
+  },
+  "dialogue": {
+    "introduction": "The first loaf is for whoever shows up hungry. The second is how I stay open.",
+    "friendship": "My mother called the burnt crust the baker's share. It took me years to notice how much bread she gave away.",
+    "supper": "We made enough. That's the first supper in years where I didn't count the rolls under my breath.",
+    "hearing": "If the clinic pays its debts, good. I still want someone to ask who fed the families while they waited.",
+    "date": "Come back after the last loaf. I'd like to make dinner for two without calling it a shift.",
+    "supper_invitation": "I'm putting out a supper for the whole valley. We have one extra chair. I'd like you to choose who we set it for.",
+    "supper_open": "I'll set the table in the meadow. Come by and see who's there.",
+    "supper_choices": [
+      "We saved a seat for the families who left. Orin sat beside it the whole meal.",
+      "We thanked the people who kept the clinic open. Sana said there were more names than the ones on her staff list."
+    ],
+    "partner": "Yes. You can have the first loaf if you'll sit with me while it cools.",
+    "favorite_gift": "Good bread. Whoever scored it knew exactly where it would split.",
+    "disliked_gift": "Fish and flour share a worktop here. Take it back to the pond stall."
+  },
+  "appearance": {
+    "skin": "#e3ae85",
+    "hair": "#6b3f37",
+    "cloth": "#af6052",
+    "accent": "#f0d39c",
+    "haircut": "bun",
+    "outfit": "apron",
+    "accessory": "bread",
+    "scale": 1.02
+  },
+  "routine": {
+    "depart": 6.5,
+    "break_at": 13.0,
+    "home": 20.0,
+    "work": [
+      10.5,
+      7.0
+    ],
+    "leisure": [
+      31.5,
+      5
+    ],
+    "job": "Sets out the morning bread",
+    "hobby": "Sets out bread for Ada at the commons",
+    "leisure_area": "the commons",
+    "home_context": "Keeps the closest Bread Lane house to Market Lane and leaves space at the step for Ada's soup pot."
+  }
+}

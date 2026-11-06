@@ -1,0 +1,68 @@
+{
+  "id": "tess",
+  "order": 7,
+  "name": "Tess Quill",
+  "role": "Town archivist",
+  "district": 0,
+  "romance": false,
+  "gifts": {
+    "favorite": 5,
+    "disliked": 22
+  },
+  "character": {
+    "motivation": "Cut the lease page to buy the tenants time. Wants to correct the record without letting the council make her the whole story.",
+    "voice": "Names dates and physical details. Gets blunt when a record was altered.",
+    "connections": [
+      "sable",
+      "iona"
+    ],
+    "backstory": "Tess cut the tenantsâ€™ page out of the lease ledger to buy the families time to move. The missing page let the council treat the land as vacant during the sale, a consequence she has avoided explaining for years.",
+    "quest_hook": "Help Tess put the records in order for public or private access after the hearing, including an account of why she removed the page."
+  },
+  "dialogue": {
+    "introduction": "The flood ledger is missing page twelve. The binding has been cut. Water doesn't do that.",
+    "friendship": "I used to mend the books where nobody could see the stitches. I leave them visible now.",
+    "supper": "I wrote down who brought what. It felt good to keep a record nobody wanted me to change.",
+    "hearing": "I will keep every version of the ledger, including the one with my cut in it.",
+    "witness": "Page twelve listed the floodplain leases. I cut it out myself. People were already packing, and I thought the missing page would buy them time. It bought the council time instead.",
+    "after_testimony": "I've left a blank space on the archive shelf. The ledger deserves to come back with all its pages.",
+    "favorite_gift": "I'll press it with the market notices. That's a better date stamp than ink.",
+    "disliked_gift": "The grass will shed in the bindings. Please keep it out of the archive."
+  },
+  "appearance": {
+    "skin": "#ecc4a3",
+    "hair": "#4b3448",
+    "cloth": "#705365",
+    "accent": "#d3b0a1",
+    "haircut": "bun",
+    "outfit": "coat",
+    "accessory": "glasses",
+    "scale": 0.99
+  },
+  "routine": {
+    "depart": 9.0,
+    "break_at": 15.0,
+    "home": 21.0,
+    "work": [
+      2.5,
+      8.0
+    ],
+    "leisure": [
+      49.5,
+      5.0
+    ],
+    "job": "Copies water records",
+    "hobby": "Reads in the shade at the commons",
+    "leisure_area": "the commons",
+    "home_context": "Lives close enough to Iona to return ordinary records on foot, with the lease papers kept at home.",
+    "story_stop": {
+      "after": "testimony",
+      "at": [
+        45.5,
+        5
+      ],
+      "area": "the commons",
+      "activity": "Checks lease dates against the families’ accounts"
+    }
+  }
+}

@@ -1,0 +1,57 @@
+{
+  "id": "pip",
+  "order": 10,
+  "name": "Pip Moss",
+  "role": "Kite maker",
+  "district": 1,
+  "romance": false,
+  "gifts": {
+    "favorite": 5,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Collects torn kite paper and wants a reason for the whole valley to look up together.",
+    "voice": "Fast, literal, delighted by odd comparisons.",
+    "connections": [
+      "kit",
+      "niko"
+    ],
+    "backstory": "Pip started flying patched paper over the meadow while older residents were still arguing about the old road. A kite gives people on opposite sides of the dispute something they can work on together.",
+    "quest_hook": "Help Pip and Kit plan a kite day. Ask Aya where the group can fly without disturbing the nests."
+  },
+  "dialogue": {
+    "introduction": "I made a kite shaped like a fish. It keeps trying to swim into the mud.",
+    "friendship": "My best kite tore on the first flight. Now the paper's patched, everybody asks where I got the pattern.",
+    "supper": "I set a kite on the empty chair. Iona asked if I'd make one for the next supper too.",
+    "hearing": "They used to tell me that part of the pond was bottomless. I think they wanted me to stop asking.",
+    "favorite_gift": "The petals look like paper I can actually fold!",
+    "disliked_gift": "A fish doesn't work as a kite weight. I already asked Ren."
+  },
+  "appearance": {
+    "skin": "#e5ae87",
+    "hair": "#694032",
+    "cloth": "#b27249",
+    "accent": "#efca6d",
+    "haircut": "tuft",
+    "outfit": "overalls",
+    "accessory": "kite",
+    "scale": 0.8
+  },
+  "routine": {
+    "depart": 10.0,
+    "break_at": 15.0,
+    "home": 19.0,
+    "work": [
+      52.5,
+      5.0
+    ],
+    "leisure": [
+      40.5,
+      28.0
+    ],
+    "job": "Ties kite frames",
+    "hobby": "Flies kites on the green",
+    "leisure_area": "Village Green",
+    "home_context": "Chose a house with a clear walk south to the green where kites can get above the trees."
+  }
+}

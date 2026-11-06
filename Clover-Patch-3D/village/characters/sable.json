@@ -1,0 +1,59 @@
+{
+  "id": "sable",
+  "order": 4,
+  "name": "Sable Linn",
+  "role": "Letter carrier",
+  "district": 0,
+  "romance": true,
+  "gifts": {
+    "favorite": 5,
+    "disliked": 24
+  },
+  "character": {
+    "motivation": "Knows where families went after the flood. Wants to deliver one letter whose answer is about their own future.",
+    "voice": "Quick observations about gestures, pauses, and addresses.",
+    "connections": [
+      "tess",
+      "orin"
+    ],
+    "backstory": "Sable carried redirected mail when the flood scattered the families. The delivery route became a private record of where people went, including addresses they never gave the council.",
+    "quest_hook": "Help Sable deliver invitations to the hearing follow-up while respecting each recipientâ€™s choice about whether to share their address."
+  },
+  "dialogue": {
+    "introduction": "I can tell a bill from a love letter by how long someone takes to open the door.",
+    "friendship": "People give me a letter and ask if it will get there. Usually they mean whether they'll be forgiven.",
+    "supper": "A place setting is easier to read than a council notice. I wish the people we meant it for had been told.",
+    "hearing": "I'll deliver notices by hand. Some of those people have moved three times since the address in the book.",
+    "date": "I write dozens of addresses a day. Tonight I'd like to take the long way to yours.",
+    "partner": "Yes. Can I write to you even if I know I'll see you tomorrow? I've been saving a few things to say.",
+    "favorite_gift": "I'll press it between two letters I haven't sent.",
+    "disliked_gift": "I can't carry a fish on the route. Imagine what it would do to the bills."
+  },
+  "appearance": {
+    "skin": "#9f654c",
+    "hair": "#372d3a",
+    "cloth": "#866084",
+    "accent": "#ead1ac",
+    "haircut": "bob",
+    "outfit": "cape",
+    "accessory": "satchel",
+    "scale": 1.02
+  },
+  "routine": {
+    "depart": 7.0,
+    "break_at": 12.0,
+    "home": 18.0,
+    "work": [
+      4.5,
+      8.0
+    ],
+    "leisure": [
+      37.5,
+      5.0
+    ],
+    "job": "Sorts the village post",
+    "hobby": "Delivers letters across the commons",
+    "leisure_area": "the commons",
+    "home_context": "Starts the post route where Market Lane meets the new streets, with quick access to both."
+  }
+}

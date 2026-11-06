@@ -1,0 +1,59 @@
+{
+  "id": "ren",
+  "order": 9,
+  "name": "Ren Alder",
+  "role": "Angler",
+  "district": 1,
+  "romance": true,
+  "gifts": {
+    "favorite": 24,
+    "disliked": 22
+  },
+  "character": {
+    "motivation": "Uses fishing to spend time alone without explaining why. Wants to find a form of company that leaves room for silence.",
+    "voice": "Understated jokes and short observations.",
+    "connections": [
+      "bea",
+      "hollis"
+    ],
+    "backstory": "Ren grew up fishing with Hollis and kept casting from the new bank after the crossing closed. Orinâ€™s account gives a familiar fishing spot a different meaning once Ren learns what stood below it.",
+    "quest_hook": "Go fishing with Ren and invite Orin to suggest a different spot if he wants to. Leave room for the trip to stay quiet."
+  },
+  "dialogue": {
+    "introduction": "Don't apologize to a fish that gets away. It worked hard for that.",
+    "friendship": "Some days I fish because it gives me something to tell people I'm doing.",
+    "supper": "I traded my second helping for the chance to wash up. It was loud at the table and I wanted to stay.",
+    "hearing": "I used to fish straight over Orin's old front step. I'll ask where he'd like me to cast.",
+    "date": "Let's watch the pond after dark. We can leave the rods at home for once.",
+    "partner": "Yes. Come sit with me in the morning. We don't have to bring anything.",
+    "favorite_gift": "A perch this clean puts my morning's work to shame.",
+    "disliked_gift": "If you want to cheer me up, a bundle of dry grass is a roundabout way to do it."
+  },
+  "appearance": {
+    "skin": "#d19a70",
+    "hair": "#3f323b",
+    "cloth": "#527d76",
+    "accent": "#e7c58d",
+    "haircut": "sweep",
+    "outfit": "vest",
+    "accessory": "rod",
+    "scale": 1.04
+  },
+  "routine": {
+    "depart": 6.5,
+    "break_at": 13.0,
+    "home": 17.5,
+    "work": [
+      -2.5,
+      15.0
+    ],
+    "leisure": [
+      56.5,
+      31.0
+    ],
+    "job": "Fishes at Willow Pond",
+    "hobby": "Tries the quiet side of Reedmere",
+    "leisure_area": "Reedmere",
+    "home_context": "Chose the last house by Reedmere to stay near Hollis and be out early with a rod."
+  }
+}

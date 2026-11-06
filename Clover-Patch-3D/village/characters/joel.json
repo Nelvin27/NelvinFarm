@@ -1,0 +1,57 @@
+{
+  "id": "joel",
+  "order": 19,
+  "name": "Joel Hart",
+  "role": "Nursery keeper",
+  "district": 2,
+  "romance": false,
+  "gifts": {
+    "favorite": 23,
+    "disliked": 22
+  },
+  "character": {
+    "motivation": "Raises trees for places he may never visit. Wants the nursery to take names from both sides of the flood.",
+    "voice": "Gentle, precise, attentive to literal questions.",
+    "connections": [
+      "lark",
+      "indigo"
+    ],
+    "backstory": "Joel started raising replacement trees after the flooded families lost their gardens. Some saplings outgrew their pots while he waited to learn where those families would settle.",
+    "quest_hook": "Find the families Joel promised trees to and ask which of them still wants one and where it should grow."
+  },
+  "dialogue": {
+    "introduction": "Children ask where seeds go at night. Grown-ups ask the same thing and call it accounting.",
+    "friendship": "I promised someone a tree that would bear fruit in her lifetime. I looked up the variety three times.",
+    "supper": "I took seedlings home from the table. I hope a few get planted where we can all pick from them.",
+    "hearing": "Put the new leases beside the nursery register. Let people see whose names are growing here now.",
+    "favorite_gift": "I'll save the seeds and mark who brought them.",
+    "disliked_gift": "That's too seedy for the small pots. Ness has a better use for it."
+  },
+  "appearance": {
+    "skin": "#96644b",
+    "hair": "#3b3138",
+    "cloth": "#548269",
+    "accent": "#d6b87e",
+    "haircut": "cropped",
+    "outfit": "overalls",
+    "accessory": "sapling",
+    "scale": 1
+  },
+  "routine": {
+    "depart": 8.5,
+    "break_at": 14.0,
+    "home": 18.5,
+    "work": [
+      14.5,
+      -10.0
+    ],
+    "leisure": [
+      50.5,
+      15.0
+    ],
+    "job": "Tends nursery stock",
+    "hobby": "Watering stop on Orchard Row",
+    "leisure_area": "Orchard Row",
+    "home_context": "Lives beside Lark and grows replacements for gardens lost below the gate."
+  }
+}
