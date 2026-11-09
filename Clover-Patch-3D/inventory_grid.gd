@@ -1,11 +1,11 @@
 extends VBoxContainer
+## Farm Bag stack grid. Layout lives in ui/inventory_grid.tscn.
 
 signal stacks_changed
 signal item_used(kind: Kind, item_id: int)
 
 enum Kind { BREAD, SEED, HARVEST, TOOL }
 
-const UISkin := preload("res://farm_ui_theme.gd")
 const ITEM_TYPES := ["Provisions", "Seeds", "Harvest & finds", "Tools"]
 const ROW_SIZE := 12
 const MAX_ROWS := 3
@@ -34,110 +34,28 @@ var unlocked_rows := 1
 var page := 0
 var selection := -1
 var using_slot := -1
-var details: Label
-var item_type: Label
-var preview_icon: TextureRect
-var page_label: Label
-var use_button: Button
-var previous: Button
-var following: Button
+
+@onready var details: Label = %Details
+@onready var item_type: Label = %ItemType
+@onready var preview_icon: TextureRect = %Preview
+@onready var page_label: Label = %PageLabel
+@onready var use_button: Button = %Use
+@onready var previous: Button = %Previous
+@onready var following: Button = %Next
 
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 12)
-	var body := HBoxContainer.new()
-	body.add_theme_constant_override("separation", 18)
-	add_child(body)
-	var grid := GridContainer.new()
-	grid.columns = ROW_SIZE
-	grid.add_theme_constant_override("h_separation", 6)
-	grid.add_theme_constant_override("v_separation", 6)
-	body.add_child(grid)
-	for index in range(PAGE_SIZE):
-		_add_slot(grid, index)
-
-	var card := PanelContainer.new()
-	card.custom_minimum_size.x = 265
-	card.size_flags_horizontal = SIZE_EXPAND_FILL
-	card.add_theme_stylebox_override("panel", UISkin.box(
-		Color("#f5dfb7"), Color("#c69b68"), 12, Vector2(16, 14)))
-	body.add_child(card)
-	var inspection := VBoxContainer.new()
-	inspection.add_theme_constant_override("separation", 8)
-	card.add_child(inspection)
-	item_type = Label.new()
-	item_type.add_theme_font_size_override("font_size", 17)
-	inspection.add_child(item_type)
-	preview_icon = TextureRect.new()
-	preview_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	preview_icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	preview_icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	preview_icon.custom_minimum_size.y = 94
-	inspection.add_child(preview_icon)
-	details = Label.new()
-	details.theme_type_variation = &"FarmHeading"
-	details.add_theme_font_size_override("font_size", 24)
-	details.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	details.size_flags_vertical = SIZE_EXPAND_FILL
-	inspection.add_child(details)
-	use_button = _add_button(inspection, "Use item", _use_selected)
-
-	var actions := HBoxContainer.new()
-	add_child(actions)
-	previous = _add_button(actions, "Previous", _move_page.bind(-1))
-	page_label = Label.new()
-	page_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	page_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	actions.add_child(page_label)
-	following = _add_button(actions, "Next", _move_page.bind(1))
+	for slot in %Slots.get_children():
+		var button := slot as Button
+		var index := slots.size()
+		button.pressed.connect(_select.bind(index))
+		button.set_drag_forwarding(_drag_slot.bind(index), _can_drop_on_slot.bind(index),
+			_drop_on_slot.bind(index))
+		slots.append(button)
+		icons.append(button.get_node("Icon") as TextureRect)
+		counts.append(button.get_node("Count") as Label)
+	assert(slots.size() == PAGE_SIZE, "inventory_grid.tscn needs one slot per page position.")
 	_draw_slots()
-
-
-func _add_slot(grid: GridContainer, index: int) -> void:
-	var button := Button.new()
-	button.custom_minimum_size = Vector2(54, 58)
-	button.toggle_mode = true
-	button.pressed.connect(_select.bind(index))
-	button.set_drag_forwarding(_drag_slot.bind(index), _can_drop_on_slot.bind(index),
-		_drop_on_slot.bind(index))
-	grid.add_child(button)
-	slots.append(button)
-
-	var icon := TextureRect.new()
-	icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	button.add_child(icon)
-	icon.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	icon.offset_left = 8
-	icon.offset_top = 4
-	icon.offset_right = -8
-	icon.offset_bottom = -7
-	icons.append(icon)
-
-	var count := Label.new()
-	count.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	count.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	count.vertical_alignment = VERTICAL_ALIGNMENT_BOTTOM
-	count.add_theme_font_size_override("font_size", 20)
-	count.add_theme_color_override("font_color", Color.WHITE)
-	count.add_theme_color_override("font_outline_color", Color("#292523"))
-	count.add_theme_constant_override("outline_size", 8)
-	button.add_child(count)
-	count.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	count.offset_right = -5
-	count.offset_bottom = -3
-	counts.append(count)
-
-
-func _add_button(parent: Container, caption: String, action: Callable) -> Button:
-	var button := Button.new()
-	button.text = caption
-	button.custom_minimum_size.y = 40
-	button.pressed.connect(action)
-	parent.add_child(button)
-	return button
 
 
 func add_stacks(items: Array[Stack], kind: Kind, id: int, title: String, quantity: int,

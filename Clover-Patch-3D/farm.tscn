@@ -1,11 +1,289 @@
 [gd_scene format=3 uid="uid://b1gbnfyelcxgw"]
 
 [ext_resource type="Script" uid="uid://cakobrrq4kfvx" path="res://farm.gd" id="1"]
+[ext_resource type="Script" uid="uid://dypkpe20y4vc0" path="res://farm_scenery.gd" id="2"]
+[ext_resource type="Script" uid="uid://e6auwtug8pnl" path="res://player/follow_camera.gd" id="3"]
+[ext_resource type="PackedScene" path="res://cottage_interior.tscn" id="4"]
+[ext_resource type="PackedScene" path="res://effects/plot_marker.tscn" id="5"]
+[ext_resource type="PackedScene" path="res://player/player.tscn" id="6"]
+[ext_resource type="Script" uid="uid://d0nqvyuhuiaf7" path="res://valley_village.gd" id="7"]
+[ext_resource type="Script" uid="uid://ygvmg7dqwm3t" path="res://valley_weather.gd" id="8"]
+[ext_resource type="PackedScene" path="res://effects/bobber.tscn" id="9"]
+[ext_resource type="PackedScene" path="res://effects/farm_audio.tscn" id="10"]
+[ext_resource type="PackedScene" path="res://ui/pause_menu.tscn" id="11"]
+[ext_resource type="PackedScene" path="res://ui/hud.tscn" id="12"]
+[ext_resource type="PackedScene" path="res://market_menu.tscn" id="13"]
+[ext_resource type="PackedScene" path="res://ui/bakery_menu.tscn" id="14"]
+[ext_resource type="PackedScene" path="res://ui/shipping_menu.tscn" id="15"]
+[ext_resource type="PackedScene" path="res://ui/fishing_menu.tscn" id="16"]
+[ext_resource type="PackedScene" path="res://ui/cooking_menu.tscn" id="17"]
+[ext_resource type="PackedScene" path="res://ui/inventory_menu.tscn" id="18"]
+[ext_resource type="PackedScene" path="res://ui/journal_menu.tscn" id="19"]
+[ext_resource type="PackedScene" path="res://ui/resident_menu.tscn" id="20"]
+[ext_resource type="PackedScene" path="res://ui/village_menu.tscn" id="21"]
+[ext_resource type="PackedScene" path="res://ui/resident_directory.tscn" id="22"]
+[ext_resource type="PackedScene" path="res://ui/collection_menu.tscn" id="23"]
+[ext_resource type="PackedScene" path="res://ui/test_menu.tscn" id="24"]
+[ext_resource type="PackedScene" path="res://ui/resident_test_menu.tscn" id="25"]
 
-[ext_resource type="Script" path="res://farm_scenery.gd" id="2"]
+[sub_resource type="Environment" id="Environment_1"]
+background_mode = 1
+background_color = Color(0.5569, 0.7098, 0.6745, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.9059, 0.898, 0.8588, 1)
+ambient_light_energy = 0.48
 
-[node name="Farm" type="Node3D" unique_id=1658857475]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_4"]
+shading_mode = 0
+
+[sub_resource type="BoxMesh" id="BoxMesh_5"]
+material = SubResource("StandardMaterial3D_4")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_2"]
+shading_mode = 0
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+material = SubResource("StandardMaterial3D_2")
+size = Vector3(0.045, 0.045, 0.045)
+
+[sub_resource type="StandardMaterial3D" id="FireflyGlow"]
+shading_mode = 0
+albedo_color = Color(0.93, 0.98, 0.58, 1)
+
+[sub_resource type="BoxMesh" id="FireflyMesh"]
+material = SubResource("FireflyGlow")
+size = Vector3(0.05, 0.05, 0.05)
+
+[node name="Farm" type="Node3D" unique_id=350233751]
 script = ExtResource("1")
 
-[node name="Scenery" type="Node3D" parent="."]
+[node name="Scenery" type="Node3D" parent="." unique_id=1565753456]
 script = ExtResource("2")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1667507666]
+environment = SubResource("Environment_1")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1631989780]
+transform = Transform3D(0.86602527, 0.3940055, -0.30783096, 0, 0.6156616, 0.78801066, 0.50000024, -0.6824371, 0.5331785, 0, 0, 0)
+light_color = Color(1, 0.949, 0.8667, 1)
+light_energy = 0.72
+shadow_enabled = true
+
+[node name="Camera" type="Camera3D" parent="." unique_id=605343208]
+current = true
+fov = 56.0
+far = 80.0
+script = ExtResource("3")
+
+[node name="Plots" type="Node3D" parent="." unique_id=375802533]
+
+[node name="CottageInterior" parent="." unique_id=1316379998 instance=ExtResource("4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 160)
+
+[node name="PlotMarker" parent="." unique_id=340141721 instance=ExtResource("5")]
+visible = true
+
+[node name="Player" parent="." unique_id=988271928 instance=ExtResource("6")]
+
+[node name="Village" type="Node3D" parent="." unique_id=1852015889]
+script = ExtResource("7")
+
+[node name="Weather" type="CPUParticles3D" parent="." unique_id=916112360]
+cast_shadow = 0
+emitting = false
+amount = 230
+lifetime = 1.15
+mesh = SubResource("BoxMesh_5")
+emission_shape = 3
+emission_box_extents = Vector3(7, 0.6, 7)
+direction = Vector3(0.14, -1, 0.04)
+script = ExtResource("8")
+
+[node name="WorkParticles" type="CPUParticles3D" parent="." unique_id=2049791784]
+cast_shadow = 0
+emitting = false
+amount = 12
+lifetime = 0.5
+one_shot = true
+explosiveness = 1.0
+mesh = SubResource("BoxMesh_3")
+direction = Vector3(0, 1, 0)
+spread = 58.0
+gravity = Vector3(0, -5.5, 0)
+initial_velocity_min = 0.85
+initial_velocity_max = 1.8
+scale_amount_min = 0.55
+scale_amount_max = 1.2
+
+[node name="Bobber" parent="." unique_id=2014803434 instance=ExtResource("9")]
+
+[node name="Fireflies" type="CPUParticles3D" parent="."]
+position = Vector3(17, 1.1, 18)
+cast_shadow = 0
+emitting = false
+amount = 70
+lifetime = 5.0
+local_coords = false
+mesh = SubResource("FireflyMesh")
+emission_shape = 3
+emission_box_extents = Vector3(9, 0.7, 6.5)
+direction = Vector3(0, 1, 0)
+spread = 180.0
+gravity = Vector3(0, 0, 0)
+initial_velocity_min = 0.08
+initial_velocity_max = 0.35
+
+[node name="Audio" parent="." unique_id=888093643 instance=ExtResource("10")]
+
+[node name="PauseControls" parent="." unique_id=117725772 instance=ExtResource("11")]
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=1994639278]
+
+[node name="HUD" parent="UI" unique_id=911110063 instance=ExtResource("12")]
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="MenuBackdrop" type="ColorRect" parent="UI" unique_id=1115639273]
+visible = false
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.1, 0.13, 0.08, 0.58)
+
+[node name="MarketMenu" parent="UI" unique_id=721710233 instance=ExtResource("13")]
+
+[node name="BakeryMenu" parent="UI" unique_id=937209530 instance=ExtResource("14")]
+offset_left = -285.0
+offset_top = -255.0
+offset_right = 285.0
+offset_bottom = 255.0
+
+[node name="ShippingMenu" parent="UI" unique_id=397854622 instance=ExtResource("15")]
+offset_left = -285.0
+offset_top = -255.0
+offset_right = 285.0
+offset_bottom = 255.0
+
+[node name="FishingMenu" parent="UI" unique_id=1309154059 instance=ExtResource("16")]
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -495.0
+offset_top = -190.0
+offset_right = -32.0
+offset_bottom = 190.0
+
+[node name="CookingMenu" parent="UI" unique_id=982432401 instance=ExtResource("17")]
+offset_left = -380.0
+offset_top = -255.0
+offset_right = 380.0
+offset_bottom = 255.0
+
+[node name="InventoryMenu" parent="UI" unique_id=559139411 instance=ExtResource("18")]
+offset_left = -530.0
+offset_top = -236.0
+offset_right = 530.0
+offset_bottom = 236.0
+
+[node name="Journal" parent="UI" unique_id=922453391 instance=ExtResource("19")]
+offset_left = -395.0
+offset_top = -275.0
+offset_right = 395.0
+offset_bottom = 275.0
+
+[node name="ResidentMenu" parent="UI" unique_id=557991367 instance=ExtResource("20")]
+offset_left = -420.0
+offset_top = -255.0
+offset_right = 420.0
+offset_bottom = 255.0
+
+[node name="VillageMenu" parent="UI" unique_id=1495058181 instance=ExtResource("21")]
+offset_left = -410.0
+offset_top = -255.0
+offset_right = 410.0
+offset_bottom = 255.0
+
+[node name="ResidentDirectory" parent="UI" unique_id=95507172 instance=ExtResource("22")]
+offset_left = -410.0
+offset_top = -255.0
+offset_right = 410.0
+offset_bottom = 255.0
+
+[node name="CollectionMenu" parent="UI" unique_id=1252614490 instance=ExtResource("23")]
+offset_left = -370.0
+offset_top = -255.0
+offset_right = 370.0
+offset_bottom = 255.0
+
+[node name="TestMenu" parent="UI" unique_id=2026551798 instance=ExtResource("24")]
+offset_left = -285.0
+offset_top = -255.0
+offset_right = 285.0
+offset_bottom = 255.0
+
+[node name="ResidentTestMenu" parent="UI" unique_id=143730831 instance=ExtResource("25")]
+offset_left = -410.0
+offset_top = -255.0
+offset_right = 410.0
+offset_bottom = 255.0
+
+[connection signal="landed" from="Player" to="." method="_on_player_landed"]
+[connection signal="resume_requested" from="PauseControls" to="." method="_resume_game"]
+[connection signal="save_requested" from="PauseControls" to="." method="_manual_save"]
+[connection signal="settings_changed" from="PauseControls" to="." method="_save_settings"]
+[connection signal="bag_requested" from="UI/HUD" to="." method="_toggle_inventory"]
+[connection signal="interact_requested" from="UI/HUD" to="." method="_use_world_action"]
+[connection signal="journal_requested" from="UI/HUD" to="." method="_toggle_journal"]
+[connection signal="pause_requested" from="UI/HUD" to="." method="_pause_game"]
+[connection signal="slot_requested" from="UI/HUD" to="." method="_select_hotbar"]
+[connection signal="buy_requested" from="UI/MarketMenu" to="." method="_buy_seed"]
+[connection signal="close_requested" from="UI/MarketMenu" to="." method="_close_menu"]
+[connection signal="sell_requested" from="UI/MarketMenu" to="." method="_sell_harvest"]
+[connection signal="buy_requested" from="UI/BakeryMenu" to="." method="_buy_food"]
+[connection signal="close_requested" from="UI/BakeryMenu" to="." method="_close_menu"]
+[connection signal="close_requested" from="UI/ShippingMenu" to="." method="_close_menu"]
+[connection signal="retrieve_requested" from="UI/ShippingMenu" to="." method="_retrieve_shipments"]
+[connection signal="ship_requested" from="UI/ShippingMenu" to="." method="_ship_selected_produce"]
+[connection signal="bite" from="UI/FishingMenu" to="." method="_on_fishing_bite"]
+[connection signal="caught" from="UI/FishingMenu" to="." method="_catch_fish"]
+[connection signal="close_requested" from="UI/FishingMenu" to="." method="_close_menu"]
+[connection signal="line_ended" from="UI/FishingMenu" to="." method="_clear_bobber"]
+[connection signal="close_requested" from="UI/CookingMenu" to="." method="_close_menu"]
+[connection signal="cook_requested" from="UI/CookingMenu" to="." method="_cook_meal"]
+[connection signal="backpack_upgrade_requested" from="UI/InventoryMenu" to="." method="_upgrade_backpack"]
+[connection signal="close_requested" from="UI/InventoryMenu" to="." method="_close_menu"]
+[connection signal="item_used" from="UI/InventoryMenu" to="." method="_use_bag_item"]
+[connection signal="stacks_changed" from="UI/InventoryMenu" to="." method="_refresh_hotbar"]
+[connection signal="close_requested" from="UI/Journal" to="." method="_close_menu"]
+[connection signal="collection_requested" from="UI/Journal" to="." method="_open_collection"]
+[connection signal="deliver_requested" from="UI/Journal" to="." method="_deliver_order"]
+[connection signal="milestone_requested" from="UI/Journal" to="." method="_claim_harvest_milestone"]
+[connection signal="village_requested" from="UI/Journal" to="." method="_open_village_journal"]
+[connection signal="watering_upgrade_requested" from="UI/Journal" to="." method="_upgrade_watering_can"]
+[connection signal="choice_selected" from="UI/ResidentMenu" to="." method="_choose_resident_action"]
+[connection signal="close_requested" from="UI/ResidentMenu" to="." method="_close_menu"]
+[connection signal="gift_requested" from="UI/ResidentMenu" to="." method="_give_resident_gift"]
+[connection signal="back_requested" from="UI/VillageMenu" to="." method="_open_journal"]
+[connection signal="directory_requested" from="UI/VillageMenu" to="." method="_open_resident_directory"]
+[connection signal="back_requested" from="UI/ResidentDirectory" to="." method="_open_village_journal"]
+[connection signal="resident_selected" from="UI/ResidentDirectory" to="." method="_update_resident_directory"]
+[connection signal="back_requested" from="UI/CollectionMenu" to="." method="_open_journal"]
+[connection signal="donate_requested" from="UI/CollectionMenu" to="." method="_donate_specimen"]
+[connection signal="add_coins_requested" from="UI/TestMenu" to="." method="_test_add_coins"]
+[connection signal="advance_day_requested" from="UI/TestMenu" to="." method="_test_advance_day"]
+[connection signal="close_requested" from="UI/TestMenu" to="." method="_close_menu"]
+[connection signal="go_home_requested" from="UI/TestMenu" to="." method="_test_go_home"]
+[connection signal="needs_requested" from="UI/TestMenu" to="." method="_test_needs"]
+[connection signal="night_requested" from="UI/TestMenu" to="." method="_test_night"]
+[connection signal="resident_tests_requested" from="UI/TestMenu" to="." method="_open_resident_tests"]
+[connection signal="restore_requested" from="UI/TestMenu" to="." method="_test_restore"]
+[connection signal="back_requested" from="UI/ResidentTestMenu" to="." method="_open_test_menu"]
+[connection signal="favor_preset_requested" from="UI/ResidentTestMenu" to="." method="_test_favor_preset"]
+[connection signal="gift_kit_requested" from="UI/ResidentTestMenu" to="." method="_test_gift_kit"]
+[connection signal="go_to_resident_requested" from="UI/ResidentTestMenu" to="." method="_test_go_to_resident"]
+[connection signal="open_dialogue_requested" from="UI/ResidentTestMenu" to="." method="_test_open_dialogue"]
+[connection signal="reset_romance_requested" from="UI/ResidentTestMenu" to="." method="_test_reset_romance"]
+[connection signal="resident_selected" from="UI/ResidentTestMenu" to="." method="_sync_test_resident"]
+[connection signal="set_favor_requested" from="UI/ResidentTestMenu" to="." method="_test_set_favor"]
+[connection signal="watch_departure_requested" from="UI/ResidentTestMenu" to="." method="_test_watch_departure"]

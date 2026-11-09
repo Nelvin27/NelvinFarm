@@ -1,0 +1,47 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/voxel/soil.png" id="1"]
+
+[ext_resource type="Script" path="res://effects/garden_plot.gd" id="2"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1"]
+resource_local_to_scene = true
+albedo_texture = ExtResource("1")
+roughness = 0.85
+texture_filter = 2
+uv1_triplanar = true
+uv1_world_triplanar = true
+
+[sub_resource type="BoxMesh" id="BoxMesh_2"]
+size = Vector3(0.97, 0.15, 0.97)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3"]
+size = Vector3(0.75, 0.045, 0.09)
+
+[node name="GardenPlot" type="Node3D"]
+script = ExtResource("2")
+
+[node name="Soil" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.042, 0)
+mesh = SubResource("BoxMesh_2")
+material_override = SubResource("StandardMaterial3D_1")
+
+[node name="Furrows" type="Node3D" parent="."]
+visible = false
+
+[node name="Furrow0" type="MeshInstance3D" parent="Furrows"]
+position = Vector3(0, 0.12, -0.26)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_1")
+
+[node name="Furrow1" type="MeshInstance3D" parent="Furrows"]
+position = Vector3(0, 0.12, 0)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_1")
+
+[node name="Furrow2" type="MeshInstance3D" parent="Furrows"]
+position = Vector3(0, 0.12, 0.26)
+mesh = SubResource("BoxMesh_3")
+material_override = SubResource("StandardMaterial3D_1")
+
+[node name="Crop" type="Node3D" parent="."]

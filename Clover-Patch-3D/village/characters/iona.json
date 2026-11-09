@@ -50,17 +50,17 @@
     "break_at": 13.0,
     "home": 19.0,
     "work": [
-      0.5,
-      7.0
+      38.5,
+      -7.0
     ],
     "leisure": [
-      44.5,
-      5
+      -1.8,
+      13.0
     ],
-    "job": "Checks council petitions",
-    "hobby": "Reads old petitions at the commons",
-    "leisure_area": "the commons",
-    "home_context": "Chose a home within walking distance of the market petitions and Tess's archive.",
+    "job": "Answers petitions at the Council Row boards",
+    "hobby": "Rereads the old flood petitions by Willow Pond",
+    "leisure_area": "the west bank of Willow Pond",
+    "home_context": "Took the house at the head of Council Row, where the petition boards stand, a short walk up from the market.",
     "story_stop": {
       "after": "hearing",
       "at": [

@@ -1,0 +1,208 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://ui/inventory_slot.tscn" id="1"]
+
+[ext_resource type="Script" path="res://inventory_grid.gd" id="2"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+content_margin_left = 16
+content_margin_top = 14
+content_margin_right = 16
+content_margin_bottom = 14
+bg_color = Color(0.9608, 0.8745, 0.7176, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7765, 0.6078, 0.4078, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="InventoryGrid" type="VBoxContainer"]
+script = ExtResource("2")
+theme_override_constants/separation = 12
+
+[node name="Body" type="HBoxContainer" parent="."]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Slots" type="GridContainer" parent="Body"]
+layout_mode = 2
+unique_name_in_owner = true
+columns = 12
+theme_override_constants/h_separation = 6
+theme_override_constants/v_separation = 6
+
+[node name="Slot0" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot1" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot2" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot3" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot4" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot5" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot6" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot7" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot8" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot9" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot10" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot11" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot12" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot13" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot14" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot15" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot16" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot17" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot18" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot19" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot20" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot21" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot22" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot23" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot24" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot25" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot26" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot27" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot28" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot29" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot30" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot31" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot32" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot33" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot34" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Slot35" parent="Body/Slots" instance=ExtResource("1")]
+layout_mode = 2
+
+[node name="Card" type="PanelContainer" parent="Body"]
+layout_mode = 2
+custom_minimum_size = Vector2(265, 0)
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_1")
+
+[node name="Inspection" type="VBoxContainer" parent="Body/Card"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ItemType" type="Label" parent="Body/Card/Inspection"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 17
+
+[node name="Preview" type="TextureRect" parent="Body/Card/Inspection"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 94)
+texture_filter = 1
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Details" type="Label" parent="Body/Card/Inspection"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 24
+size_flags_vertical = 3
+theme_type_variation = &"FarmHeading"
+autowrap_mode = 3
+
+[node name="Use" type="Button" parent="Body/Card/Inspection"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+text = "Use item"
+
+[node name="Pages" type="HBoxContainer" parent="."]
+layout_mode = 2
+
+[node name="Previous" type="Button" parent="Pages"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+text = "Previous"
+
+[node name="PageLabel" type="Label" parent="Pages"]
+layout_mode = 2
+unique_name_in_owner = true
+size_flags_horizontal = 3
+horizontal_alignment = 1
+
+[node name="Next" type="Button" parent="Pages"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+text = "Next"
+
+[connection signal="pressed" from="Body/Card/Inspection/Use" to="." method="_use_selected"]
+
+[connection signal="pressed" from="Pages/Previous" to="." method="_move_page" binds= [-1]]
+
+[connection signal="pressed" from="Pages/Next" to="." method="_move_page" binds= [1]]

@@ -1,0 +1,330 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://action_menu.tscn" id="1"]
+
+[ext_resource type="Script" path="res://pause_controls.gd" id="2"]
+
+[node name="PauseControls" type="CanvasLayer"]
+process_mode = 3
+layer = 10
+script = ExtResource("2")
+
+[node name="Backdrop" type="ColorRect" parent="."]
+unique_name_in_owner = true
+visible = false
+anchors_preset = 15
+anchor_right = 1
+anchor_bottom = 1
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.07, 0.11, 0.1, 0.66)
+
+[node name="PauseMenu" parent="." instance=ExtResource("1")]
+unique_name_in_owner = true
+offset_top = -112
+offset_bottom = 112
+
+[node name="Title" parent="PauseMenu/Rows"]
+text = "Taking a breather"
+
+[node name="Resume" type="Button" parent="PauseMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Resume farming"
+
+[node name="Settings" type="Button" parent="PauseMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Settings"
+
+[node name="Save" type="Button" parent="PauseMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Save farm"
+
+[node name="SaveStatus" type="Label" parent="PauseMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+horizontal_alignment = 1
+
+[node name="OptionsMenu" parent="." instance=ExtResource("1")]
+unique_name_in_owner = true
+
+[node name="Title" parent="OptionsMenu/Rows"]
+text = "Settings"
+
+[node name="SensitivityRow" type="HBoxContainer" parent="OptionsMenu/Rows"]
+layout_mode = 2
+
+[node name="Caption" type="Label" parent="OptionsMenu/Rows/SensitivityRow"]
+layout_mode = 2
+text = "Mouse sensitivity"
+theme_override_font_sizes/font_size = 22
+size_flags_horizontal = 3
+
+[node name="SensitivityValue" type="Label" parent="OptionsMenu/Rows/SensitivityRow"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+
+[node name="Sensitivity" type="HSlider" parent="OptionsMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+min_value = 0.25
+max_value = 2.5
+step = 0.05
+
+[node name="InvertY" type="CheckButton" parent="OptionsMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+theme_override_font_sizes/font_size = 22
+text = "Invert vertical look"
+
+[node name="BrightnessRow" type="HBoxContainer" parent="OptionsMenu/Rows"]
+layout_mode = 2
+
+[node name="Caption" type="Label" parent="OptionsMenu/Rows/BrightnessRow"]
+layout_mode = 2
+text = "Brightness"
+theme_override_font_sizes/font_size = 22
+size_flags_horizontal = 3
+
+[node name="BrightnessValue" type="Label" parent="OptionsMenu/Rows/BrightnessRow"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+
+[node name="Brightness" type="HSlider" parent="OptionsMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+min_value = 0.65
+max_value = 1.35
+step = 0.05
+
+[node name="Fullscreen" type="CheckButton" parent="OptionsMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+theme_override_font_sizes/font_size = 22
+text = "Fullscreen"
+
+[node name="Graphics" type="Button" parent="OptionsMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Graphics"
+
+[node name="Audio" type="Button" parent="OptionsMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Audio"
+
+[node name="Defaults" type="Button" parent="OptionsMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Restore defaults"
+
+[node name="Back" type="Button" parent="OptionsMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Back"
+
+[node name="GraphicsMenu" parent="." instance=ExtResource("1")]
+unique_name_in_owner = true
+
+[node name="Title" parent="GraphicsMenu/Rows"]
+text = "Graphics"
+
+[node name="RenderResolutionRow" type="HBoxContainer" parent="GraphicsMenu/Rows"]
+layout_mode = 2
+
+[node name="Caption" type="Label" parent="GraphicsMenu/Rows/RenderResolutionRow"]
+layout_mode = 2
+text = "3D resolution"
+theme_override_font_sizes/font_size = 22
+size_flags_horizontal = 3
+
+[node name="RenderResolution" type="OptionButton" parent="GraphicsMenu/Rows/RenderResolutionRow"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 44)
+item_count = 3
+popup/item_0/text = "720p"
+popup/item_0/id = 720
+popup/item_1/text = "900p"
+popup/item_1/id = 900
+popup/item_2/text = "1080p"
+popup/item_2/id = 1080
+
+[node name="AntialiasingRow" type="HBoxContainer" parent="GraphicsMenu/Rows"]
+layout_mode = 2
+
+[node name="Caption" type="Label" parent="GraphicsMenu/Rows/AntialiasingRow"]
+layout_mode = 2
+text = "Anti-aliasing"
+theme_override_font_sizes/font_size = 22
+size_flags_horizontal = 3
+
+[node name="Antialiasing" type="OptionButton" parent="GraphicsMenu/Rows/AntialiasingRow"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(170, 44)
+item_count = 3
+popup/item_0/text = "Off"
+popup/item_0/id = 0
+popup/item_1/text = "2× MSAA"
+popup/item_1/id = 1
+popup/item_2/text = "4× MSAA"
+popup/item_2/id = 2
+
+[node name="Shadows" type="CheckButton" parent="GraphicsMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+theme_override_font_sizes/font_size = 22
+text = "Sun shadows"
+
+[node name="VSync" type="CheckButton" parent="GraphicsMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+theme_override_font_sizes/font_size = 22
+text = "VSync"
+
+[node name="Defaults" type="Button" parent="GraphicsMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Restore graphics defaults"
+
+[node name="Back" type="Button" parent="GraphicsMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Back"
+
+[node name="AudioMenu" parent="." instance=ExtResource("1")]
+unique_name_in_owner = true
+
+[node name="Title" parent="AudioMenu/Rows"]
+text = "Audio"
+
+[node name="MasterVolumeRow" type="HBoxContainer" parent="AudioMenu/Rows"]
+layout_mode = 2
+
+[node name="Caption" type="Label" parent="AudioMenu/Rows/MasterVolumeRow"]
+layout_mode = 2
+text = "Master volume"
+theme_override_font_sizes/font_size = 22
+size_flags_horizontal = 3
+
+[node name="MasterVolumeValue" type="Label" parent="AudioMenu/Rows/MasterVolumeRow"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+
+[node name="MasterVolume" type="HSlider" parent="AudioMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+min_value = 0
+max_value = 1
+step = 0.05
+
+[node name="MusicVolumeRow" type="HBoxContainer" parent="AudioMenu/Rows"]
+layout_mode = 2
+
+[node name="Caption" type="Label" parent="AudioMenu/Rows/MusicVolumeRow"]
+layout_mode = 2
+text = "Music volume"
+theme_override_font_sizes/font_size = 22
+size_flags_horizontal = 3
+
+[node name="MusicVolumeValue" type="Label" parent="AudioMenu/Rows/MusicVolumeRow"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+
+[node name="MusicVolume" type="HSlider" parent="AudioMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+min_value = 0
+max_value = 1
+step = 0.05
+
+[node name="EffectsVolumeRow" type="HBoxContainer" parent="AudioMenu/Rows"]
+layout_mode = 2
+
+[node name="Caption" type="Label" parent="AudioMenu/Rows/EffectsVolumeRow"]
+layout_mode = 2
+text = "Sound effects"
+theme_override_font_sizes/font_size = 22
+size_flags_horizontal = 3
+
+[node name="EffectsVolumeValue" type="Label" parent="AudioMenu/Rows/EffectsVolumeRow"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+
+[node name="EffectsVolume" type="HSlider" parent="AudioMenu/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
+min_value = 0
+max_value = 1
+step = 0.05
+
+[node name="Defaults" type="Button" parent="AudioMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Restore audio defaults"
+
+[node name="Back" type="Button" parent="AudioMenu/Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Back"
+
+[connection signal="pressed" from="PauseMenu/Rows/Resume" to="." method="emit_signal" binds= ["resume_requested"]]
+
+[connection signal="pressed" from="PauseMenu/Rows/Settings" to="." method="_show_options"]
+
+[connection signal="pressed" from="PauseMenu/Rows/Save" to="." method="emit_signal" binds= ["save_requested"]]
+
+[connection signal="value_changed" from="OptionsMenu/Rows/Sensitivity" to="." method="_change_sensitivity"]
+
+[connection signal="toggled" from="OptionsMenu/Rows/InvertY" to="." method="_change_invert_y"]
+
+[connection signal="value_changed" from="OptionsMenu/Rows/Brightness" to="." method="_change_brightness"]
+
+[connection signal="toggled" from="OptionsMenu/Rows/Fullscreen" to="." method="_change_fullscreen"]
+
+[connection signal="pressed" from="OptionsMenu/Rows/Graphics" to="." method="_show_graphics"]
+
+[connection signal="pressed" from="OptionsMenu/Rows/Audio" to="." method="_show_audio"]
+
+[connection signal="pressed" from="OptionsMenu/Rows/Defaults" to="." method="_restore_defaults"]
+
+[connection signal="pressed" from="OptionsMenu/Rows/Back" to="." method="_show_pause"]
+
+[connection signal="item_selected" from="GraphicsMenu/Rows/RenderResolutionRow/RenderResolution" to="." method="_change_resolution"]
+
+[connection signal="item_selected" from="GraphicsMenu/Rows/AntialiasingRow/Antialiasing" to="." method="_change_antialiasing"]
+
+[connection signal="toggled" from="GraphicsMenu/Rows/Shadows" to="." method="_change_shadows"]
+
+[connection signal="toggled" from="GraphicsMenu/Rows/VSync" to="." method="_change_vsync"]
+
+[connection signal="pressed" from="GraphicsMenu/Rows/Defaults" to="." method="_restore_graphics"]
+
+[connection signal="pressed" from="GraphicsMenu/Rows/Back" to="." method="_show_options"]
+
+[connection signal="value_changed" from="AudioMenu/Rows/MasterVolume" to="." method="_change_audio"]
+
+[connection signal="value_changed" from="AudioMenu/Rows/MusicVolume" to="." method="_change_audio"]
+
+[connection signal="value_changed" from="AudioMenu/Rows/EffectsVolume" to="." method="_change_audio"]
+
+[connection signal="pressed" from="AudioMenu/Rows/Defaults" to="." method="_restore_audio"]
+
+[connection signal="pressed" from="AudioMenu/Rows/Back" to="." method="_show_options"]

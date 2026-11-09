@@ -1,8 +1,11 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3]
 
 [ext_resource type="Script" path="res://market_menu.gd" id="1"]
 
+[ext_resource type="Theme" path="res://ui/menu_theme.tres" id="2"]
+
 [node name="MarketMenu" type="PanelContainer"]
+theme = ExtResource("2")
 visible = false
 anchors_preset = 8
 anchor_left = 0.5

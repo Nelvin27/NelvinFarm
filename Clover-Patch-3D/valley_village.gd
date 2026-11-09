@@ -64,18 +64,22 @@ func load_residents() -> Error:
 		var district := int(entry.district)
 		district_slots.append(district_counts[district])
 		district_counts[district] += 1
-	for required in ["iona", "mara", "tess", "vera", "orin"]:
+	# Characters moved to village/characters_disabled are skipped; only the story hosts are required.
+	for required in ["iona", "mara"]:
 		if not resident_indices.has(required):
 			push_error("Missing required village resident: %s" % required)
 			return ERR_INVALID_DATA
 	residents = loaded
 	var events: Variant = JSON.parse_string(FileAccess.get_file_as_string(TOWN_EVENTS_PATH))
-	if not events is Dictionary or events.is_empty():
+	if not events is Dictionary:
 		push_error("Could not load village town events.")
 		return ERR_INVALID_DATA
-	for host in events:
+	for host in events.keys():
+		if not resident_indices.has(host):
+			events.erase(host)
+			continue
 		var event: Variant = events[host]
-		if not resident_indices.has(host) or not event is Dictionary or not event.get("title") is String or not event.get("prompt") is String or not event.get("choices") is Array or event.choices.size() != 2:
+		if not event is Dictionary or not event.get("title") is String or not event.get("prompt") is String or not event.get("choices") is Array or event.choices.size() != 2:
 			push_error("Invalid town event for %s." % host)
 			return ERR_INVALID_DATA
 		for choice in event.choices:
@@ -87,7 +91,7 @@ func load_residents() -> Error:
 
 
 func schedule_town_event(day: int) -> void:
-	if day < 2 or town_event_day == day:
+	if day < 2 or town_event_day == day or town_events.is_empty():
 		return
 	var available: Array[String] = []
 	for host in town_events:

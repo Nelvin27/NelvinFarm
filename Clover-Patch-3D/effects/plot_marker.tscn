@@ -1,0 +1,39 @@
+[gd_scene format=3]
+
+[sub_resource type="BoxMesh" id="Box_0"]
+size = Vector3(0.95, 0.035, 0.035)
+
+[sub_resource type="StandardMaterial3D" id="Mat_dfcb87_glow"]
+shading_mode = 0
+albedo_color = Color(0.8745, 0.7961, 0.5294, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_1"]
+size = Vector3(0.035, 0.035, 0.95)
+
+[node name="PlotMarker" type="Node3D"]
+visible = false
+
+[node name="NearEdge" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.15, -0.46)
+cast_shadow = 0
+mesh = SubResource("Box_0")
+material_override = SubResource("Mat_dfcb87_glow")
+
+[node name="FarEdge" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.15, 0.46)
+cast_shadow = 0
+mesh = SubResource("Box_0")
+material_override = SubResource("Mat_dfcb87_glow")
+
+[node name="LeftEdge" type="MeshInstance3D" parent="."]
+position = Vector3(-0.46, 0.15, 0)
+cast_shadow = 0
+mesh = SubResource("Box_1")
+material_override = SubResource("Mat_dfcb87_glow")
+
+[node name="RightEdge" type="MeshInstance3D" parent="."]
+position = Vector3(0.46, 0.15, 0)
+cast_shadow = 0
+mesh = SubResource("Box_1")
+material_override = SubResource("Mat_dfcb87_glow")

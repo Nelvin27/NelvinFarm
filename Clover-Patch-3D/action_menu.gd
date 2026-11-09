@@ -1,17 +1,8 @@
 extends PanelContainer
+## Shared menu panel (action_menu.tscn). Menus inherit the scene and add their own rows.
 
 @onready var rows: VBoxContainer = $Rows
 @onready var title: Label = $Rows/Title
-
-
-func add_action(caption: String, action: Callable, parent: Container = null) -> Button:
-	var button := Button.new()
-	button.text = caption
-	button.custom_minimum_size.y = 48
-	button.pressed.connect(action)
-	var target := parent if parent != null else rows
-	target.add_child(button)
-	return button
 
 
 func focus_first_action() -> void:

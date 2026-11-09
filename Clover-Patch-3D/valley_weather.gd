@@ -1,4 +1,5 @@
 extends CPUParticles3D
+## Rain and snow. Base particle settings are authored on the Weather node in farm.tscn.
 
 enum Kind { CLEAR, RAIN, SNOW }
 
@@ -13,22 +14,6 @@ static func forecast(day: int) -> Kind:
 	if posmod(day * 3 + (day - 1) / Catalog.DAYS_PER_SEASON, 7) not in [1, 2]:
 		return Kind.CLEAR
 	return Kind.SNOW if Catalog.season_for(day) == Catalog.Season.WINTER else Kind.RAIN
-
-
-func _ready() -> void:
-	emitting = false
-	cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	amount = 230
-	lifetime = 1.15
-	emission_shape = EMISSION_SHAPE_BOX
-	emission_box_extents = Vector3(7.0, 0.6, 7.0)
-	direction = Vector3(0.14, -1.0, 0.04)
-	local_coords = false
-	var material := StandardMaterial3D.new()
-	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var drop := BoxMesh.new()
-	drop.material = material
-	mesh = drop
 
 
 func apply(next: Kind, outdoors: bool) -> void:

@@ -1,4 +1,5 @@
 extends "res://action_menu.gd"
+## Willow Pond fishing minigame. Layout lives in ui/fishing_menu.tscn.
 
 signal caught
 signal bite
@@ -11,36 +12,18 @@ const REEL_WINDOW := 1.6
 
 var phase := Phase.DONE
 var remaining := 0.0
-var instructions: Label
-var bite_meter: ProgressBar
-var reel_button: Button
-var catch_icon: TextureRect
 var cue_tween: Tween
+var catch_name := "Pond Perch"
+
+@onready var instructions: Label = %Instructions
+@onready var bite_meter: ProgressBar = %BiteMeter
+@onready var reel_button: Button = %Reel
+@onready var catch_icon: TextureRect = %CatchIcon
 
 
-func _ready() -> void:
-	set_anchors_preset(Control.PRESET_CENTER_RIGHT)
-	offset_left = -495
-	offset_right = -32
-	offset_top = -190
-	offset_bottom = 190
-	instructions = Label.new()
-	instructions.add_theme_font_size_override("font_size", 22)
-	rows.add_child(instructions)
-	bite_meter = ProgressBar.new()
-	bite_meter.max_value = REEL_WINDOW
-	bite_meter.show_percentage = false
-	bite_meter.custom_minimum_size.y = 12
-	rows.add_child(bite_meter)
-	catch_icon = TextureRect.new()
-	catch_icon.texture = preload("res://assets/items/crop_24.svg")
-	catch_icon.custom_minimum_size = Vector2(64, 64)
-	catch_icon.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	catch_icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
-	catch_icon.hide()
-	rows.add_child(catch_icon)
-	reel_button = add_action("Reel in (E)", reel)
-	add_action("Leave", close_requested.emit)
+func prepare_catch(label: String, icon: Texture2D) -> void:
+	catch_name = label
+	catch_icon.texture = icon
 
 
 func cast(reel_bonus := 0.0) -> void:
@@ -78,7 +61,7 @@ func reel() -> void:
 		Phase.WAITING:
 			_finish("Too soon. The line came back empty.")
 		Phase.BITING:
-			_finish("You caught a Pond Perch!")
+			_finish("You caught a %s!" % catch_name)
 			catch_icon.show()
 			catch_icon.pivot_offset = catch_icon.custom_minimum_size * 0.5
 			catch_icon.scale = Vector2.ONE * 0.55

@@ -1,6 +1,10 @@
 extends RefCounted
 
 const Layout := preload("res://world_layout.gd")
+const STONE_TEXTURE := preload("res://assets/voxel/path.png")
+## Wall faces whose top is at or above this height are bare rock; tops at or above SNOW_LINE are snow.
+const ROCK_LINE := 7.0
+const SNOW_LINE := 11.0
 
 
 static func surface(parent: Node3D, layout: Layout, area: Rect2, lift: float,
@@ -11,7 +15,13 @@ static func surface(parent: Node3D, layout: Layout, area: Rect2, lift: float,
 	mesh.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var walls := SurfaceTool.new()
 	walls.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var rock := SurfaceTool.new()
+	rock.begin(Mesh.PRIMITIVE_TRIANGLES)
+	var snow := SurfaceTool.new()
+	snow.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var has_walls := false
+	var has_rock := false
+	var has_snow := false
 	for row in range(first.y, end.y):
 		for column in range(first.x, end.x):
 			var cell := Vector2(column + 0.5, row)
@@ -27,19 +37,38 @@ static func surface(parent: Node3D, layout: Layout, area: Rect2, lift: float,
 			var se := Vector3(east, y, south)
 			var color := Color.WHITE
 			if wall_texture != null:
-				color = color.lerp(Color("#b8b6a5"), smoothstep(3.0, 7.0, elevation))
-			_quad(mesh, nw, ne, sw, se, Vector3.UP, color)
+				# High meadows fade to a cooler alpine green.
+				color = color.lerp(Color("#c9d3b4"), smoothstep(5.0, 11.0, elevation))
+			if wall_texture != null and elevation >= SNOW_LINE:
+				var frost := Color.WHITE.lerp(Color("#dfe7ea"), clampf((elevation - SNOW_LINE) / 3.0, 0.0, 1.0))
+				_quad(snow, nw, ne, sw, se, Vector3.UP, frost)
+				has_snow = true
+			else:
+				_quad(mesh, nw, ne, sw, se, Vector3.UP, color)
 			if wall_texture != null and elevation > 0.0:
-				has_walls = _wall(walls, layout, area, cell, Vector2.UP, nw, ne, Vector3.FORWARD, lift) or has_walls
-				has_walls = _wall(walls, layout, area, cell, Vector2.RIGHT, ne, se, Vector3.RIGHT, lift) or has_walls
-				has_walls = _wall(walls, layout, area, cell, Vector2.DOWN, se, sw, Vector3.BACK, lift) or has_walls
-				has_walls = _wall(walls, layout, area, cell, Vector2.LEFT, sw, nw, Vector3.LEFT, lift) or has_walls
+				var faces: SurfaceTool = rock if elevation >= ROCK_LINE else walls
+				var shade := _rock_shade(column, row, elevation) if elevation >= ROCK_LINE else Color.WHITE
+				var built := false
+				built = _wall(faces, layout, area, cell, Vector2.UP, nw, ne, Vector3.FORWARD, lift, shade) or built
+				built = _wall(faces, layout, area, cell, Vector2.RIGHT, ne, se, Vector3.RIGHT, lift, shade) or built
+				built = _wall(faces, layout, area, cell, Vector2.DOWN, se, sw, Vector3.BACK, lift, shade) or built
+				built = _wall(faces, layout, area, cell, Vector2.LEFT, sw, nw, Vector3.LEFT, lift, shade) or built
+				if elevation >= ROCK_LINE:
+					has_rock = has_rock or built
+				else:
+					has_walls = has_walls or built
 
 	mesh.set_material(_material(texture, tint))
 	var terrain := mesh.commit()
 	if has_walls:
 		walls.set_material(_material(wall_texture, "#c8beaa"))
 		walls.commit(terrain)
+	if has_rock:
+		rock.set_material(_material(STONE_TEXTURE, "#b8c0c6"))
+		rock.commit(terrain)
+	if has_snow:
+		snow.set_material(_material(texture, "#f3f6f4"))
+		snow.commit(terrain)
 	var instance := MeshInstance3D.new()
 	instance.mesh = terrain
 	parent.add_child(instance)
@@ -58,15 +87,22 @@ static func _material(texture: Texture2D, tint: String) -> StandardMaterial3D:
 	return material
 
 
+## Slight per-column variation so rock faces read as strata, not a flat sheet.
+static func _rock_shade(column: int, row: int, elevation: float) -> Color:
+	var noise := float(absi(hash(Vector2i(column, row))) % 100) / 100.0
+	var band := 0.94 if int(elevation) % 3 == 0 else 1.0
+	return Color.WHITE.darkened(noise * 0.12) * band
+
+
 static func _wall(mesh: SurfaceTool, layout: Layout, area: Rect2, cell: Vector2, offset: Vector2,
-		a: Vector3, b: Vector3, normal: Vector3, lift: float) -> bool:
+		a: Vector3, b: Vector3, normal: Vector3, lift: float, shade := Color.WHITE) -> bool:
 	var neighbor := cell + offset
 	var neighbor_tile := Rect2(neighbor - Vector2(0.5, 0.5), Vector2.ONE)
 	var bottom := layout.elevation(neighbor) if area.intersects(neighbor_tile) else 0.0
 	bottom += lift
 	if bottom >= a.y:
 		return false
-	_quad(mesh, b, a, Vector3(b.x, bottom, b.z), Vector3(a.x, bottom, a.z), normal, Color.WHITE)
+	_quad(mesh, b, a, Vector3(b.x, bottom, b.z), Vector3(a.x, bottom, a.z), normal, shade)
 	return true
 
 

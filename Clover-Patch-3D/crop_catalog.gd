@@ -10,6 +10,13 @@ const GRASS := 22
 const SEED_COUNT := 23
 const APPLE := SEED_COUNT
 const POND_PERCH := 24
+# Catches and finds. Item ids are saved, so new items are only ever appended.
+const LAKE_TROUT := 25
+const REED_CARP := 26
+const MOONFIN := 27
+const WILD_BERRIES := 28
+const CHANTERELLE := 29
+const RIVER_SHELL := 30
 
 
 class Crop:
@@ -70,6 +77,13 @@ static var crops: Array[Crop] = [
 	Crop.new("Fodder Grass", Season.SPRING, 2, 1, "#799954", false, true),
 	Crop.new("Orchard Apple", Season.FALL, 2, 0, "#b85c50"),
 	Crop.new("Pond Perch", Season.SPRING, 4, 0, "#80a7a0"),
+	# The harvest day only sets the sale price for the items below.
+	Crop.new("Lake Trout", Season.SPRING, 9, 0, "#6f9c8c"),
+	Crop.new("Reed Carp", Season.SPRING, 8, 0, "#b8873e"),
+	Crop.new("Moonfin", Season.SPRING, 30, 0, "#3c4f8f"),
+	Crop.new("Wild Berries", Season.SUMMER, 4, 0, "#5b4fa8"),
+	Crop.new("Chanterelle", Season.FALL, 8, 0, "#e08a2c"),
+	Crop.new("River Shell", Season.SPRING, 6, 0, "#f2dcc3", false),
 ]
 
 

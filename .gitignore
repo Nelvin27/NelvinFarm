@@ -1,2 +1,5 @@
 .godot/
 .DS_Store
+
+# World tool previews
+tools/world/renders/

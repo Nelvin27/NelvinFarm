@@ -1,0 +1,67 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://action_menu.tscn" id="1"]
+
+[ext_resource type="Script" path="res://ui/test_menu.gd" id="2"]
+
+[node name="TestMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+
+[node name="Title" parent="Rows"]
+text = "Farm Test Menu"
+
+[node name="ResidentTests" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 38)
+text = "Resident testing"
+
+[node name="AddCoins" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 38)
+text = "Add 100 coins"
+
+[node name="Restore" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 38)
+text = "Refill food and clear fatigue"
+
+[node name="Needs" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 38)
+text = "Set very hungry and exhausted"
+
+[node name="Night" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 38)
+text = "Set time to 22:00"
+
+[node name="AdvanceDay" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 38)
+text = "Advance one day"
+
+[node name="GoHome" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 38)
+text = "Go to cottage interior"
+
+[node name="Close" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 38)
+text = "Close"
+
+[connection signal="pressed" from="Rows/ResidentTests" to="." method="emit_signal" binds= ["resident_tests_requested"]]
+
+[connection signal="pressed" from="Rows/AddCoins" to="." method="emit_signal" binds= ["add_coins_requested"]]
+
+[connection signal="pressed" from="Rows/Restore" to="." method="emit_signal" binds= ["restore_requested"]]
+
+[connection signal="pressed" from="Rows/Needs" to="." method="emit_signal" binds= ["needs_requested"]]
+
+[connection signal="pressed" from="Rows/Night" to="." method="emit_signal" binds= ["night_requested"]]
+
+[connection signal="pressed" from="Rows/AdvanceDay" to="." method="emit_signal" binds= ["advance_day_requested"]]
+
+[connection signal="pressed" from="Rows/GoHome" to="." method="emit_signal" binds= ["go_home_requested"]]
+
+[connection signal="pressed" from="Rows/Close" to="." method="emit_signal" binds= ["close_requested"]]

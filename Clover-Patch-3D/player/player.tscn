@@ -1,0 +1,263 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://player/player.gd" id="1"]
+
+[sub_resource type="BoxMesh" id="Box_0"]
+size = Vector3(0.43, 0.48, 0.32)
+
+[sub_resource type="StandardMaterial3D" id="Mat_438880"]
+albedo_color = Color(0.2627, 0.5333, 0.502, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_1"]
+size = Vector3(0.15, 0.21, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="Mat_376d6b"]
+albedo_color = Color(0.2157, 0.4275, 0.4196, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_2"]
+size = Vector3(0.17, 0.22, 0.25)
+
+[sub_resource type="StandardMaterial3D" id="Mat_745449"]
+albedo_color = Color(0.4549, 0.3294, 0.2863, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_3"]
+size = Vector3(0.15, 0.23, 0.17)
+
+[sub_resource type="StandardMaterial3D" id="Mat_f2b98d"]
+albedo_color = Color(0.949, 0.7255, 0.5529, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_4"]
+size = Vector3(0.61, 0.49, 0.42)
+
+[sub_resource type="StandardMaterial3D" id="Mat_784f40"]
+albedo_color = Color(0.4706, 0.3098, 0.251, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_5"]
+size = Vector3(0.55, 0.41, 0.43)
+
+[sub_resource type="StandardMaterial3D" id="Mat_f7c9a0"]
+albedo_color = Color(0.9686, 0.7882, 0.6275, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_6"]
+size = Vector3(0.048, 0.065, 0.017)
+
+[sub_resource type="StandardMaterial3D" id="Mat_413431"]
+albedo_color = Color(0.2549, 0.2039, 0.1922, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_7"]
+size = Vector3(0.07, 0.032, 0.016)
+
+[sub_resource type="StandardMaterial3D" id="Mat_eaa2a3"]
+albedo_color = Color(0.9176, 0.6353, 0.6392, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_8"]
+size = Vector3(0.87, 0.1, 0.72)
+
+[sub_resource type="StandardMaterial3D" id="Mat_f3cd79"]
+albedo_color = Color(0.9529, 0.8039, 0.4745, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_9"]
+size = Vector3(0.6, 0.19, 0.55)
+
+[sub_resource type="StandardMaterial3D" id="Mat_ebba61"]
+albedo_color = Color(0.9216, 0.7294, 0.3804, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_10"]
+size = Vector3(0.045, 0.53, 0.045)
+
+[sub_resource type="StandardMaterial3D" id="Mat_a97d55"]
+albedo_color = Color(0.6627, 0.4902, 0.3333, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_11"]
+size = Vector3(0.2, 0.045, 0.15)
+
+[sub_resource type="StandardMaterial3D" id="Mat_9eada6"]
+albedo_color = Color(0.6196, 0.6784, 0.651, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_12"]
+size = Vector3(0.19, 0.2, 0.23)
+
+[sub_resource type="StandardMaterial3D" id="Mat_789d8c"]
+albedo_color = Color(0.4706, 0.6157, 0.549, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_13"]
+size = Vector3(0.05, 0.055, 0.22)
+
+[sub_resource type="BoxMesh" id="Box_14"]
+size = Vector3(0.11, 0.04, 0.16)
+
+[sub_resource type="StandardMaterial3D" id="Mat_405e55"]
+albedo_color = Color(0.251, 0.3686, 0.3333, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_15"]
+size = Vector3(0.05, 0.22, 0.05)
+
+[sub_resource type="BoxMesh" id="Box_16"]
+size = Vector3(0.035, 0.075, 0.18)
+
+[sub_resource type="StandardMaterial3D" id="Mat_adbdb6"]
+albedo_color = Color(0.6784, 0.7412, 0.7137, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_17"]
+size = Vector3(0.032, 0.1, 0.045)
+
+[node name="Player" type="Node3D"]
+script = ExtResource("1")
+
+[node name="Model" type="Node3D" parent="."]
+
+[node name="Torso" type="MeshInstance3D" parent="Model"]
+position = Vector3(0, 0.4, 0)
+mesh = SubResource("Box_0")
+material_override = SubResource("Mat_438880")
+
+[node name="LeftLeg" type="Node3D" parent="Model"]
+position = Vector3(-0.11, 0.31, 0)
+
+[node name="Shin" type="MeshInstance3D" parent="Model/LeftLeg"]
+position = Vector3(0, -0.065, 0)
+mesh = SubResource("Box_1")
+material_override = SubResource("Mat_376d6b")
+
+[node name="Boot" type="MeshInstance3D" parent="Model/LeftLeg"]
+position = Vector3(0, -0.17, 0.04)
+mesh = SubResource("Box_2")
+material_override = SubResource("Mat_745449")
+
+[node name="LeftArm" type="Node3D" parent="Model"]
+position = Vector3(-0.21, 0.52, 0)
+
+[node name="Hand" type="MeshInstance3D" parent="Model/LeftArm"]
+position = Vector3(-0.01, -0.12, 0)
+mesh = SubResource("Box_3")
+material_override = SubResource("Mat_f2b98d")
+
+[node name="RightLeg" type="Node3D" parent="Model"]
+position = Vector3(0.11, 0.31, 0)
+
+[node name="Shin" type="MeshInstance3D" parent="Model/RightLeg"]
+position = Vector3(0, -0.065, 0)
+mesh = SubResource("Box_1")
+material_override = SubResource("Mat_376d6b")
+
+[node name="Boot" type="MeshInstance3D" parent="Model/RightLeg"]
+position = Vector3(0, -0.17, 0.04)
+mesh = SubResource("Box_2")
+material_override = SubResource("Mat_745449")
+
+[node name="RightArm" type="Node3D" parent="Model"]
+position = Vector3(0.21, 0.52, 0)
+
+[node name="Hand" type="MeshInstance3D" parent="Model/RightArm"]
+position = Vector3(0.01, -0.12, 0)
+mesh = SubResource("Box_3")
+material_override = SubResource("Mat_f2b98d")
+
+[node name="Hair" type="MeshInstance3D" parent="Model"]
+position = Vector3(0, 0.76, -0.075)
+mesh = SubResource("Box_4")
+material_override = SubResource("Mat_784f40")
+
+[node name="Face" type="MeshInstance3D" parent="Model"]
+position = Vector3(0, 0.74, 0.065)
+mesh = SubResource("Box_5")
+material_override = SubResource("Mat_f7c9a0")
+
+[node name="LeftEye" type="MeshInstance3D" parent="Model"]
+position = Vector3(-0.115, 0.77, 0.283)
+mesh = SubResource("Box_6")
+material_override = SubResource("Mat_413431")
+
+[node name="LeftCheek" type="MeshInstance3D" parent="Model"]
+position = Vector3(-0.169, 0.69, 0.283)
+mesh = SubResource("Box_7")
+material_override = SubResource("Mat_eaa2a3")
+
+[node name="RightEye" type="MeshInstance3D" parent="Model"]
+position = Vector3(0.115, 0.77, 0.283)
+mesh = SubResource("Box_6")
+material_override = SubResource("Mat_413431")
+
+[node name="RightCheek" type="MeshInstance3D" parent="Model"]
+position = Vector3(0.169, 0.69, 0.283)
+mesh = SubResource("Box_7")
+material_override = SubResource("Mat_eaa2a3")
+
+[node name="HatBrim" type="MeshInstance3D" parent="Model"]
+position = Vector3(0, 0.975, 0)
+mesh = SubResource("Box_8")
+material_override = SubResource("Mat_f3cd79")
+
+[node name="HatCrown" type="MeshInstance3D" parent="Model"]
+position = Vector3(0, 1.1, -0.015)
+mesh = SubResource("Box_9")
+material_override = SubResource("Mat_ebba61")
+
+[node name="Hoe" type="Node3D" parent="Model/RightArm"]
+position = Vector3(0.04, -0.16, 0.035)
+visible = false
+
+[node name="Handle" type="MeshInstance3D" parent="Model/RightArm/Hoe"]
+position = Vector3(0, 0.07, 0)
+mesh = SubResource("Box_10")
+material_override = SubResource("Mat_a97d55")
+
+[node name="Blade" type="MeshInstance3D" parent="Model/RightArm/Hoe"]
+position = Vector3(0, -0.19, 0.075)
+mesh = SubResource("Box_11")
+material_override = SubResource("Mat_9eada6")
+
+[node name="WateringCan" type="Node3D" parent="Model/RightArm"]
+position = Vector3(0.04, -0.16, 0.035)
+visible = false
+
+[node name="Body" type="MeshInstance3D" parent="Model/RightArm/WateringCan"]
+position = Vector3(0.02, -0.08, 0.06)
+mesh = SubResource("Box_12")
+material_override = SubResource("Mat_789d8c")
+
+[node name="Spout" type="MeshInstance3D" parent="Model/RightArm/WateringCan"]
+position = Vector3(0.02, -0.045, 0.23)
+rotation = Vector3(-0.38, 0, 0)
+mesh = SubResource("Box_13")
+material_override = SubResource("Mat_789d8c")
+
+[node name="Lid" type="MeshInstance3D" parent="Model/RightArm/WateringCan"]
+position = Vector3(0.02, 0.025, 0.045)
+mesh = SubResource("Box_14")
+material_override = SubResource("Mat_405e55")
+
+[node name="Sickle" type="Node3D" parent="Model/RightArm"]
+position = Vector3(0.04, -0.16, 0.035)
+visible = false
+
+[node name="Handle" type="MeshInstance3D" parent="Model/RightArm/Sickle"]
+position = Vector3(0, 0, 0)
+mesh = SubResource("Box_15")
+material_override = SubResource("Mat_a97d55")
+
+[node name="Blade" type="MeshInstance3D" parent="Model/RightArm/Sickle"]
+position = Vector3(0, 0.14, 0.075)
+rotation = Vector3(0.48, 0, 0)
+mesh = SubResource("Box_16")
+material_override = SubResource("Mat_adbdb6")
+
+[node name="Tip" type="MeshInstance3D" parent="Model/RightArm/Sickle"]
+position = Vector3(0, 0.12, 0.16)
+mesh = SubResource("Box_17")
+material_override = SubResource("Mat_adbdb6")

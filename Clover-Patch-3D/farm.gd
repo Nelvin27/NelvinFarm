@@ -1,11 +1,12 @@
 extends Node3D
+## Clover Patch game controller. farm.tscn holds the world, the player, effects, audio, and every
+## menu as nodes; this script owns the farm's game state and reacts to their signals.
 
 enum Plot { EMPTY, TILLED, PLANTED, WATERED, RIPE }
 enum Tool { HANDS, HOE, WATERING_CAN, SICKLE }
 enum Interaction { NONE, PLOT, SEEDS, FOOD, ENTER, EXIT, BED, REPAIR, SHIPPING, ORCHARD, FISHING, KITCHEN, RESIDENT,
-	PICNIC, CLOSED_PASS }
+	PICNIC, CLOSED_PASS, FORAGE }
 
-const EDGE_MARGIN := 0.3
 const Save := preload("res://farm_save.gd")
 const Orders := preload("res://farm_orders.gd")
 const Weather := preload("res://valley_weather.gd")
@@ -14,11 +15,34 @@ const FarmAudio := preload("res://farm_audio.gd")
 const Settings := preload("res://game_settings.gd")
 const PauseControls := preload("res://pause_controls.gd")
 const Voxels := preload("res://voxel_assets.gd")
-const FarmMesh := preload("res://farm_mesh.gd")
 const Scenery := preload("res://farm_scenery.gd")
+const Catalog := preload("res://crop_catalog.gd")
+const FarmClock := preload("res://farm_clock.gd")
+const InventoryGrid := preload("res://inventory_grid.gd")
+const ActionMenu := preload("res://action_menu.gd")
+const MarketMenu := preload("res://market_menu.gd")
+const Fishing := preload("res://pond_fishing.gd")
+const Cooking := preload("res://cottage_cooking.gd")
+const Skills := preload("res://valley_skills.gd")
+const Village := preload("res://valley_village.gd")
+const FarmHUD := preload("res://farm_hud.gd")
+const UISkin := preload("res://farm_ui_theme.gd")
+const Player := preload("res://player/player.gd")
+const FollowCamera := preload("res://player/follow_camera.gd")
+const GardenPlot := preload("res://effects/garden_plot.gd")
+const GARDEN_PLOT_SCENE := preload("res://effects/garden_plot.tscn")
+const BakeryMenu := preload("res://ui/bakery_menu.gd")
+const ShippingMenu := preload("res://ui/shipping_menu.gd")
+const InventoryMenu := preload("res://ui/inventory_menu.gd")
+const JournalMenu := preload("res://ui/journal_menu.gd")
+const CollectionMenu := preload("res://ui/collection_menu.gd")
+const ResidentMenu := preload("res://ui/resident_menu.gd")
+const VillageMenu := preload("res://ui/village_menu.gd")
+const ResidentDirectory := preload("res://ui/resident_directory.gd")
+const TestMenu := preload("res://ui/test_menu.gd")
+const ResidentTestMenu := preload("res://ui/resident_test_menu.gd")
 const TOOL_NAMES := ["Empty hands", "Hoe", "Watering Can", "Sickle"]
 const TOOL_ICONS := ["", "hoe", "watering_can", "sickle"]
-const Catalog := preload("res://crop_catalog.gd")
 
 
 class GrowingCrop:
@@ -31,7 +55,6 @@ class GrowingCrop:
 
 
 const SEASON_SKY := ["#8eb5ac", "#83acb6", "#b0a18c", "#a7b7c4"]
-const FarmClock := preload("res://farm_clock.gd")
 const FOOD_PRICE := 2
 const BACKPACK_PRICES := [30, 80]
 const REPAIR_PRICE := 10
@@ -40,159 +63,99 @@ const HARVEST_MILESTONES := [Vector2i(5, 8), Vector2i(20, 18), Vector2i(50, 35)]
 const WATERING_NEIGHBORS := [Vector2i.LEFT, Vector2i.RIGHT, Vector2i.UP, Vector2i.DOWN]
 const ORCHARD_ROTATION_DAYS := 5
 const ORCHARD_REACH := 1.05
-const COTTAGE_SCENE := preload("res://cottage_interior.tscn")
-const InventoryGrid := preload("res://inventory_grid.gd")
-const ActionMenu := preload("res://action_menu.gd")
-const ACTION_MENU_SCENE := preload("res://action_menu.tscn")
-const Fishing := preload("res://pond_fishing.gd")
-const Cooking := preload("res://cottage_cooking.gd")
-const Skills := preload("res://valley_skills.gd")
-const Village := preload("res://valley_village.gd")
-const SPECIMENS := [Catalog.POND_PERCH, Catalog.MOONDROP, Catalog.APPLE]
+const SPECIMENS := [Catalog.POND_PERCH, Catalog.MOONDROP, Catalog.APPLE, Catalog.LAKE_TROUT, Catalog.REED_CARP,
+	Catalog.MOONFIN, Catalog.WILD_BERRIES, Catalog.CHANTERELLE, Catalog.RIVER_SHELL]
+## The first three specimens are the original "valley classics" set; completing every entry pays a bonus.
+const CLASSIC_COLLECTION := 0b111
+const COMPLETE_COLLECTION := (1 << 9) - 1
 const COLLECTION_REWARD := 18
-const COMPLETE_COLLECTION := 0b111
-const ROOM_ORIGIN := Vector3(0, 0, 160)
-const ROOM_BOUNDS := Rect2(-3.05, -2.52, 6.1, 5.1)
-const ROOM_OBSTACLES := [
-	Rect2(-2.25, -2.33, 1.2, 1.8),
-	Rect2(1.03, -1.185, 1.24, 0.85),
-	Rect2(2.05, -2.42, 0.72, 0.7),
-	Rect2(-0.895, -2.30, 0.53, 0.56),
-]
-const MarketMenu := preload("res://market_menu.gd")
-const MARKET_MENU_SCENE := preload("res://market_menu.tscn")
-const WALK_SPEED := 3.8
-const WALK_ACCELERATION := 26.0
-const WALK_BRAKING := 34.0
-const STEP_HOP_DURATION := 0.28
-const STEP_HOP_CLEARANCE := 0.24
-const STEP_OFF_PHASE := 0.26
-const FALL_GRAVITY := 24.0
+const FULL_COLLECTION_REWARD := 40
+## Pond "fish" field -> catch. Moonfin bites anywhere at dusk or in rain, and more often at secret water.
+const POND_FISH := {"perch": Catalog.POND_PERCH, "trout": Catalog.LAKE_TROUT, "carp": Catalog.REED_CARP}
+const MOONFIN_CHANCE := 0.18
+const FORAGE_ITEMS := {"berries": Catalog.WILD_BERRIES, "mushroom": Catalog.CHANTERELLE, "shell": Catalog.RIVER_SHELL}
+const FORAGE_REACH := 1.1
 const PLOT_REACH := 1.0
 const NO_PLOT := Vector2i(-1, -1)
-const STRIDE_LENGTH := 0.85
-const CAMERA_DISTANCE := 4.3
-const CAMERA_SENSITIVITY := 0.003
-const FarmHUD := preload("res://farm_hud.gd")
-const UISkin := preload("res://farm_ui_theme.gd")
 
 var settings := Settings.new()
-var sound: FarmAudio
 var layout := WorldLayout.new()
-var pause_controls: PauseControls
-var walk_velocity := Vector3.ZERO
-var step_elapsed := STEP_HOP_DURATION
-var step_duration := STEP_HOP_DURATION
-var step_start := Vector3.ZERO
-var step_end := Vector3.ZERO
-var step_edge := Vector3.ZERO
-var facing_angle := PI / 2.0
 var plots: Dictionary[Vector2i, Plot] = {}
 var day := 1
 var harvested := 0
 var claimed_milestones := 0
 var watering_upgraded := false
 var completed_orders := 0
-var weather: Weather
-var journal: ActionMenu
-var village := Village.new()
-var resident_menu: ActionMenu
-var resident_line: Label
-var resident_status: Label
-var gift_stock: OptionButton
-var gift_button: Button
-var resident_choices: Array[Button] = []
 var resident_actions: Array[String] = []
 var resident_index := -1
 var resident_reply := ""
 var town_event_open := false
-var village_menu: ActionMenu
-var village_story: Label
-var resident_directory: ActionMenu
-var directory_select: OptionButton
-var directory_text: Label
-var collection_menu: ActionMenu
-var skills_label: Label
-var donation_buttons: Array[Button] = []
 var donated_specimens := 0
 var skills := Skills.new()
-var forecast_label: Label
-var milestone_button: Button
-var watering_upgrade_button: Button
-var order_buttons: Array[Button] = []
 var seed_bag: Dictionary[int, int] = {Catalog.TURNIP: 5}
 var produce: Dictionary[int, int] = {}
 var shipments: Dictionary[int, int] = {}
 var picked_apple_trees: Dictionary[Vector3, bool] = {}
+var picked_forage: Dictionary[Vector3, bool] = {}
+var hooked_fish := Catalog.POND_PERCH
 var growing: Dictionary[Vector2i, GrowingCrop] = {}
 var equipped_seed := Catalog.TURNIP
 var equipped_tool := Tool.HOE
-var held_tools: Dictionary[Tool, Node3D] = {}
 var season := Catalog.Season.SPRING
 var coins := 6
 var rations := 2
 var clock := FarmClock.new()
 var cottage_repaired := false
-var sun: DirectionalLight3D
-var lighting: Environment
-var visuals: Dictionary[Vector2i, Node3D] = {}
-var avatar: Node3D
-var farmer_model: Node3D
-var arms: Array[Node3D] = []
-var legs: Array[Node3D] = []
-var walk_phase := 0.0
-var idle_phase := 0.0
-var walk_weight := 0.0
-var work_pose := 0.0
-var work_tween: Tween
-var work_particles: CPUParticles3D
-var work_particle_material: StandardMaterial3D
-var bobber: Node3D
+var visuals: Dictionary[Vector2i, GardenPlot] = {}
 var bobber_target := Vector3.ZERO
 var bobber_tween: Tween
-var camera: Camera3D
-var camera_yaw := -PI / 2.0
-var camera_pitch := deg_to_rad(35.0)
-var camera_ground_y := 0.0
-var marker: Node3D
-var interior: Node3D
 var indoors := false
 var bed_point: Vector3
 var exit_point: Vector3
 var kitchen_point: Vector3
-var hud: FarmHUD
-var menu_backdrop: ColorRect
 var cursor_released := false
 var active_menu: Control
-var food_menu: ActionMenu
-var food_stock: Label
-var buy_food_button: Button
-var shipping_menu: ActionMenu
-var shipping_summary: Label
-var shipping_stock: OptionButton
-var ship_button: Button
-var retrieve_button: Button
-var fishing_menu: Fishing
-var cooking_menu: Cooking
-var test_menu: ActionMenu
-var resident_test_menu: ActionMenu
-var test_resident_picker: OptionButton
-var test_favor: SpinBox
-var test_resident_status: Label
-var inventory_menu: ActionMenu
-var inventory_grid: InventoryGrid
-var backpack_upgrade: Button
 var hotbar_slot := 0
-var market: MarketMenu
 
 var message := "Welcome to Clover Valley. Press J to see your first delivery orders."
 
 @onready var scenery: Scenery = $Scenery
+@onready var lighting: Environment = $WorldEnvironment.environment
+@onready var sun: DirectionalLight3D = $Sun
+@onready var camera: FollowCamera = $Camera
+@onready var plot_root: Node3D = $Plots
+@onready var interior: Node3D = $CottageInterior
+@onready var marker: Node3D = $PlotMarker
+@onready var player: Player = $Player
+@onready var village: Village = $Village
+@onready var weather: Weather = $Weather
+@onready var work_particles: CPUParticles3D = $WorkParticles
+@onready var work_particle_material: StandardMaterial3D = (work_particles.mesh as BoxMesh).material
+@onready var bobber: Node3D = $Bobber
+@onready var sound: FarmAudio = $Audio
+@onready var pause_controls: PauseControls = $PauseControls
+@onready var hud: FarmHUD = $UI/HUD
+@onready var menu_backdrop: ColorRect = $UI/MenuBackdrop
+@onready var market: MarketMenu = $UI/MarketMenu
+@onready var food_menu: BakeryMenu = $UI/BakeryMenu
+@onready var shipping_menu: ShippingMenu = $UI/ShippingMenu
+@onready var fishing_menu: Fishing = $UI/FishingMenu
+@onready var cooking_menu: Cooking = $UI/CookingMenu
+@onready var inventory_menu: InventoryMenu = $UI/InventoryMenu
+@onready var inventory_grid: InventoryGrid = inventory_menu.grid
+@onready var journal: JournalMenu = $UI/Journal
+@onready var resident_menu: ResidentMenu = $UI/ResidentMenu
+@onready var village_menu: VillageMenu = $UI/VillageMenu
+@onready var resident_directory: ResidentDirectory = $UI/ResidentDirectory
+@onready var collection_menu: CollectionMenu = $UI/CollectionMenu
+@onready var test_menu: TestMenu = $UI/TestMenu
+@onready var resident_test_menu: ResidentTestMenu = $UI/ResidentTestMenu
+@onready var fireflies: CPUParticles3D = $Fireflies
 
 
 func _input(event: InputEvent) -> void:
 	var key := event as InputEventKey
-	if key == null or not key.pressed or key.echo or market == null:
+	if key == null or not key.pressed or key.echo or not is_node_ready():
 		return
 	if key.physical_keycode == KEY_F7:
 		_toggle_menu(resident_test_menu if active_menu == resident_test_menu else test_menu)
@@ -223,7 +186,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if active_menu != null:
 		return
 	if event is InputEventMouseMotion and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED:
-		_look(event.relative)
+		camera.look(event.relative, settings.sensitivity, settings.invert_y)
 	elif event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			MOUSE_BUTTON_LEFT:
@@ -239,13 +202,6 @@ func _set_cursor_released(released: bool) -> void:
 	hud.set_cursor_available(released)
 	if DisplayServer.get_name() != "headless":
 		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if released else Input.MOUSE_MODE_CAPTURED
-
-
-func _look(relative: Vector2) -> void:
-	var sensitivity := CAMERA_SENSITIVITY * settings.sensitivity
-	var vertical := -relative.y if settings.invert_y else relative.y
-	camera_yaw = wrapf(camera_yaw - relative.x * sensitivity, -PI, PI)
-	camera_pitch = clampf(camera_pitch + vertical * sensitivity, deg_to_rad(22.0), deg_to_rad(65.0))
 
 
 func _unhandled_key_input(event: InputEvent) -> void:
@@ -304,9 +260,9 @@ func _process(delta: float) -> void:
 	var vertical := int(Input.is_physical_key_pressed(KEY_S) or Input.is_physical_key_pressed(KEY_DOWN))
 	vertical -= int(Input.is_physical_key_pressed(KEY_W) or Input.is_physical_key_pressed(KEY_UP))
 
-	var distance := _advance_walk(Vector2i(horizontal, vertical), delta)
-	_animate_walk(distance, delta)
-	sound.walk(0.0 if step_elapsed < step_duration else distance, indoors)
+	var distance := player.walk(Vector2i(horizontal, vertical), camera.yaw, _walk_speed(), delta)
+	player.animate(distance, delta)
+	sound.walk(0.0 if player.is_stepping() else distance, indoors)
 	_update_interaction_targets()
 	_update_camera(delta)
 	clock.tick(delta, distance > 0.0)
@@ -315,172 +271,33 @@ func _process(delta: float) -> void:
 		scenery.update_wildlife(delta)
 	_update_daylight()
 	if weather.emitting:
-		weather.position = avatar.position + Vector3(0, 6.5, 0)
+		weather.position = player.position + Vector3(0, 6.5, 0)
 	_update_needs()
-
-
-func _advance_walk(direction: Vector2i, delta: float) -> float:
-	if step_elapsed < step_duration:
-		return _advance_terrain_step(delta)
-
-	var desired := Vector3(direction.x, 0, direction.y).normalized().rotated(Vector3.UP, camera_yaw)
-	var acceleration := WALK_BRAKING if direction == Vector2i.ZERO else WALK_ACCELERATION
-	var speed := _walk_speed()
-	walk_velocity = walk_velocity.move_toward(desired * speed, acceleration * delta)
-	if direction != Vector2i.ZERO:
-		facing_angle = atan2(desired.x, desired.z)
-
-	var start := avatar.position
-	var destination := start + walk_velocity * delta
-	var next := _walk_destination(start, destination)
-	var landing := Vector3(next.x, 0, next.y)
-	if not indoors:
-		landing = layout.grounded(landing)
-		var floor_height := layout.elevation(Vector2(start.x, start.z))
-		if landing.y != floor_height:
-			var forward := (landing - start) * Vector3(1, 0, 1)
-			var farther := _walk_destination(start, landing + forward.normalized() * 0.26)
-			step_edge = Vector3(landing.x, start.y, landing.z)
-			if layout.elevation(farther) == landing.y:
-				landing.x = farther.x
-				landing.z = farther.y
-			step_start = start
-			step_end = landing
-			var drop := floor_height - landing.y
-			step_duration = STEP_HOP_DURATION
-			if drop > 0.0:
-				step_duration = clampf(sqrt(2.0 * drop / FALL_GRAVITY) / (1.0 - STEP_OFF_PHASE), 0.30, 0.8)
-			step_elapsed = 0.0
-			return _advance_terrain_step(delta)
-	avatar.position = landing
-	if not is_equal_approx(destination.x, landing.x):
-		walk_velocity.x = 0.0
-	if not is_equal_approx(destination.z, landing.z):
-		walk_velocity.z = 0.0
-	return Vector2(start.x, start.z).distance_to(next)
-
-
-func _walk_destination(start: Vector3, destination: Vector3) -> Vector2:
-	var room_offset := Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.z) if indoors else Vector2.ZERO
-	var playable := (ROOM_BOUNDS if indoors else layout.bounds).grow(-EDGE_MARGIN)
-	var next := (Vector2(destination.x, destination.z) - room_offset).clamp(playable.position, playable.end)
-	var origin := Vector2(start.x, start.z) - room_offset
-	var obstacles := ROOM_OBSTACLES if indoors else scenery.obstacles
-	for obstacle: Rect2 in obstacles:
-		next = _avoid_obstacle(obstacle, origin, next)
-	return next + room_offset
-
-
-func _advance_terrain_step(delta: float) -> float:
-	var previous := avatar.position
-	step_elapsed = minf(step_elapsed + delta, step_duration)
-	var progress := step_elapsed / step_duration
-	var dropping := step_end.y < step_start.y
-	if dropping:
-		# Step past the edge at ground height, then accelerate down to the lower tile.
-		if progress <= STEP_OFF_PHASE:
-			avatar.position = step_start.lerp(step_edge, progress / STEP_OFF_PHASE)
-		else:
-			var fall := (progress - STEP_OFF_PHASE) / (1.0 - STEP_OFF_PHASE)
-			avatar.position = step_edge.lerp(step_end, fall)
-			avatar.position.y = lerpf(step_edge.y, step_end.y, fall * fall)
-	else:
-		var peak := step_end.y + STEP_HOP_CLEARANCE
-		# Clear the ledge before moving across its face.
-		avatar.position = step_start.lerp(step_end, smoothstep(0.45, 1.0, progress))
-		if progress < 0.45:
-			var rise := progress / 0.45
-			avatar.position.y = lerpf(step_start.y, peak, 1.0 - (1.0 - rise) * (1.0 - rise))
-		else:
-			var fall := (progress - 0.45) / 0.55
-			avatar.position.y = lerpf(peak, step_end.y, fall * fall)
-	if step_elapsed >= step_duration:
-		sound.play_effect(FarmAudio.Effect.GRASS_STEP, 0.80 if dropping else 0.86)
-		_burst(step_end + Vector3.UP * 0.08, Color("#ba9a6f"))
-	return Vector2(previous.x, previous.z).distance_to(Vector2(avatar.position.x, avatar.position.z))
 
 
 func _walk_speed() -> float:
 	if clock.hunger < 20.0 or _is_exhausted():
-		return WALK_SPEED * 0.70
+		return Player.WALK_SPEED * 0.70
 	if clock.hunger < 45.0 or clock.fatigue >= FarmClock.SLEEP_FATIGUE:
-		return WALK_SPEED * 0.86
-	return WALK_SPEED
+		return Player.WALK_SPEED * 0.86
+	return Player.WALK_SPEED
 
 
-func _avoid_obstacle(obstacle: Rect2, start: Vector2, destination: Vector2) -> Vector2:
-	# Resolve each axis separately so the farmer can slide along the edge.
-	var bank := obstacle.grow(EDGE_MARGIN)
-	if start.y > bank.position.y and start.y < bank.end.y:
-		if start.x <= bank.position.x:
-			destination.x = minf(destination.x, bank.position.x)
-		elif start.x >= bank.end.x:
-			destination.x = maxf(destination.x, bank.end.x)
-	if destination.x > bank.position.x and destination.x < bank.end.x:
-		if start.y <= bank.position.y:
-			destination.y = minf(destination.y, bank.position.y)
-		elif start.y >= bank.end.y:
-			destination.y = maxf(destination.y, bank.end.y)
-	return destination
-
-
-func _animate_walk(distance: float, delta: float) -> void:
-	avatar.rotation.y = lerp_angle(avatar.rotation.y, facing_angle, 1.0 - exp(-20.0 * delta))
-
-	var target_weight := clampf(distance / (WALK_SPEED * delta), 0.0, 1.0) if delta > 0.0 else 0.0
-	walk_weight = move_toward(walk_weight, target_weight, delta * 10.0)
-	walk_phase = fposmod(walk_phase + distance * TAU / STRIDE_LENGTH, TAU)
-	idle_phase = fposmod(idle_phase + delta * 3.0, TAU)
-	if walk_weight == 0.0:
-		walk_phase = 0.0
-
-	var swing := sin(walk_phase) * walk_weight
-	for index in range(2):
-		var side := -1.0 if index == 0 else 1.0
-		legs[index].rotation.x = swing * side * 0.65
-		arms[index].rotation.x = -swing * side * 0.46
-		arms[index].rotation.z = 0.0
-	arms[1].rotation.x += work_pose
-	farmer_model.position.y = absf(sin(walk_phase)) * walk_weight * 0.045
-	farmer_model.scale.y = 1.0 + sin(idle_phase) * 0.014 * (1.0 - walk_weight)
-	farmer_model.rotation.x = work_pose * 0.12
-	if step_elapsed < step_duration:
-		var progress := step_elapsed / step_duration
-		if step_end.y < step_start.y:
-			var brace := sin(PI * smoothstep(STEP_OFF_PHASE, 1.0, progress))
-			legs[0].rotation.x = -0.28 * brace
-			legs[1].rotation.x = 0.18 * brace
-			arms[0].rotation.z = -0.62 * brace
-			arms[1].rotation.z = 0.62 * brace
-			farmer_model.rotation.x = -0.12 * brace
-		else:
-			var tuck := sin(PI * progress)
-			legs[0].rotation.x = -0.85 * tuck
-			legs[1].rotation.x = -0.55 * tuck
-			arms[0].rotation.x = -0.55 * tuck
-			arms[1].rotation.x = -0.55 * tuck
-			farmer_model.rotation.x = 0.16 * tuck
-		farmer_model.position.y = 0.0
+func _on_player_landed(at: Vector3, dropping: bool) -> void:
+	sound.play_effect(FarmAudio.Effect.GRASS_STEP, 0.80 if dropping else 0.86)
+	_burst(at + Vector3.UP * 0.08, Color("#ba9a6f"))
 
 
 func _update_camera(delta := 0.0) -> void:
-	var back := Vector3.BACK.rotated(Vector3.UP, camera_yaw)
-	var right := Vector3.RIGHT.rotated(Vector3.UP, camera_yaw)
-	camera_ground_y = move_toward(camera_ground_y, avatar.position.y, 12.0 * delta) if delta > 0.0 else avatar.position.y
-	var shoulder := Vector3(avatar.position.x, camera_ground_y + 0.9, avatar.position.z) + right * 0.65
-	var offset := (back * cos(camera_pitch) + Vector3.UP * sin(camera_pitch)) * CAMERA_DISTANCE
-	camera.position = shoulder + offset
-	if not indoors:
-		camera.position.y = maxf(camera.position.y, layout.elevation(Vector2(camera.position.x, camera.position.z)) + 0.25)
-	camera.look_at(shoulder - back * 0.6)
+	camera.follow(player.position, null if indoors else layout, delta)
 
 
 func _target_plot() -> Vector2i:
 	if indoors:
 		return NO_PLOT
-	var cell := _tile_at(avatar.position)
-	var offset := avatar.position - _world(cell)
-	var forward := avatar.transform.basis.z
+	var cell := _tile_at(player.position)
+	var offset := player.position - _world(cell)
+	var forward := player.transform.basis.z
 	var step_x := int(signf(forward.x))
 	var step_z := int(signf(forward.z))
 	# Find the first tile boundary in the direction the visible model faces.
@@ -611,12 +428,7 @@ func _water_neighboring_crops(target: Vector2i) -> int:
 func _animate_work(action: Plot, target: Vector2i) -> void:
 	var angles := {Plot.EMPTY: -1.65, Plot.TILLED: -0.82, Plot.PLANTED: -1.18, Plot.RIPE: -1.08}
 	var colors := {Plot.EMPTY: "#ae7956", Plot.TILLED: "#e0cb87", Plot.PLANTED: "#87bfd4", Plot.RIPE: "#f6d474"}
-	if work_tween != null:
-		work_tween.kill()
-	work_tween = create_tween().set_trans(Tween.TRANS_SINE)
-	work_tween.tween_property(self, "work_pose", 0.28, 0.07)
-	work_tween.tween_property(self, "work_pose", angles[action], 0.10)
-	work_tween.tween_property(self, "work_pose", 0.0, 0.28)
+	player.swing_tool(angles[action])
 	_burst(_world(target) + Vector3.UP * 0.27, Color(colors[action]))
 
 
@@ -634,7 +446,7 @@ func _animate_pickup(at: Vector3, id: int) -> void:
 	Voxels.crop(pickup, id, Catalog.crops[id].color, 0.3, true)
 	var flight := pickup.create_tween()
 	flight.tween_method(func(progress: float) -> void:
-		pickup.position = at.lerp(avatar.position + Vector3.UP * 0.62, progress)
+		pickup.position = at.lerp(player.position + Vector3.UP * 0.62, progress)
 		pickup.position.y += sin(progress * PI) * 0.85
 		pickup.rotation.y = progress * TAU
 		pickup.scale = Vector3.ONE * (0.78 - smoothstep(0.65, 1.0, progress) * 0.76)
@@ -643,7 +455,7 @@ func _animate_pickup(at: Vector3, id: int) -> void:
 
 
 func _interaction(target: Vector2i) -> Interaction:
-	var at := avatar.position
+	var at := player.position
 	if indoors:
 		if at.distance_to(bed_point) <= 1.25:
 			return Interaction.BED
@@ -669,6 +481,8 @@ func _interaction(target: Vector2i) -> Interaction:
 		return Interaction.SHIPPING
 	if _nearby_apple_tree() != null:
 		return Interaction.ORCHARD
+	if _nearby_forage() >= 0:
+		return Interaction.FORAGE
 	if _nearby_fishing_spot().is_finite():
 		return Interaction.FISHING
 	if village.nearby(at) >= 0:
@@ -684,7 +498,7 @@ func _interaction(target: Vector2i) -> Interaction:
 
 func _nearby_fishing_spot() -> Vector3:
 	for spot in scenery.fishing_spots:
-		if avatar.position.distance_to(spot) <= 1.05:
+		if player.position.distance_to(spot) <= 1.05:
 			return spot
 	return Vector3.INF
 
@@ -696,11 +510,72 @@ func _nearby_apple_tree() -> Node3D:
 	var closest := ORCHARD_REACH
 	for at in scenery.orchard_fruit:
 		var fruit := scenery.orchard_fruit[at]
-		var distance := avatar.position.distance_to(fruit.global_position)
+		var distance := player.position.distance_to(fruit.global_position)
 		if fruit.visible and distance < closest:
 			nearest = fruit
 			closest = distance
 	return nearest
+
+
+func _choose_catch(spot: int) -> int:
+	var water: Dictionary = scenery.fishing_waters[spot] if spot >= 0 else {"fish": "perch", "rare": 0.0}
+	var chance: float = water.rare
+	if clock.hour >= 18.0 or weather.kind == Weather.Kind.RAIN:
+		chance = maxf(chance, MOONFIN_CHANCE)
+	if randf() < chance:
+		return Catalog.MOONFIN
+	return POND_FISH.get(water.fish, Catalog.POND_PERCH)
+
+
+func _forage_in_season(item: String) -> bool:
+	match item:
+		"berries":
+			return season in [Catalog.Season.SPRING, Catalog.Season.SUMMER]
+		"mushroom":
+			return season == Catalog.Season.FALL
+	return season != Catalog.Season.WINTER
+
+
+func _forage_available(index: int) -> bool:
+	var spot: Dictionary = scenery.forage_spots[index]
+	# Half the spots refill each morning, alternating by day.
+	return _forage_in_season(spot.item) and (index + day) % 2 == 0 and not picked_forage.has(spot.at)
+
+
+func _update_forage() -> void:
+	for index in range(scenery.forage_spots.size()):
+		scenery.set_forage_visible(index, _forage_available(index))
+
+
+func _nearby_forage() -> int:
+	var closest := FORAGE_REACH
+	var nearest := -1
+	for index in range(scenery.forage_spots.size()):
+		var spot: Dictionary = scenery.forage_spots[index]
+		var distance := player.position.distance_to(layout.grounded(spot.at))
+		if distance < closest and _forage_available(index):
+			closest = distance
+			nearest = index
+	return nearest
+
+
+func _gather_forage() -> void:
+	var index := _nearby_forage()
+	if index < 0:
+		return
+	var spot: Dictionary = scenery.forage_spots[index]
+	var id: int = FORAGE_ITEMS[spot.item]
+	if not _bag_has_room(InventoryGrid.Kind.HARVEST, id):
+		return
+	picked_forage[spot.at] = true
+	scenery.set_forage_visible(index, false)
+	produce[id] = produce.get(id, 0) + 1
+	clock.do_farm_work()
+	sound.play_effect(FarmAudio.Effect.FRUIT_PLUCK, randf_range(0.9, 1.1))
+	var at := layout.grounded(spot.at) + Vector3.UP * 0.3
+	_animate_pickup(at, id)
+	_burst(at, Color(Catalog.crops[id].color))
+	message = "Gathered %s." % Catalog.crops[id].label
 
 
 func _update_orchard() -> void:
@@ -738,7 +613,7 @@ func _exhaustion_message() -> void:
 func _blocked_by_fatigue(action: Interaction) -> bool:
 	return _is_exhausted() and action in [
 		Interaction.PLOT, Interaction.SEEDS, Interaction.FOOD, Interaction.REPAIR,
-		Interaction.ORCHARD, Interaction.FISHING]
+		Interaction.ORCHARD, Interaction.FISHING, Interaction.FORAGE]
 
 
 func _interact() -> void:
@@ -767,8 +642,10 @@ func _interact() -> void:
 			shipping_menu.focus_first_action()
 		Interaction.ORCHARD:
 			_pick_apple()
+		Interaction.FORAGE:
+			_gather_forage()
 		Interaction.RESIDENT:
-			_talk_to_resident(village.nearby(avatar.position))
+			_talk_to_resident(village.nearby(player.position))
 		Interaction.PICNIC:
 			if clock.take_picnic_break():
 				message = "You took a picnic break and recovered fatigue."
@@ -777,7 +654,10 @@ func _interact() -> void:
 		Interaction.CLOSED_PASS:
 			message = "A rockslide buried the old pass. The council closed the trail while the slope is still unstable."
 		Interaction.FISHING:
-			if not _bag_has_room(InventoryGrid.Kind.HARVEST, Catalog.POND_PERCH):
+			hooked_fish = _choose_catch(scenery.fishing_spots.find(_nearby_fishing_spot()))
+			fishing_menu.prepare_catch(Catalog.crops[hooked_fish].label,
+				load("res://assets/items/crop_%02d.svg" % hooked_fish) as Texture2D)
+			if not _bag_has_room(InventoryGrid.Kind.HARVEST, hooked_fish):
 				return
 			clock.do_farm_work()
 			fishing_menu.cast(0.2 * (skills.level(Skills.Skill.FISHING) - 1))
@@ -793,8 +673,10 @@ func _interact() -> void:
 
 
 func _catch_fish() -> void:
-	produce[Catalog.POND_PERCH] = produce.get(Catalog.POND_PERCH, 0) + 1
-	message = "Caught a Pond Perch."
+	produce[hooked_fish] = produce.get(hooked_fish, 0) + 1
+	message = "Caught a %s." % Catalog.crops[hooked_fish].label
+	if hooked_fish == Catalog.MOONFIN:
+		message += " A rare Moonfin!"
 	_train_skill(Skills.Skill.FISHING)
 	sound.play_effect(FarmAudio.Effect.FISHING_CATCH)
 	_burst(bobber_target, Color("#d3f5ed"))
@@ -803,7 +685,7 @@ func _catch_fish() -> void:
 
 func _animate_cast(spot: Vector3) -> void:
 	_clear_bobber()
-	var start := avatar.position + Vector3.UP * 0.85
+	var start := player.position + Vector3.UP * 0.85
 	bobber_target = spot + Vector3(0, 0.12, 1.1)
 	bobber.position = start
 	bobber.show()
@@ -857,14 +739,14 @@ func _train_skill(skill: Skills.Skill) -> void:
 
 
 func _set_indoors(entering: bool) -> void:
-	step_elapsed = step_duration
+	player.finish_step()
+	player.halt()
 	indoors = entering
+	player.indoors = entering
 	interior.visible = indoors
-	walk_velocity = Vector3.ZERO
-	facing_angle = PI if indoors else 0.0
-	avatar.rotation.y = facing_angle
-	camera_yaw = 0.0 if indoors else PI
-	avatar.position = (interior.get_node("Entry") as Marker3D).global_position if indoors else scenery.cottage_door + Vector3(0, 0, 0.38)
+	player.face(PI if indoors else 0.0)
+	camera.yaw = 0.0 if indoors else PI
+	player.position = (interior.get_node("Entry") as Marker3D).global_position if indoors else scenery.cottage_door + Vector3(0, 0, 0.38)
 	message = "Home Cottage" if indoors else "Clover Valley"
 	_update_weather()
 	_update_daylight()
@@ -872,13 +754,13 @@ func _set_indoors(entering: bool) -> void:
 
 
 func _try_sleep() -> void:
-	if not indoors or avatar.position.distance_to(bed_point) > 1.25:
+	if not indoors or player.position.distance_to(bed_point) > 1.25:
 		return
 	if clock.fatigue < FarmClock.SLEEP_FATIGUE:
 		message = "Too early to sleep. Fatigue must reach %d%%." % int(FarmClock.SLEEP_FATIGUE)
 		return
 	clock.rest()
-	walk_velocity = Vector3.ZERO
+	player.halt()
 	_advance_day()
 	village.update_routines(day, clock.hour, 0.0)
 	_update_daylight()
@@ -908,7 +790,7 @@ func _eat_item(kind: InventoryGrid.Kind, id: int) -> void:
 
 
 func _repair_cottage() -> void:
-	if indoors or avatar.position.distance_to(scenery.repair_sign) > 1.45:
+	if indoors or player.position.distance_to(scenery.repair_sign) > 1.45:
 		message = "Return to the cottage to make repairs."
 	elif cottage_repaired:
 		message = "The cottage has already been repaired."
@@ -928,8 +810,9 @@ func _show_cottage_repair() -> void:
 
 
 func _update_weather() -> void:
-	weather.position = avatar.position + Vector3(0, 6.5, 0)
+	weather.position = player.position + Vector3(0, 6.5, 0)
 	weather.apply(Weather.forecast(day), not indoors)
+	scenery.set_wet(weather.kind == Weather.Kind.RAIN)
 
 
 func _rain_waters(crop_id: int) -> bool:
@@ -944,6 +827,8 @@ func _advance_day() -> void:
 	season = next_season
 	picked_apple_trees.clear()
 	_update_orchard()
+	picked_forage.clear()
+	_update_forage()
 	if changed:
 		completed_orders = 0
 	_update_weather()
@@ -973,7 +858,7 @@ func _advance_day() -> void:
 	if ripe > 0:
 		message = "Good morning! %d plot(s) are ready to harvest." % ripe
 	if changed:
-		scenery.set_ground_season(season)
+		scenery.set_season(season)
 		message = "%s has begun. New delivery orders are in your journal." % Catalog.SEASONS[season]
 	if watered > 0:
 		message += " Rain watered %d plot(s)." % watered
@@ -996,32 +881,50 @@ func _ready() -> void:
 	if village.load_residents() != OK:
 		get_tree().quit(1)
 		return
+	# The valley itself is data-driven: tools/world/build_world.py writes world/clover_valley.json.
 	scenery.rebuild(layout)
-	_build_world()
-	add_child(village)
+	_build_plots()
+	bed_point = (interior.get_node("Bedside") as Marker3D).global_position
+	exit_point = (interior.get_node("Exit") as Marker3D).global_position
+	kitchen_point = (interior.get_node("Kitchen") as Marker3D).global_position
+	player.setup(layout, scenery.obstacles, interior.position)
 	village.populate(layout, scenery.obstacles, scenery.resident_doors)
-	_build_hud()
-	sound = FarmAudio.new()
-	add_child(sound)
-	pause_controls = PauseControls.new()
-	add_child(pause_controls)
-	pause_controls.resume_requested.connect(_resume_game)
-	pause_controls.settings_changed.connect(_save_settings)
-	pause_controls.save_requested.connect(_manual_save)
+	_fill_resident_test_picker()
 	_apply_settings()
 	sound.music.play()
-	avatar.position = layout.grounded(layout.anchor("spawn"))
-	avatar.rotation.y = facing_angle
+	player.position = layout.grounded(layout.anchor("spawn"))
+	player.face(player.facing_angle)
+	_update_held_tool()
 	_load_farm()
 	village.schedule_town_event(day)
 	village.update_routines(day, clock.hour, 0.0)
 	_update_orchard()
+	_update_forage()
 	_update_weather()
 	_refresh()
 	_update_daylight()
 	_update_camera()
 	if DisplayServer.get_name() != "headless":
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+func _build_plots() -> void:
+	for entity in layout.entities:
+		if entity["kind"] != "plot":
+			continue
+		var tile := _tile_at(WorldLayout.position_of(entity))
+		var plot := GARDEN_PLOT_SCENE.instantiate() as GardenPlot
+		plot.position = _world(tile)
+		plot_root.add_child(plot)
+		visuals[tile] = plot
+		_show_plot(tile)
+
+
+func _fill_resident_test_picker() -> void:
+	var entries := village.residents.duplicate()
+	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.name < b.name)
+	for resident in entries:
+		resident_test_menu.picker.add_item(resident.name, village.resident_indices[resident.id])
 
 
 func _manual_save() -> void:
@@ -1042,13 +945,13 @@ func _save_farm() -> Error:
 		"donated_specimens": donated_specimens, "skill_practice": skills.practice,
 		"village": village.state(),
 		"coins": coins, "bread": rations, "seeds": seed_bag, "produce": produce,
-		"shipments": shipments, "picked_apple_trees": picked_apple_trees.keys(),
+		"shipments": shipments, "picked_apple_trees": picked_apple_trees.keys(), "picked_forage": picked_forage.keys(),
 		"tool": equipped_tool, "seed": equipped_seed, "slots": inventory_grid.save_slots(),
 		"backpack_rows": inventory_grid.unlocked_rows, "hotbar_slot": hotbar_slot,
 		"hour": clock.hour, "hunger": clock.hunger, "fatigue": clock.fatigue,
 		"repaired": cottage_repaired, "plots": beds, "indoors": indoors,
-		"position": avatar.position, "facing": facing_angle,
-		"camera_yaw": camera_yaw, "camera_pitch": camera_pitch,
+		"position": player.position, "facing": player.facing_angle,
+		"camera_yaw": camera.yaw, "camera_pitch": camera.pitch,
 	})
 
 
@@ -1070,6 +973,11 @@ func _load_farm() -> void:
 	_restore_stock(seed_bag, state.get("seeds"), Catalog.SEED_COUNT)
 	_restore_stock(produce, state.get("produce"))
 	_restore_stock(shipments, state.get("shipments"))
+	var gathered: Variant = state.get("picked_forage")
+	if gathered is Array:
+		for at: Variant in gathered:
+			if at is Vector3:
+				picked_forage[at] = true
 	var picked: Variant = state.get("picked_apple_trees")
 	if picked is Array:
 		for at: Variant in picked:
@@ -1083,7 +991,8 @@ func _load_farm() -> void:
 	cottage_repaired = state.get("repaired") == true
 	if cottage_repaired:
 		_show_cottage_repair()
-	scenery.set_ground_season(season)
+	scenery.set_season(season)
+	_update_forage()
 	_restore_plots(state.get("plots"))
 	_restore_position(state)
 	inventory_grid.unlocked_rows = maxi(1, Save.count(state.get("backpack_rows"), InventoryGrid.MAX_ROWS, 1))
@@ -1122,29 +1031,17 @@ func _restore_plots(saved: Variant) -> void:
 
 
 func _restore_position(state: Dictionary) -> void:
-	step_elapsed = step_duration
+	player.finish_step()
 	if state.get("indoors") == true:
 		_set_indoors(true)
 	var saved: Variant = state.get("position")
-	if saved is Vector3 and saved.is_finite():
-		var room_offset := Vector2(ROOM_ORIGIN.x, ROOM_ORIGIN.z) if indoors else Vector2.ZERO
-		var point := Vector2(saved.x, saved.z) - room_offset
-		var playable := (ROOM_BOUNDS if indoors else layout.bounds).grow(-EDGE_MARGIN)
-		var obstacles := ROOM_OBSTACLES if indoors else scenery.obstacles
-		if playable.grow(0.001).has_point(point):
-			var obstructed := false
-			for obstacle: Rect2 in obstacles:
-				if obstacle.grow(EDGE_MARGIN - 0.001).has_point(point):
-					obstructed = true
-					break
-			if not obstructed:
-				avatar.position = Vector3(saved.x, 0.0, saved.z)
-				if not indoors:
-					avatar.position = layout.grounded(avatar.position)
-	facing_angle = Save.meter(state.get("facing"), -PI, PI, facing_angle)
-	avatar.rotation.y = facing_angle
-	camera_yaw = Save.meter(state.get("camera_yaw"), -PI, PI, camera_yaw)
-	camera_pitch = Save.meter(state.get("camera_pitch"), deg_to_rad(22), deg_to_rad(65), camera_pitch)
+	if saved is Vector3 and saved.is_finite() and player.can_stand_at(saved):
+		player.position = Vector3(saved.x, 0.0, saved.z)
+		if not indoors:
+			player.position = layout.grounded(player.position)
+	player.face(Save.meter(state.get("facing"), -PI, PI, player.facing_angle))
+	camera.yaw = Save.meter(state.get("camera_yaw"), -PI, PI, camera.yaw)
+	camera.pitch = Save.meter(state.get("camera_pitch"), FollowCamera.MIN_PITCH, FollowCamera.MAX_PITCH, camera.pitch)
 
 
 func _apply_settings() -> void:
@@ -1173,7 +1070,7 @@ func _save_settings() -> void:
 
 func _pause_game() -> void:
 	get_tree().paused = true
-	walk_velocity = Vector3.ZERO
+	player.halt()
 	hud.interaction_prompt.hide()
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 	pause_controls.open(settings)
@@ -1196,89 +1093,6 @@ func _tile_at(at: Vector3) -> Vector2i:
 	return WorldLayout.tile_at(at)
 
 
-func _build_world() -> void:
-	var environment := WorldEnvironment.new()
-	lighting = Environment.new()
-	lighting.background_mode = Environment.BG_COLOR
-	lighting.background_color = Color("#8eb5ac")
-	lighting.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	lighting.ambient_light_color = Color("#e7e5db")
-	lighting.ambient_light_energy = 0.48
-	environment.environment = lighting
-	add_child(environment)
-
-	sun = DirectionalLight3D.new()
-	sun.rotation_degrees = Vector3(-52, -30, 0)
-	sun.light_color = Color("#fff2dd")
-	sun.light_energy = 0.72
-	sun.shadow_enabled = true
-	add_child(sun)
-
-	camera = Camera3D.new()
-	camera.fov = 56.0
-	camera.far = 80.0
-	add_child(camera)
-	camera.make_current()
-
-	for entity in layout.entities:
-		if entity["kind"] == "plot":
-			_add_plot(_tile_at(WorldLayout.position_of(entity)))
-	interior = COTTAGE_SCENE.instantiate() as Node3D
-	interior.position = ROOM_ORIGIN
-	add_child(interior)
-	interior.hide()
-	bed_point = (interior.get_node("Bedside") as Marker3D).global_position
-	exit_point = (interior.get_node("Exit") as Marker3D).global_position
-	kitchen_point = (interior.get_node("Kitchen") as Marker3D).global_position
-
-	marker = Node3D.new()
-	add_child(marker)
-	for side in [-1.0, 1.0]:
-		FarmMesh.box(marker, Vector3(0, 0.15, side * 0.46), Vector3(0.95, 0.035, 0.035), "#dfcb87", true)
-		FarmMesh.box(marker, Vector3(side * 0.46, 0.15, 0), Vector3(0.035, 0.035, 0.95), "#dfcb87", true)
-
-	avatar = Node3D.new()
-	add_child(avatar)
-	_build_farmer()
-	weather = Weather.new()
-	add_child(weather)
-
-	work_particles = CPUParticles3D.new()
-	work_particles.emitting = false
-	work_particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	work_particles.one_shot = true
-	work_particles.amount = 12
-	work_particles.lifetime = 0.5
-	work_particles.explosiveness = 1.0
-	work_particles.direction = Vector3.UP
-	work_particles.spread = 58.0
-	work_particles.initial_velocity_min = 0.85
-	work_particles.initial_velocity_max = 1.8
-	work_particles.gravity = Vector3(0, -5.5, 0)
-	work_particles.scale_amount_min = 0.55
-	work_particles.scale_amount_max = 1.2
-	work_particle_material = StandardMaterial3D.new()
-	work_particle_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-	var chip := BoxMesh.new()
-	chip.size = Vector3(0.045, 0.045, 0.045)
-	chip.material = work_particle_material
-	work_particles.mesh = chip
-	add_child(work_particles)
-	bobber = Node3D.new()
-	bobber.hide()
-	add_child(bobber)
-	FarmMesh.box(bobber, Vector3(0, 0.045, 0), Vector3(0.13, 0.09, 0.13), "#e76e55")
-	FarmMesh.box(bobber, Vector3(0, -0.025, 0), Vector3(0.13, 0.05, 0.13), "#f2e6cf")
-
-
-func _add_plot(tile: Vector2i) -> void:
-	var plot := Node3D.new()
-	plot.position = _world(tile)
-	add_child(plot)
-	visuals[tile] = plot
-	_show_plot(tile)
-
-
 func _update_daylight() -> void:
 	var daylight := clock.daylight()
 	lighting.background_color = Color("#332c29") if indoors else Color("#25364d").lerp(Color(SEASON_SKY[season]), daylight)
@@ -1291,81 +1105,24 @@ func _update_daylight() -> void:
 		lighting.background_color = lighting.background_color.lerp(Color("#687e89"), daylight * 0.52)
 		sun.light_energy *= 0.60
 		lighting.ambient_light_color = lighting.ambient_light_color.lerp(Color("#bdd3df"), 0.38)
-
-
-func _build_farmer() -> void:
-	farmer_model = Node3D.new()
-	avatar.add_child(farmer_model)
-	FarmMesh.box(farmer_model, Vector3(0, 0.40, 0), Vector3(0.43, 0.48, 0.32), "#438880")
-	for side in [-1.0, 1.0]:
-		var leg := Node3D.new()
-		leg.position = Vector3(side * 0.11, 0.31, 0)
-		farmer_model.add_child(leg)
-		legs.append(leg)
-		FarmMesh.box(leg, Vector3(0, -0.065, 0), Vector3(0.15, 0.21, 0.16), "#376d6b")
-		FarmMesh.box(leg, Vector3(0, -0.17, 0.04), Vector3(0.17, 0.22, 0.25), "#745449")
-
-		var arm := Node3D.new()
-		arm.position = Vector3(side * 0.21, 0.52, 0)
-		farmer_model.add_child(arm)
-		arms.append(arm)
-		FarmMesh.box(arm, Vector3(side * 0.01, -0.12, 0), Vector3(0.15, 0.23, 0.17), "#f2b98d")
-	FarmMesh.box(farmer_model, Vector3(0, 0.76, -0.075), Vector3(0.61, 0.49, 0.42), "#784f40")
-	FarmMesh.box(farmer_model, Vector3(0, 0.74, 0.065), Vector3(0.55, 0.41, 0.43), "#f7c9a0")
-	for side in [-1.0, 1.0]:
-		FarmMesh.box(farmer_model, Vector3(side * 0.115, 0.77, 0.283), Vector3(0.048, 0.065, 0.017), "#413431")
-		FarmMesh.box(farmer_model, Vector3(side * 0.169, 0.69, 0.283), Vector3(0.070, 0.032, 0.016), "#eaa2a3")
-	FarmMesh.box(farmer_model, Vector3(0, 0.975, 0), Vector3(0.87, 0.10, 0.72), "#f3cd79")
-	FarmMesh.box(farmer_model, Vector3(0, 1.10, -0.015), Vector3(0.60, 0.19, 0.55), "#ebba61")
-
-	_build_held_tools()
-
-
-func _build_held_tools() -> void:
-	for id: Tool in [Tool.HOE, Tool.WATERING_CAN, Tool.SICKLE]:
-		var model := Node3D.new()
-		model.position = Vector3(0.04, -0.16, 0.035)
-		arms[1].add_child(model)
-		held_tools[id] = model
-	var hoe := held_tools[Tool.HOE]
-	FarmMesh.box(hoe, Vector3(0, 0.07, 0), Vector3(0.045, 0.53, 0.045), "#a97d55")
-	FarmMesh.box(hoe, Vector3(0, -0.19, 0.075), Vector3(0.20, 0.045, 0.15), "#9eada6")
-	var can := held_tools[Tool.WATERING_CAN]
-	FarmMesh.box(can, Vector3(0.02, -0.08, 0.06), Vector3(0.19, 0.20, 0.23), "#789d8c")
-	var spout := FarmMesh.box(can, Vector3(0.02, -0.045, 0.23),
-		Vector3(0.05, 0.055, 0.22), "#789d8c")
-	spout.rotation.x = -0.38
-	FarmMesh.box(can, Vector3(0.02, 0.025, 0.045), Vector3(0.11, 0.04, 0.16), "#405e55")
-	var sickle := held_tools[Tool.SICKLE]
-	FarmMesh.box(sickle, Vector3(0, 0, 0), Vector3(0.05, 0.22, 0.05), "#a97d55")
-	var blade := FarmMesh.box(sickle, Vector3(0, 0.14, 0.075),
-		Vector3(0.035, 0.075, 0.18), "#adbdb6")
-	blade.rotation.x = 0.48
-	FarmMesh.box(sickle, Vector3(0, 0.12, 0.16), Vector3(0.032, 0.10, 0.045), "#adbdb6")
-	_update_held_tool()
+	# Lantern pools glow from dusk; fireflies come out over the meadow on summer nights.
+	var night := clampf((0.7 - daylight) / 0.5, 0.0, 1.0)
+	scenery.set_night(night)
+	var glowing := not indoors and season == Catalog.Season.SUMMER and night > 0.6 and weather.kind == Weather.Kind.CLEAR
+	if fireflies.emitting != glowing:
+		fireflies.emitting = glowing
+	fireflies.visible = not indoors
 
 
 func _update_held_tool() -> void:
-	for id in held_tools:
-		held_tools[id].visible = id == equipped_tool
+	player.show_tool(equipped_tool)
 
 
 func _show_plot(tile: Vector2i) -> void:
-	var plot: Node3D = visuals[tile]
-	for mesh in plot.get_children():
-		plot.remove_child(mesh)
-		mesh.queue_free()
-
+	var plot := visuals[tile]
 	var state: int = plots.get(tile, Plot.EMPTY)
-	var soil := "#ffffff"
-	if state != Plot.EMPTY:
-		soil = "#ddc5b3"
-	if state == Plot.WATERED:
-		soil = "#998474"
-	FarmMesh.tile(plot, Vector3(0, 0.042, 0), Vector3(0.97, 0.15, 0.97), Voxels.SOIL, soil)
-	if state != Plot.EMPTY:
-		for offset in [-0.26, 0.0, 0.26]:
-			FarmMesh.tile(plot, Vector3(0, 0.12, offset), Vector3(0.75, 0.045, 0.09), Voxels.SOIL, soil)
+	plot.show_soil(state != Plot.EMPTY, state == Plot.WATERED)
+	plot.clear_crop()
 	if not growing.has(tile):
 		return
 	var plant := growing[tile]
@@ -1373,7 +1130,8 @@ func _show_plot(tile: Vector2i) -> void:
 	if not crop.grows_in(season):
 		return
 	var size := 0.13 + 0.24 * clampf(1.0 - float(plant.remaining) / (crop.harvest_day - 1), 0.0, 1.0)
-	Voxels.crop(plot, plant.id, crop.color, size, state == Plot.RIPE)
+	plot.show_crop(plant.id, crop.color, size, state == Plot.RIPE)
+
 
 func _update_interaction_targets() -> void:
 	var target := _target_plot()
@@ -1409,12 +1167,15 @@ func _update_interaction_targets() -> void:
 			prompt = "Open shipping bin"
 		Interaction.ORCHARD:
 			prompt = "Pick Orchard Apple"
+		Interaction.FORAGE:
+			var spot: Dictionary = scenery.forage_spots[_nearby_forage()]
+			prompt = "Gather %s" % Catalog.crops[FORAGE_ITEMS[spot.item]].label
 		Interaction.FISHING:
 			prompt = "Cast a line"
 		Interaction.KITCHEN:
 			prompt = "Use the kitchen" if cottage_repaired else "Kitchen · repair the cottage first"
 		Interaction.RESIDENT:
-			prompt = "Talk to %s" % village.residents[village.nearby(avatar.position)].name
+			prompt = "Talk to %s" % village.residents[village.nearby(player.position)].name
 		Interaction.PICNIC:
 			prompt = "Take a picnic break · 30 min"
 		Interaction.CLOSED_PASS:
@@ -1441,8 +1202,8 @@ func _refresh() -> void:
 	if market.visible:
 		market.update_stock(hud.stock_label.text, coins, _harvest_value())
 	if food_menu.visible:
-		food_stock.text = "%d coins   /   %d bread in bag" % [coins, rations]
-		buy_food_button.disabled = coins < FOOD_PRICE
+		food_menu.stock.text = "%d coins   /   %d bread in bag" % [coins, rations]
+		food_menu.buy_button.disabled = coins < FOOD_PRICE
 	if journal.visible:
 		_update_journal()
 	if collection_menu.visible:
@@ -1480,211 +1241,40 @@ func _update_needs() -> void:
 	hud.needs_label.add_theme_color_override("font_color", Color("#e8a16e") if warning else UISkin.PAPER)
 
 
-func _build_hud() -> void:
-	var layer := CanvasLayer.new()
-	add_child(layer)
-	hud = FarmHUD.new()
-	layer.add_child(hud)
-	hud.build()
-	hud.slot_requested.connect(_select_hotbar)
-	hud.bag_requested.connect(func() -> void: _toggle_menu(inventory_menu))
-	hud.journal_requested.connect(func() -> void: _toggle_menu(journal))
-	hud.pause_requested.connect(_pause_game)
-	hud.interact_requested.connect(_use_world_action)
-
-	menu_backdrop = ColorRect.new()
-	menu_backdrop.color = Color(0.10, 0.13, 0.08, 0.58)
-	layer.add_child(menu_backdrop)
-	menu_backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	menu_backdrop.hide()
-
-	market = MARKET_MENU_SCENE.instantiate() as MarketMenu
-	layer.add_child(market)
-	market.theme = UISkin.menu()
-	market.buy_requested.connect(_buy_seed)
-	market.sell_requested.connect(_sell_harvest)
-	market.close_requested.connect(_close_menu)
-	_build_action_menus(layer)
-
-
-func _build_action_menus(layer: CanvasLayer) -> void:
-	food_menu = _new_menu(layer, "Valley Bakery")
-	food_stock = Label.new()
-	food_stock.add_theme_font_size_override("font_size", 22)
-	food_menu.rows.add_child(food_stock)
-	buy_food_button = food_menu.add_action("Buy bread · %d coins" % FOOD_PRICE, _buy_food)
-	food_menu.add_action("Close", _close_menu)
-
-	shipping_menu = _new_menu(layer, "Shipping Bin")
-	shipping_summary = Label.new()
-	shipping_summary.add_theme_font_size_override("font_size", 22)
-	shipping_menu.rows.add_child(shipping_summary)
-	shipping_stock = OptionButton.new()
-	shipping_stock.custom_minimum_size.y = 48
-	shipping_stock.add_theme_font_size_override("font_size", 24)
-	shipping_menu.rows.add_child(shipping_stock)
-	ship_button = shipping_menu.add_action("Ship all of selected item", _ship_selected_produce)
-	retrieve_button = shipping_menu.add_action("Return shipment to bag", _retrieve_shipments)
-	shipping_menu.add_action("Close", _close_menu)
-
-	fishing_menu = _new_menu(layer, "Willow Pond", Fishing) as Fishing
-	fishing_menu.caught.connect(_catch_fish)
-	fishing_menu.bite.connect(_on_fishing_bite)
-	fishing_menu.line_ended.connect(_clear_bobber)
-	fishing_menu.close_requested.connect(_close_menu)
-	cooking_menu = _new_menu(layer, "Cottage Kitchen", Cooking) as Cooking
-	cooking_menu.cook_requested.connect(_cook_meal)
-	cooking_menu.close_requested.connect(_close_menu)
-
-	inventory_menu = _new_menu(layer, "Farm Bag")
-	inventory_menu.offset_left = -530
-	inventory_menu.offset_right = 530
-	inventory_menu.offset_top = -236
-	inventory_menu.offset_bottom = 236
-	inventory_grid = InventoryGrid.new()
-	inventory_menu.rows.add_child(inventory_grid)
-	inventory_grid.item_used.connect(_use_bag_item)
-	inventory_grid.stacks_changed.connect(_refresh_hotbar)
-	backpack_upgrade = inventory_menu.add_action("", _upgrade_backpack)
-	inventory_menu.add_action("Close", _close_menu)
-
-	journal = _new_menu(layer, "Valley Journal")
-	journal.offset_left = -395
-	journal.offset_right = 395
-	journal.offset_top = -275
-	journal.offset_bottom = 275
-	forecast_label = Label.new()
-	forecast_label.add_theme_font_size_override("font_size", 22)
-	journal.rows.add_child(forecast_label)
-	for index in range(3):
-		var delivery := journal.add_action("", _deliver_order.bind(index))
-		delivery.expand_icon = true
-		delivery.add_theme_constant_override("icon_max_width", 34)
-		delivery.add_theme_constant_override("h_separation", 12)
-		order_buttons.append(delivery)
-	milestone_button = journal.add_action("", _claim_harvest_milestone)
-	watering_upgrade_button = journal.add_action("", _upgrade_watering_can)
-	var journal_sections := HBoxContainer.new()
-	journal_sections.add_theme_constant_override("separation", 10)
-	journal.rows.add_child(journal_sections)
-	for section in [journal.add_action("Collection & Skills", _open_collection, journal_sections),
-			journal.add_action("Village & Story", _open_village_journal, journal_sections)]:
-		section.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	journal.add_action("Close", _close_menu)
-
-	_build_village_menus(layer)
-
-	collection_menu = _new_menu(layer, "Valley Collection")
-	collection_menu.offset_left = -370
-	collection_menu.offset_right = 370
-	skills_label = Label.new()
-	skills_label.add_theme_font_size_override("font_size", 21)
-	collection_menu.rows.add_child(skills_label)
-	for index in range(SPECIMENS.size()):
-		var button := collection_menu.add_action("", _donate_specimen.bind(index))
-		button.icon = load("res://assets/items/crop_%02d.svg" % SPECIMENS[index]) as Texture2D
-		button.expand_icon = true
-		button.add_theme_constant_override("icon_max_width", 32)
-		donation_buttons.append(button)
-	collection_menu.add_action("Back to journal", func() -> void:
-		_show_menu(journal)
-		journal.focus_first_action())
-
-	test_menu = _new_menu(layer, "Farm Test Menu")
-	test_menu.add_action("Resident testing", _open_resident_tests)
-	test_menu.add_action("Add 100 coins", func() -> void:
-		coins += 100
-		_refresh())
-	test_menu.add_action("Refill food and clear fatigue", _test_restore)
-	test_menu.add_action("Set very hungry and exhausted", _test_needs)
-	test_menu.add_action("Set time to 22:00", _test_night)
-	test_menu.add_action("Advance one day", _test_advance_day)
-	test_menu.add_action("Go to cottage interior", _test_go_home)
-	test_menu.add_action("Close", _close_menu)
-	for item in test_menu.rows.get_children():
-		if item is Button:
-			item.custom_minimum_size.y = 38
-
-	resident_test_menu = _new_menu(layer, "Resident Testing")
-	resident_test_menu.offset_left = -410
-	resident_test_menu.offset_right = 410
-	test_resident_picker = OptionButton.new()
-	test_resident_picker.custom_minimum_size.y = 40
-	resident_test_menu.rows.add_child(test_resident_picker)
-	var entries := village.residents.duplicate()
-	entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.name < b.name)
-	for resident in entries:
-		test_resident_picker.add_item(resident.name, village.resident_indices[resident.id])
-	test_resident_picker.item_selected.connect(func(_item: int) -> void: _sync_test_resident())
-	test_resident_status = Label.new()
-	test_resident_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	resident_test_menu.rows.add_child(test_resident_status)
-
-	var favor_row := HBoxContainer.new()
-	favor_row.add_theme_constant_override("separation", 8)
-	resident_test_menu.rows.add_child(favor_row)
-	test_favor = SpinBox.new()
-	test_favor.min_value = -20
-	test_favor.max_value = 100
-	test_favor.step = 1
-	test_favor.custom_minimum_size.x = 115
-	favor_row.add_child(test_favor)
-	_test_row_button(favor_row, "Set favor", _test_set_favor)
-	_test_row_button(favor_row, "Date (12)", _test_favor_preset.bind(12))
-	_test_row_button(favor_row, "Partner (24)", _test_favor_preset.bind(24))
-	resident_test_menu.add_action("Reset selected resident’s date and partnership", _test_reset_romance)
-	resident_test_menu.add_action("Stock favorite and disliked gifts; reset daily gift", _test_gift_kit)
-	resident_test_menu.add_action("Open dialogue without adding favor", _test_open_dialogue)
-	resident_test_menu.add_action("Go to resident during work hours", _test_go_to_resident)
-	resident_test_menu.add_action("Go to house just before departure", _test_watch_departure)
-	resident_test_menu.add_action("Back to Farm Test Menu", func() -> void: _toggle_menu(test_menu))
-	for item in resident_test_menu.rows.get_children():
-		if item is Button:
-			item.custom_minimum_size.y = 40
-
-
-func _test_row_button(row: HBoxContainer, caption: String, action: Callable) -> void:
-	var button := Button.new()
-	button.text = caption
-	button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	button.pressed.connect(action)
-	row.add_child(button)
-
-
 func _open_resident_tests() -> void:
 	_sync_test_resident()
 	_show_menu(resident_test_menu)
-	test_resident_picker.grab_focus()
+	resident_test_menu.picker.grab_focus()
 
 
-func _sync_test_resident() -> void:
-	test_favor.set_value_no_signal(village.affinity(test_resident_picker.get_selected_id()))
+func _sync_test_resident(_item := -1) -> void:
+	resident_test_menu.favor.set_value_no_signal(village.affinity(resident_test_menu.picker.get_selected_id()))
 	_update_test_resident_status()
 
 
 func _update_test_resident_status() -> void:
-	var index := test_resident_picker.get_selected_id()
+	var index := resident_test_menu.picker.get_selected_id()
 	var resident: Dictionary = village.residents[index]
 	var partner_name := "none" if village.partner.is_empty() else str(village.residents[village.resident_indices[village.partner]].name)
-	test_resident_status.text = "Favor: %d   ·   Gift today: %s   ·   Partner: %s\n%s · %s" % [
+	resident_test_menu.status.text = "Favor: %d   ·   Gift today: %s   ·   Partner: %s\n%s · %s" % [
 		village.affinity(index), "yes" if village.last_gift.get(resident.id, 0) == day else "no",
 		partner_name, "Date completed" if village.dates.has(resident.id) else "No date completed",
 		village.activity_hint(index, day, clock.hour)]
 
 
 func _test_set_favor() -> void:
-	var index := test_resident_picker.get_selected_id()
-	village.change_affinity(index, int(test_favor.value) - village.affinity(index))
+	var index := resident_test_menu.picker.get_selected_id()
+	village.change_affinity(index, int(resident_test_menu.favor.value) - village.affinity(index))
 	_sync_test_resident()
 
 
 func _test_favor_preset(value: int) -> void:
-	test_favor.value = value
+	resident_test_menu.favor.value = value
 	_test_set_favor()
 
 
 func _test_reset_romance() -> void:
-	var id: String = village.residents[test_resident_picker.get_selected_id()].id
+	var id: String = village.residents[resident_test_menu.picker.get_selected_id()].id
 	village.dates.erase(id)
 	if village.partner == id:
 		village.partner = ""
@@ -1692,7 +1282,7 @@ func _test_reset_romance() -> void:
 
 
 func _test_gift_kit() -> void:
-	var resident: Dictionary = village.residents[test_resident_picker.get_selected_id()]
+	var resident: Dictionary = village.residents[resident_test_menu.picker.get_selected_id()]
 	for preference in ["favorite", "disliked"]:
 		var item := int(resident.gifts[preference])
 		if item == Orders.BREAD:
@@ -1705,18 +1295,18 @@ func _test_gift_kit() -> void:
 
 
 func _test_open_dialogue() -> void:
-	_talk_to_resident(test_resident_picker.get_selected_id(), false)
+	_talk_to_resident(resident_test_menu.picker.get_selected_id(), false)
 
 
 func _test_go_to_resident() -> void:
-	var index := test_resident_picker.get_selected_id()
+	var index := resident_test_menu.picker.get_selected_id()
 	_test_set_hour(float(village.residents[index].routine.depart) + 0.1)
 	var at := village.models[index].position
 	_test_place_outside(at + Vector3(0, 0, 0.65), at)
 
 
 func _test_watch_departure() -> void:
-	var index := test_resident_picker.get_selected_id()
+	var index := resident_test_menu.picker.get_selected_id()
 	var resident: Dictionary = village.residents[index]
 	if not village.homes.has(resident.id):
 		message = "This resident has no assigned house."
@@ -1730,87 +1320,41 @@ func _test_watch_departure() -> void:
 func _test_place_outside(near: Vector3, look_at_point: Vector3) -> void:
 	if indoors:
 		_set_indoors(false)
-	step_elapsed = step_duration
-	walk_velocity = Vector3.ZERO
+	player.finish_step()
+	player.halt()
 	var cell := village._walkable_cell(near)
 	var position := WorldLayout.world_at(cell)
 	var point := Vector2(near.x, near.z)
-	if layout.bounds.grow(-EDGE_MARGIN).has_point(point) and not village._blocked(point):
+	if layout.bounds.grow(-Player.EDGE_MARGIN).has_point(point) and not village._blocked(point):
 		position = near
-	avatar.position = layout.grounded(position)
-	var direction := look_at_point - avatar.position
+	player.position = layout.grounded(position)
+	var direction := look_at_point - player.position
 	if direction.length_squared() > 0.01:
-		facing_angle = atan2(direction.x, direction.z)
-		avatar.rotation.y = facing_angle
-		camera_yaw = wrapf(facing_angle + PI, -PI, PI)
+		player.face(atan2(direction.x, direction.z))
+		camera.yaw = wrapf(player.facing_angle + PI, -PI, PI)
 	_update_camera()
 	_close_menu()
 	_refresh()
 
 
-func _new_menu(layer: CanvasLayer, title: String, menu_script: Script = null) -> ActionMenu:
-	var menu := ACTION_MENU_SCENE.instantiate() as ActionMenu
-	if menu_script != null:
-		menu.set_script(menu_script)
-	layer.add_child(menu)
-	menu.title.text = title
-	menu.theme = UISkin.menu()
-	return menu
-
-
-func _build_village_menus(layer: CanvasLayer) -> void:
-	resident_menu = _new_menu(layer, "")
-	resident_menu.offset_left = -420
-	resident_menu.offset_right = 420
-	resident_status = Label.new()
-	resident_menu.rows.add_child(resident_status)
-	resident_line = _village_text(resident_menu)
-	for index in range(6):
-		resident_choices.append(resident_menu.add_action("", _choose_resident_action.bind(index)))
-	gift_stock = OptionButton.new()
-	gift_stock.custom_minimum_size.y = 44
-	resident_menu.rows.add_child(gift_stock)
-	gift_button = resident_menu.add_action("Give selected gift", _give_resident_gift)
-	resident_menu.add_action("Leave", _close_menu)
-
-	village_menu = _new_menu(layer, "Village and story")
-	village_menu.offset_left = -410
-	village_menu.offset_right = 410
-	village_story = _village_text(village_menu)
-	village_menu.add_action("Resident directory", _open_resident_directory)
-	village_menu.add_action("Back to journal", func() -> void:
-		_show_menu(journal)
-		journal.focus_first_action())
-
-	resident_directory = _new_menu(layer, "Resident directory")
-	resident_directory.offset_left = -410
-	resident_directory.offset_right = 410
-	directory_select = OptionButton.new()
-	directory_select.custom_minimum_size.y = 44
-	resident_directory.rows.add_child(directory_select)
-	directory_text = _village_text(resident_directory)
-	directory_select.item_selected.connect(_update_resident_directory)
-	resident_directory.add_action("Back to village journal", _open_village_journal)
-
-
 func _open_resident_directory() -> void:
-	if directory_select.item_count == 0:
+	if resident_directory.select.item_count == 0:
 		var entries := village.residents.duplicate()
 		entries.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return a.name < b.name)
 		for resident in entries:
-			directory_select.add_item(resident.name, village.resident_indices[resident.id])
-	_update_resident_directory(directory_select.selected)
+			resident_directory.select.add_item(resident.name, village.resident_indices[resident.id])
+	_update_resident_directory(resident_directory.select.selected)
 	_show_menu(resident_directory)
-	directory_select.grab_focus()
+	resident_directory.select.grab_focus()
 
 
 func _update_resident_directory(item: int) -> void:
 	if item < 0:
 		return
-	var index := directory_select.get_item_id(item)
+	var index := resident_directory.select.get_item_id(item)
 	var resident: Dictionary = village.residents[index]
 	var routine: Dictionary = resident.routine
-	directory_text.text = "%s · %s\n%s\nHome: %s\nOut from %s · Home by %s" % [
+	resident_directory.text.text = "%s · %s\n%s\nHome: %s\nOut from %s · Home by %s" % [
 		resident.role, village.location_hint(resident.id, day, clock.hour),
 		village.activity_hint(index, day, clock.hour), village.location_hint(resident.id, day, 6.0),
 		_routine_time(float(routine.depart)), _routine_time(float(routine.home))]
@@ -1818,15 +1362,6 @@ func _update_resident_directory(item: int) -> void:
 
 func _routine_time(hour: float) -> String:
 	return "%02d:%02d" % [floori(hour), roundi(fposmod(hour, 1.0) * 60.0)]
-
-
-func _village_text(menu: ActionMenu) -> Label:
-	var label := Label.new()
-	label.custom_minimum_size.x = 620
-	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	label.add_theme_font_size_override("font_size", 22)
-	menu.rows.add_child(label)
-	return label
 
 
 func _open_village_journal() -> void:
@@ -1837,6 +1372,8 @@ func _open_village_journal() -> void:
 func _update_village_journal() -> void:
 	var lines := PackedStringArray(["The High-Water Mark", "Find the people who remember the flood."])
 	for id in ["tess", "vera", "orin"]:
+		if not village.resident_indices.has(id):
+			continue
 		var witness: Dictionary = village.residents[village.resident_indices[id]]
 		var heard := bool(village.evidence & int(Village.EVIDENCE[id]))
 		lines.append("%s · %s" % [witness.name, "Account recorded" if heard else village.location_hint(id, day, clock.hour)])
@@ -1857,7 +1394,7 @@ func _update_village_journal() -> void:
 		for resident in village.residents:
 			if resident.id == village.partner:
 				lines.append("Partner · %s" % resident.name)
-	village_story.text = "\n".join(lines)
+	village_menu.story.text = "\n".join(lines)
 
 
 func _talk_to_resident(index: int, record_visit := true) -> void:
@@ -1877,18 +1414,18 @@ func _update_resident() -> void:
 	var id: String = resident.id
 	resident_menu.title.text = resident.name
 	var gifted: bool = village.last_gift.get(id, 0) == day
-	resident_status.text = "%s  ·  Favor %d  ·  %s\n%s" % [
+	resident_menu.status.text = "%s  ·  Favor %d  ·  %s\n%s" % [
 		resident.role, village.affinity(resident_index), "Gift given today" if gifted else "One gift per day",
 		village.activity_hint(resident_index, day, clock.hour)]
-	resident_line.text = village.dialogue(resident_index, day, clock.hour) if resident_reply.is_empty() else resident_reply
+	resident_menu.line.text = village.dialogue(resident_index, day, clock.hour) if resident_reply.is_empty() else resident_reply
 	resident_actions.clear()
 	var captions := PackedStringArray()
 	if town_event_open:
 		var event: Dictionary = village.town_events[id]
-		resident_line.text = event.prompt
+		resident_menu.line.text = event.prompt
 		resident_actions.assign(["town-event-first", "town-event-second"])
 		captions = [event.choices[0].label, event.choices[1].label]
-		_show_resident_choices(captions)
+		resident_menu.show_choices(captions)
 		_update_gifts(true)
 		return
 	if id == "iona" and village.evidence == 7 and day >= village.hearing_day and village.resolution == 0:
@@ -1921,42 +1458,34 @@ func _update_resident() -> void:
 	if village.town_event_day == day and id == village.town_event_host and village.town_event_choice < 0:
 		resident_actions.append("town-event")
 		captions.append(village.town_events[id].title)
-	_show_resident_choices(captions)
+	resident_menu.show_choices(captions)
 	_update_gifts(gifted)
 
 
-func _show_resident_choices(captions: PackedStringArray) -> void:
-	for index in range(resident_choices.size()):
-		var button := resident_choices[index]
-		button.visible = index < captions.size()
-		if button.visible:
-			button.text = captions[index]
-
-
 func _update_gifts(gifted: bool) -> void:
-	var previous := gift_stock.get_selected_id() if gift_stock.selected >= 0 else -2
-	gift_stock.clear()
+	var previous := resident_menu.gifts.get_selected_id() if resident_menu.gifts.selected >= 0 else -2
+	resident_menu.gifts.clear()
 	if rations > 0:
-		gift_stock.add_item("Bread ×%d" % rations, Catalog.crops.size())
+		resident_menu.gifts.add_item("Bread ×%d" % rations, Catalog.crops.size())
 	for id in range(Catalog.crops.size()):
 		var quantity: int = produce.get(id, 0)
 		if quantity > 0:
-			gift_stock.add_item("%s ×%d" % [Catalog.crops[id].label, quantity], id)
-	var available := gift_stock.item_count > 0
-	for index in range(gift_stock.item_count):
-		if gift_stock.get_item_id(index) == previous:
-			gift_stock.select(index)
+			resident_menu.gifts.add_item("%s ×%d" % [Catalog.crops[id].label, quantity], id)
+	var available := resident_menu.gifts.item_count > 0
+	for index in range(resident_menu.gifts.item_count):
+		if resident_menu.gifts.get_item_id(index) == previous:
+			resident_menu.gifts.select(index)
 			break
-	gift_stock.disabled = gifted or not available
-	gift_button.disabled = gift_stock.disabled
+	resident_menu.gifts.disabled = gifted or not available
+	resident_menu.gift_button.disabled = resident_menu.gifts.disabled
 	if not available:
-		gift_stock.add_item("No gifts in your bag")
+		resident_menu.gifts.add_item("No gifts in your bag")
 
 
 func _give_resident_gift() -> void:
-	if active_menu != resident_menu or gift_button.disabled:
+	if active_menu != resident_menu or resident_menu.gift_button.disabled:
 		return
-	var id := gift_stock.get_selected_id()
+	var id := resident_menu.gifts.get_selected_id()
 	var bread := id == Catalog.crops.size()
 	if (rations if bread else produce.get(id, 0)) <= 0:
 		return
@@ -2013,7 +1542,8 @@ func _choose_resident_action(index: int) -> void:
 		"publish":
 			village.resolution = 1
 			for witness_id in Village.EVIDENCE:
-				village.change_affinity(village.resident_indices[witness_id], 5)
+				if village.resident_indices.has(witness_id):
+					village.change_affinity(village.resident_indices[witness_id], 5)
 			resident_reply = village.event_reaction(resident_index, true)
 		"trust":
 			village.resolution = 2
@@ -2028,13 +1558,13 @@ func _choose_resident_action(index: int) -> void:
 
 
 func _update_journal() -> void:
-	forecast_label.text = "Today: %s  ·  Tomorrow: %s  ·  Crops harvested: %d\n%s deliveries · fulfilled from your bag" % [
+	journal.forecast.text = "Today: %s  ·  Tomorrow: %s  ·  Crops harvested: %d\n%s deliveries · fulfilled from your bag" % [
 		Weather.NAMES[weather.kind], Weather.NAMES[Weather.forecast(day + 1)], harvested, Catalog.SEASONS[season]]
-	for index in range(order_buttons.size()):
+	for index in range(journal.order_buttons.size()):
 		var order: Vector3i = Orders.BOARDS[season][index]
 		var delivered := bool(completed_orders & (1 << index))
 		var stock := _delivery_stock(order.x)
-		var button := order_buttons[index]
+		var button := journal.order_buttons[index]
 		var icon := "bread" if order.x == Orders.BREAD else "crop_%02d" % order.x
 		button.icon = load("res://assets/items/%s.svg" % icon) as Texture2D
 		button.add_theme_color_override("font_disabled_color", Color("#375a37") if delivered else Color("#675c49"))
@@ -2044,18 +1574,18 @@ func _update_journal() -> void:
 		button.disabled = delivered or stock < order.y or _is_exhausted()
 		button.tooltip_text = "Eat or sleep before making a delivery." if _is_exhausted() else ""
 
-	milestone_button.disabled = true
-	milestone_button.text = "All harvest milestones claimed"
+	journal.milestone_button.disabled = true
+	journal.milestone_button.text = "All harvest milestones claimed"
 	if claimed_milestones < HARVEST_MILESTONES.size():
 		var milestone: Vector2i = HARVEST_MILESTONES[claimed_milestones]
-		milestone_button.disabled = harvested < milestone.x
-		milestone_button.text = "Harvest milestone · %d/%d crops · Claim %d coins" % [
+		journal.milestone_button.disabled = harvested < milestone.x
+		journal.milestone_button.text = "Harvest milestone · %d/%d crops · Claim %d coins" % [
 			mini(harvested, milestone.x), milestone.x, milestone.y]
 
-	watering_upgrade_button.text = "Watering Can + · Waters neighboring crops" if watering_upgraded else (
+	journal.watering_upgrade_button.text = "Watering Can + · Waters neighboring crops" if watering_upgraded else (
 		"Upgrade Watering Can · %d coins (%d in bag)" % [WATERING_UPGRADE_PRICE, coins])
-	watering_upgrade_button.disabled = watering_upgraded or coins < WATERING_UPGRADE_PRICE or _is_exhausted()
-	watering_upgrade_button.tooltip_text = "Water a dry crop to also water its four side neighbors."
+	journal.watering_upgrade_button.disabled = watering_upgraded or coins < WATERING_UPGRADE_PRICE or _is_exhausted()
+	journal.watering_upgrade_button.tooltip_text = "Water a dry crop to also water its four side neighbors."
 
 
 func _open_collection() -> void:
@@ -2068,17 +1598,20 @@ func _update_collection() -> void:
 		"%s · Less fatigue from plot work" % skills.progress_text(Skills.Skill.FARMING),
 		"%s · More time to reel in" % skills.progress_text(Skills.Skill.FISHING),
 		"%s · Meals relieve more fatigue" % skills.progress_text(Skills.Skill.COOKING),
-		"Collection complete" if donated_specimens == COMPLETE_COLLECTION
-			else "Donate one of each for %d coins." % COLLECTION_REWARD,
+		"Collection complete" if donated_specimens == COMPLETE_COLLECTION else (
+			"Valley classics on display · %d/%d specimens · Complete it for %d coins." % [
+				_donated_count(), SPECIMENS.size(), FULL_COLLECTION_REWARD]
+			if donated_specimens & CLASSIC_COLLECTION == CLASSIC_COLLECTION
+			else "Donate the perch, Moondrop, and apple for %d coins." % COLLECTION_REWARD),
 	])
-	skills_label.text = "\n".join(lines)
+	collection_menu.skills.text = "\n".join(lines)
 	for index in range(SPECIMENS.size()):
 		var id: int = SPECIMENS[index]
 		var donated := bool(donated_specimens & (1 << index))
 		var available: bool = produce.get(id, 0) > 0
 		var state := "On display" if donated else ("Donate one" if available else "Find one to donate")
-		donation_buttons[index].text = "%s · %s" % [Catalog.crops[id].label, state]
-		donation_buttons[index].disabled = donated or not available
+		collection_menu.donation_buttons[index].text = "%s · %s" % [Catalog.crops[id].label, state]
+		collection_menu.donation_buttons[index].disabled = donated or not available
 
 
 func _donate_specimen(index: int) -> void:
@@ -2088,15 +1621,26 @@ func _donate_specimen(index: int) -> void:
 	var flag := 1 << index
 	if donated_specimens & flag or produce.get(id, 0) <= 0:
 		return
+	var before := donated_specimens
 	produce[id] -= 1
 	donated_specimens |= flag
 	message = "Donated %s to the Valley Collection." % Catalog.crops[id].label
-	if donated_specimens == COMPLETE_COLLECTION:
+	if before & CLASSIC_COLLECTION != CLASSIC_COLLECTION and donated_specimens & CLASSIC_COLLECTION == CLASSIC_COLLECTION:
 		coins += COLLECTION_REWARD
-		message += " Collection complete! Earned %d coins." % COLLECTION_REWARD
+		message += " Valley classics complete! Earned %d coins." % COLLECTION_REWARD
+	if donated_specimens == COMPLETE_COLLECTION:
+		coins += FULL_COLLECTION_REWARD
+		message += " Collection complete! Earned %d coins." % FULL_COLLECTION_REWARD
 	sound.play_effect(FarmAudio.Effect.TRADE)
 	_refresh()
 	collection_menu.focus_first_action()
+
+
+func _donated_count() -> int:
+	var count := 0
+	for index in range(SPECIMENS.size()):
+		count += int(bool(donated_specimens & (1 << index)))
+	return count
 
 
 func _claim_harvest_milestone() -> void:
@@ -2110,7 +1654,7 @@ func _claim_harvest_milestone() -> void:
 	sound.play_effect(FarmAudio.Effect.TRADE)
 	message = "Harvest milestone reached! Earned %d coins." % milestone.y
 	_refresh()
-	if milestone_button.disabled:
+	if journal.milestone_button.disabled:
 		journal.focus_first_action()
 
 
@@ -2173,12 +1717,12 @@ func _update_bag() -> void:
 		inventory_grid.add_stacks(items, InventoryGrid.Kind.HARVEST, id, crop.label,
 			produce.get(id, 0), "crop_%02d" % id, action)
 	inventory_grid.show_stacks(items)
-	backpack_upgrade.visible = inventory_grid.unlocked_rows < InventoryGrid.MAX_ROWS
-	if backpack_upgrade.visible:
+	inventory_menu.backpack_upgrade.visible = inventory_grid.unlocked_rows < InventoryGrid.MAX_ROWS
+	if inventory_menu.backpack_upgrade.visible:
 		var price: int = BACKPACK_PRICES[inventory_grid.unlocked_rows - 1]
-		backpack_upgrade.text = "Expand backpack to %d slots  ·  %d coins" % [
+		inventory_menu.backpack_upgrade.text = "Expand backpack to %d slots  ·  %d coins" % [
 			(inventory_grid.unlocked_rows + 1) * InventoryGrid.ROW_SIZE, price]
-		backpack_upgrade.disabled = coins < price
+		inventory_menu.backpack_upgrade.disabled = coins < price
 
 
 func _upgrade_backpack() -> void:
@@ -2190,7 +1734,7 @@ func _upgrade_backpack() -> void:
 	message = "Backpack expanded to %d slots." % (inventory_grid.unlocked_rows * InventoryGrid.ROW_SIZE)
 	sound.play_effect(FarmAudio.Effect.TRADE)
 	_refresh()
-	if not backpack_upgrade.visible or backpack_upgrade.disabled:
+	if not inventory_menu.backpack_upgrade.visible or inventory_menu.backpack_upgrade.disabled:
 		inventory_menu.focus_first_action()
 
 
@@ -2225,8 +1769,13 @@ func _buy_food() -> void:
 	sound.play_effect(FarmAudio.Effect.TRADE)
 	message = "Bread added to your bag."
 	_refresh()
-	if buy_food_button.disabled:
+	if food_menu.buy_button.disabled:
 		food_menu.focus_first_action()
+
+
+func _test_add_coins() -> void:
+	coins += 100
+	_refresh()
 
 
 func _test_restore() -> void:
@@ -2272,6 +1821,23 @@ func _open_market() -> void:
 	market.focus_first_action()
 
 
+func _toggle_inventory() -> void:
+	_toggle_menu(inventory_menu)
+
+
+func _toggle_journal() -> void:
+	_toggle_menu(journal)
+
+
+func _open_journal() -> void:
+	_show_menu(journal)
+	journal.focus_first_action()
+
+
+func _open_test_menu() -> void:
+	_toggle_menu(test_menu)
+
+
 func _toggle_menu(menu: ActionMenu) -> void:
 	if active_menu == menu:
 		_close_menu()
@@ -2287,8 +1853,8 @@ func _show_menu(menu: Control) -> void:
 			_clear_bobber()
 		active_menu.hide()
 	active_menu = menu
-	walk_velocity = Vector3.ZERO
-	_animate_walk(0.0, 0.1)
+	player.halt()
+	player.animate(0.0, 0.1)
 	menu_backdrop.show()
 	menu.show()
 	sound.play_effect(FarmAudio.Effect.MENU)
@@ -2337,35 +1903,35 @@ func _harvest_value() -> int:
 
 
 func _update_shipping_menu() -> void:
-	var selected_id := shipping_stock.get_selected_id()
-	shipping_stock.clear()
+	var selected_id := shipping_menu.stock.get_selected_id()
+	shipping_menu.stock.clear()
 	for id in range(Catalog.crops.size()):
 		var quantity := produce.get(id, 0) as int
 		if quantity > 0:
-			shipping_stock.add_item("%s ×%d" % [Catalog.crops[id].label, quantity], id)
+			shipping_menu.stock.add_item("%s ×%d" % [Catalog.crops[id].label, quantity], id)
 			if id == selected_id:
-				shipping_stock.select(shipping_stock.item_count - 1)
-	shipping_stock.disabled = shipping_stock.item_count == 0
-	if shipping_stock.disabled:
-		shipping_stock.add_item("No produce in your bag")
-	if shipping_stock.selected < 0:
-		shipping_stock.select(0)
-	ship_button.disabled = shipping_stock.disabled
-	retrieve_button.disabled = shipments.is_empty()
-	shipping_summary.text = "Dawn payout: %d coins" % _produce_value(shipments)
+				shipping_menu.stock.select(shipping_menu.stock.item_count - 1)
+	shipping_menu.stock.disabled = shipping_menu.stock.item_count == 0
+	if shipping_menu.stock.disabled:
+		shipping_menu.stock.add_item("No produce in your bag")
+	if shipping_menu.stock.selected < 0:
+		shipping_menu.stock.select(0)
+	shipping_menu.ship_button.disabled = shipping_menu.stock.disabled
+	shipping_menu.retrieve_button.disabled = shipments.is_empty()
+	shipping_menu.summary.text = "Dawn payout: %d coins" % _produce_value(shipments)
 
 
 func _ship_selected_produce() -> void:
-	if shipping_stock.disabled:
+	if shipping_menu.stock.disabled:
 		return
-	var id := shipping_stock.get_selected_id()
+	var id := shipping_menu.stock.get_selected_id()
 	var quantity := produce.get(id, 0) as int
 	if quantity <= 0:
 		return
 	shipments[id] = shipments.get(id, 0) + quantity
 	produce.erase(id)
 	_refresh()
-	if ship_button.disabled:
+	if shipping_menu.ship_button.disabled:
 		shipping_menu.focus_first_action()
 
 

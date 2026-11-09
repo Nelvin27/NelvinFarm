@@ -1,4 +1,5 @@
 extends "res://action_menu.gd"
+## Cottage stove. Layout lives in ui/cooking_menu.tscn; recipes are defined here.
 
 signal cook_requested(recipe: Recipe)
 signal close_requested
@@ -33,27 +34,21 @@ var recipes: Array[Recipe] = [
 	Recipe.new("Pan-Seared Perch", {Catalog.POND_PERCH: 1}, 40.0, 30.0),
 ]
 
-var meal_buttons: Array[Button] = []
-var status: Label
+@onready var meal_buttons: Array[Button] = [$Rows/Meal0, $Rows/Meal1, $Rows/Meal2]
+@onready var status: Label = %Status
 
 
 func _ready() -> void:
-	title.text = "Cottage Kitchen"
-	offset_left = -380
-	offset_right = 380
-	status = Label.new()
-	status.add_theme_font_size_override("font_size", 22)
-	rows.add_child(status)
-	for recipe in recipes:
+	for index in range(recipes.size()):
+		var recipe := recipes[index]
 		var ingredients: PackedStringArray = []
 		for id in recipe.ingredients:
 			var item := "Bread" if id == BREAD else Catalog.crops[id].label
 			ingredients.append("%s ×%d" % [item, recipe.ingredients[id]])
-		var caption := "%s  ·  %s" % [recipe.label, ", ".join(ingredients)]
-		var button := add_action(caption, cook_requested.emit.bind(recipe))
-		button.tooltip_text = "Restores %d food and reduces fatigue by %d." % [recipe.hunger, recipe.fatigue]
-		meal_buttons.append(button)
-	add_action("Close", close_requested.emit)
+		meal_buttons[index].text = "%s  ·  %s" % [recipe.label, ", ".join(ingredients)]
+		meal_buttons[index].tooltip_text = "Restores %d food and reduces fatigue by %d." % [
+			recipe.hunger, recipe.fatigue]
+		meal_buttons[index].pressed.connect(cook_requested.emit.bind(recipe))
 
 
 func update_stock(produce: Dictionary[int, int], rations: int, can_cook: bool) -> void:

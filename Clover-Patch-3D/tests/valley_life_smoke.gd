@@ -23,6 +23,7 @@ func _run() -> void:
 	await _test_block_terrain()
 	await _test_valley_edges_and_picnics()
 	await _test_collection_and_skills()
+	await _test_valley_extras()
 	await _test_village_story()
 	await _test_town_events()
 	await _test_resident_routines()
@@ -80,35 +81,35 @@ func _test() -> bool:
 	_check(farm.growing[tile].remaining == 2, "Rain counts as watering overnight.")
 
 	_key(farm, KEY_J)
-	_check(farm.journal.visible and farm.forecast_label.text.contains("Tomorrow:"),
+	_check(farm.journal.visible and farm.journal.forecast.text.contains("Tomorrow:"),
 		"J opens the forecast and delivery journal.")
-	_check(farm.order_buttons[0].disabled, "An order is disabled without enough stock.")
-	_check(farm.milestone_button.disabled and farm.watering_upgrade_button.disabled,
+	_check(farm.journal.order_buttons[0].disabled, "An order is disabled without enough stock.")
+	_check(farm.journal.milestone_button.disabled and farm.journal.watering_upgrade_button.disabled,
 		"Harvest rewards and upgrades are disabled when their requirements are unmet.")
 	farm.produce[Catalog.TURNIP] = 4
 	farm._refresh()
 	var coins: int = farm.coins
 	farm.clock.fatigue = 95.0
 	farm._refresh()
-	_check(farm.order_buttons[0].disabled, "Exhaustion blocks delivery.")
+	_check(farm.journal.order_buttons[0].disabled, "Exhaustion blocks delivery.")
 	farm._deliver_order(0)
 	_check(farm.coins == coins, "The delivery handler also enforces exhaustion.")
 	farm.clock.fatigue = 20.0
 	farm._refresh()
-	farm.order_buttons[0].pressed.emit()
+	farm.journal.order_buttons[0].pressed.emit()
 	_check(farm.coins == coins + 20 and farm.produce[Catalog.TURNIP] == 1,
 		"Delivery consumes exactly three turnips and pays the listed reward.")
 	farm._deliver_order(0)
-	_check(farm.coins == coins + 20 and farm.order_buttons[0].disabled,
+	_check(farm.coins == coins + 20 and farm.journal.order_buttons[0].disabled,
 		"A completed order cannot be collected twice.")
 	farm.harvested = 5
 	farm._refresh()
-	farm.milestone_button.pressed.emit()
+	farm.journal.milestone_button.pressed.emit()
 	farm._claim_harvest_milestone()
 	_check(farm.coins == coins + 28 and farm.claimed_milestones == 1,
 		"The five-crop milestone pays eight coins once.")
 	coins = farm.coins
-	farm.watering_upgrade_button.pressed.emit()
+	farm.journal.watering_upgrade_button.pressed.emit()
 	farm._upgrade_watering_can()
 	_check(farm.coins == coins - 25 and farm.watering_upgraded,
 		"The permanent watering upgrade costs 25 coins once.")
@@ -133,12 +134,12 @@ func _test() -> bool:
 	bag._drop_on_slot(Vector2.ZERO, {"bag": bag, "source": 0, "stack": first}, 11)
 	_key(farm, KEY_I)
 
-	farm.avatar.position = farm.scenery.repair_sign
+	farm.player.position = farm.scenery.repair_sign
 	farm.coins += 10
 	farm._repair_cottage()
 	farm._set_indoors(true)
 	var bedside: Vector3 = farm.bed_point + Vector3(0, 0, 0.4)
-	farm.avatar.position = bedside
+	farm.player.position = bedside
 	farm.clock.fatigue = 70.0
 	farm._try_sleep()
 	_check(FileAccess.file_exists(Save.path), "Sleeping writes an autosave.")
@@ -157,7 +158,7 @@ func _test() -> bool:
 	root.add_child(farm)
 	_check(farm.day == sleep_day and is_equal_approx(farm.clock.hour, 22.0),
 		"Reload restores the manual save after the sleep autosave.")
-	_check(farm.indoors and farm.avatar.position.is_equal_approx(bedside) and not farm.weather.emitting,
+	_check(farm.indoors and farm.player.position.is_equal_approx(bedside) and not farm.weather.emitting,
 		"Reload restores the indoor position with no indoor precipitation.")
 	_check(farm.cottage_repaired and farm.interior.get_node("Repaired").visible,
 		"Reload restores cottage repairs.")
@@ -203,17 +204,17 @@ func _test_orchard_shipping() -> void:
 		farm.queue_free()
 		return
 	var apple_position := apple_tree.global_position
-	farm.avatar.position = apple_position + Vector3(0, 0, 0.5)
+	farm.player.position = apple_position + Vector3(0, 0, 0.5)
 	_key(farm, KEY_E)
 	_key(farm, KEY_E)
 	_check(not apple_tree.visible and farm.produce.get(Catalog.APPLE, 0) == 1 and farm.harvested == 0,
 		"Picking removes visible fruit and yields one apple without advancing crop milestones.")
-	farm.avatar.position = farm.scenery.shipping_bin + Vector3(0, 0, 0.7)
+	farm.player.position = farm.scenery.shipping_bin + Vector3(0, 0, 0.7)
 	_key(farm, KEY_E)
-	_check(farm.shipping_menu.visible and farm.shipping_stock.item_count == 2,
+	_check(farm.shipping_menu.visible and farm.shipping_menu.stock.item_count == 2,
 		"The cottage bin opens with both kinds of produce available for selection.")
-	farm.shipping_stock.select(1)
-	farm.ship_button.pressed.emit()
+	farm.shipping_menu.stock.select(1)
+	farm.shipping_menu.ship_button.pressed.emit()
 	_check(farm.shipments.get(Catalog.APPLE, 0) == 1 and not farm.produce.has(Catalog.APPLE)
 		and farm.produce.get(Catalog.TURNIP, 0) == 2 and farm.coins == 10,
 		"The selected apple is queued separately, with no payment before dawn.")
@@ -227,14 +228,14 @@ func _test_orchard_shipping() -> void:
 	_check(not farm.scenery.orchard_fruit[apple_position].visible and farm.shipments.get(Catalog.APPLE, 0) == 1,
 		"Reload restores the pending shipment and keeps the picked tree bare.")
 	_key(farm, KEY_E)
-	farm.retrieve_button.pressed.emit()
+	farm.shipping_menu.retrieve_button.pressed.emit()
 	_check(farm.shipments.is_empty() and farm.produce.get(Catalog.APPLE, 0) == 1,
 		"The bin can return queued produce to the bag before dawn.")
-	farm.shipping_stock.select(1)
-	farm.ship_button.pressed.emit()
+	farm.shipping_menu.stock.select(1)
+	farm.shipping_menu.ship_button.pressed.emit()
 	_key(farm, KEY_ESCAPE)
 	farm._set_indoors(true)
-	farm.avatar.position = farm.bed_point + Vector3(0, 0, 0.4)
+	farm.player.position = farm.bed_point + Vector3(0, 0, 0.4)
 	farm.clock.fatigue = 70.0
 	farm._try_sleep()
 	var expected_coins := 10 + Catalog.crops[Catalog.APPLE].sale_price()
@@ -258,7 +259,7 @@ func _test_fishing_and_cooking() -> void:
 	var farm := FARM.instantiate()
 	root.add_child(farm)
 	_check(not farm.scenery.fishing_spots.is_empty(), "Willow Pond has a fishing spot on its bank.")
-	farm.avatar.position = farm.scenery.fishing_spots[0]
+	farm.player.position = farm.scenery.fishing_spots[0]
 	_key(farm, KEY_E)
 	_check(farm.fishing_menu.visible and farm.fishing_menu.phase == farm.Fishing.Phase.WAITING,
 		"E at the pond casts a line.")
@@ -289,21 +290,21 @@ func _test_fishing_and_cooking() -> void:
 	_check(farm.fishing_menu.catch_icon.visible and not farm.bobber.visible,
 		"A catch shows the fish icon and clears the bobber.")
 	_key(farm, KEY_E)
-	farm.avatar.position = farm.scenery.shipping_bin + Vector3(0, 0, 0.7)
+	farm.player.position = farm.scenery.shipping_bin + Vector3(0, 0, 0.7)
 	_key(farm, KEY_E)
-	_check(farm.shipping_menu.visible and farm.shipping_stock.get_item_id(1) == Catalog.POND_PERCH,
+	_check(farm.shipping_menu.visible and farm.shipping_menu.stock.get_item_id(1) == Catalog.POND_PERCH,
 		"The fish can be selected for shipping.")
 	_key(farm, KEY_ESCAPE)
 
 	farm._set_indoors(true)
-	farm.avatar.position = farm.kitchen_point
+	farm.player.position = farm.kitchen_point
 	_key(farm, KEY_E)
 	_check(not farm.cooking_menu.visible, "The damaged cottage kitchen is locked.")
 	farm._set_indoors(false)
-	farm.avatar.position = farm.scenery.repair_sign
+	farm.player.position = farm.scenery.repair_sign
 	_key(farm, KEY_E)
 	farm._set_indoors(true)
-	farm.avatar.position = farm.kitchen_point
+	farm.player.position = farm.kitchen_point
 	farm.clock.hunger = 30.0
 	farm.clock.fatigue = 95.0
 	_key(farm, KEY_E)
@@ -341,48 +342,48 @@ func _test_block_terrain() -> void:
 	_check(is_equal_approx(ground_mesh.get_aabb().size.y, 16.0)
 		and not normals.is_empty() and is_zero_approx(normals[0].y),
 		"The rendered terrain contains vertical block faces.")
-	farm.avatar.position = Vector3(peak.x, 0.0, -15.0)
-	farm.camera_yaw = 0.0
+	farm.player.position = Vector3(peak.x, 0.0, -15.0)
+	farm.camera.yaw = 0.0
 	var saw_takeoff := false
 	var saw_landing := false
 	for step in range(330):
-		var was_hopping: bool = farm.step_elapsed < farm.step_duration
-		farm._advance_walk(Vector2i.UP, 1.0 / 60.0)
-		var hopping: bool = farm.step_elapsed < farm.step_duration
+		var was_hopping: bool = farm.player.step_elapsed < farm.player.step_duration
+		farm.player.walk(Vector2i.UP, farm.camera.yaw, farm._walk_speed(), 1.0 / 60.0)
+		var hopping: bool = farm.player.step_elapsed < farm.player.step_duration
 		if hopping and not was_hopping:
-			var feet: Vector3 = farm.avatar.position
-			var launch: Vector3 = farm.step_start
-			var landing: Vector3 = farm.step_end
+			var feet: Vector3 = farm.player.position
+			var launch: Vector3 = farm.player.step_start
+			var landing: Vector3 = farm.player.step_end
 			saw_takeoff = saw_takeoff or (feet.y > launch.y and feet.y < landing.y
 				and is_equal_approx(feet.z, launch.z))
 		if was_hopping and not hopping:
-			saw_landing = saw_landing or farm.avatar.position.is_equal_approx(farm.step_end)
-		if farm.avatar.position.z < -22.0 and not hopping:
+			saw_landing = saw_landing or farm.player.position.is_equal_approx(farm.player.step_end)
+		if farm.player.position.z < -22.0 and not hopping:
 			break
 	_check(saw_takeoff and saw_landing, "The farmer rises before crossing the ledge and lands on its top.")
-	var at: Vector3 = farm.avatar.position
+	var at: Vector3 = farm.player.position
 	_check(at.z < -22.0 and at.y >= 5.0 and at.y == farm.layout.elevation(Vector2(at.x, at.z)),
 		"Normal walking climbs the block terraces and keeps the farmer on the surface.")
 	farm._restore_position({"position": Vector3(peak.x, 0, peak.y)})
-	_check(farm.avatar.position.y == 8.0, "Saved outdoor positions resolve to the current terrain height.")
-	farm.walk_velocity = Vector3.ZERO
-	farm.camera_yaw = 0.0
+	_check(farm.player.position.y == 8.0, "Saved outdoor positions resolve to the current terrain height.")
+	farm.player.walk_velocity = Vector3.ZERO
+	farm.camera.yaw = 0.0
 	var saw_descent := false
 	var braced_for_landing := false
 	var landed_below := false
 	for frame in range(240):
-		var was_airborne: bool = farm.step_elapsed < farm.step_duration
-		var distance: float = farm._advance_walk(Vector2i.DOWN, 1.0 / 60.0)
-		farm._animate_walk(distance, 1.0 / 60.0)
-		var airborne: bool = farm.step_elapsed < farm.step_duration
-		if airborne and farm.avatar.position.y < farm.step_start.y and farm.avatar.position.y > farm.step_end.y:
+		var was_airborne: bool = farm.player.step_elapsed < farm.player.step_duration
+		var distance: float = farm.player.walk(Vector2i.DOWN, farm.camera.yaw, farm._walk_speed(), 1.0 / 60.0)
+		farm.player.animate(distance, 1.0 / 60.0)
+		var airborne: bool = farm.player.step_elapsed < farm.player.step_duration
+		if airborne and farm.player.position.y < farm.player.step_start.y and farm.player.position.y > farm.player.step_end.y:
 			saw_descent = true
-			braced_for_landing = braced_for_landing or farm.arms[1].rotation.z > 0.1
+			braced_for_landing = braced_for_landing or farm.player.arms[1].rotation.z > 0.1
 		if was_airborne and not airborne:
-			landed_below = farm.step_end.y < farm.step_start.y and farm.avatar.position.is_equal_approx(farm.step_end)
+			landed_below = farm.player.step_end.y < farm.player.step_start.y and farm.player.position.is_equal_approx(farm.player.step_end)
 			break
 	_check(saw_descent and braced_for_landing, "Walking off a block passes through an airborne fall pose.")
-	_check(landed_below and is_zero_approx(farm.arms[1].rotation.z),
+	_check(landed_below and is_zero_approx(farm.player.arms[1].rotation.z),
 		"The fall lands on the lower terrace and releases the airborne pose.")
 	farm.queue_free()
 	await process_frame
@@ -400,17 +401,17 @@ func _test_valley_edges_and_picnics() -> void:
 	for crossing: Array in crossings:
 		var start: Vector3 = farm.layout.grounded(crossing[0])
 		var far_side: Vector3 = crossing[1]
-		var target: Vector2 = farm._walk_destination(start, far_side)
+		var target: Vector2 = farm.player.walk_destination(start, far_side)
 		_check(target.distance_to(Vector2(far_side.x, far_side.z)) > 2.0
 			and farm.layout.elevation(target) >= 2.0,
 			"The outer ridge blocks crossing before the map edge.")
 	var pass_start := Vector3(-26, 0, 14)
-	var blocked: Vector2 = farm._walk_destination(pass_start, Vector3(-30, 0, 14))
+	var blocked: Vector2 = farm.player.walk_destination(pass_start, Vector3(-30, 0, 14))
 	_check(blocked.x > -28.0, "The rockslide physically blocks the old pass.")
-	farm.avatar.position = pass_start
+	farm.player.position = pass_start
 	_key(farm, KEY_E)
 	_check("rockslide" in farm.message, "Inspecting the closed pass explains the rockslide.")
-	farm.avatar.position = Vector3(12.5, 0, 8.35)
+	farm.player.position = Vector3(12.5, 0, 8.35)
 	farm.clock.hour = 10.0
 	farm.clock.fatigue = 25.0
 	_key(farm, KEY_E)
@@ -430,13 +431,13 @@ func _test_collection_and_skills() -> void:
 	_key(farm, KEY_E)
 	_check(is_equal_approx(farm.clock.fatigue - after_tilling, 5.5),
 		"Successful plot work improves farming and lowers the next action's fatigue.")
-	farm.avatar.position = farm.scenery.fishing_spots[0]
+	farm.player.position = farm.scenery.fishing_spots[0]
 	_key(farm, KEY_E)
 	farm.fishing_menu._process(3.0)
 	_check(is_equal_approx(farm.fishing_menu.remaining, 1.8), "Fishing practice extends the actual reel window.")
 	_key(farm, KEY_ESCAPE)
 	farm._set_indoors(true)
-	farm.avatar.position = farm.kitchen_point
+	farm.player.position = farm.kitchen_point
 	farm.clock.fatigue = 60.0
 	_key(farm, KEY_E)
 	farm.cooking_menu.meal_buttons[1].pressed.emit()
@@ -444,10 +445,10 @@ func _test_collection_and_skills() -> void:
 	_key(farm, KEY_J)
 	farm._open_collection()
 	var coins: int = farm.coins
-	for button: Button in farm.donation_buttons:
+	for button: Button in farm.collection_menu.donation_buttons:
 		button.pressed.emit()
-	farm.donation_buttons[2].pressed.emit()
-	_check(farm.donated_specimens == farm.COMPLETE_COLLECTION and farm.coins == coins + 18
+	farm.collection_menu.donation_buttons[2].pressed.emit()
+	_check(farm.donated_specimens == farm.CLASSIC_COLLECTION and farm.coins == coins + 18
 		and farm.produce.get(Catalog.APPLE, -1) == 0, "Donations use one specimen each and pay once.")
 	_check(farm._save_farm() == OK, "The collection and skills can be saved.")
 	farm.queue_free()
@@ -457,8 +458,80 @@ func _test_collection_and_skills() -> void:
 	root.add_child(farm)
 	_key(farm, KEY_J)
 	farm._open_collection()
-	_check(farm.donation_buttons[0].disabled and farm.skills.practice == Vector3i(9, 3, 4)
+	_check(farm.collection_menu.donation_buttons[0].disabled and farm.skills.practice == Vector3i(9, 3, 4)
 		and farm.coins == coins + 18, "Reload preserves donated specimens, coins, and skill practice.")
+	farm.queue_free()
+	await process_frame
+
+
+func _test_valley_extras() -> void:
+	_check(Save.write({"day": 1, "coins": 5}) == OK, "The valley extras fixture saves.")
+	var farm := FARM.instantiate()
+	root.add_child(farm)
+	var waters: Array = farm.scenery.fishing_waters
+	_check(waters.size() == farm.scenery.fishing_spots.size() and waters[1].fish == "trout" and waters[2].fish == "carp",
+		"Each pond records what bites there.")
+	farm.player.position = farm.scenery.fishing_spots[1]
+	_key(farm, KEY_E)
+	_check(farm.fishing_menu.visible and farm.hooked_fish == Catalog.LAKE_TROUT,
+		"Clover Lake hooks Lake Trout on a clear morning.")
+	_key(farm, KEY_ESCAPE)
+	farm.clock.hour = 19.0
+	seed(3)
+	var moonfin := false
+	for attempt in range(60):
+		moonfin = moonfin or farm._choose_catch(0) == Catalog.MOONFIN
+	_check(moonfin, "Moonfin can bite at dusk.")
+	farm.clock.hour = 9.0
+
+	var berries := -1
+	var mushroom := -1
+	for index in range(farm.scenery.forage_spots.size()):
+		var item: String = farm.scenery.forage_spots[index].item
+		if item == "berries" and berries < 0 and farm._forage_available(index):
+			berries = index
+		if item == "mushroom" and mushroom < 0:
+			mushroom = index
+	_check(berries >= 0 and not farm._forage_available(mushroom), "Spring has berries but no chanterelles.")
+	var spot: Vector3 = farm.layout.grounded(farm.scenery.forage_spots[berries].at)
+	farm.player.position = spot + Vector3(0, 0, 0.5)
+	_key(farm, KEY_E)
+	_check(farm.produce.get(Catalog.WILD_BERRIES, 0) == 1 and not farm.scenery.forage_spots[berries].goods.visible,
+		"Gathering takes the berries and empties the bush.")
+	_key(farm, KEY_E)
+	_check(farm.produce.get(Catalog.WILD_BERRIES, 0) == 1, "A spot gives one find per day.")
+	_check(farm._save_farm() == OK, "Gathered spots save.")
+	farm.queue_free()
+	await process_frame
+
+	farm = FARM.instantiate()
+	root.add_child(farm)
+	_check(not farm._forage_available(berries), "Reloading keeps today's gathered spot empty.")
+	farm._test_advance_day()
+	farm._test_advance_day()
+	_check(farm._forage_available(berries), "Forage spots refill on their next turn.")
+	for id in farm.SPECIMENS:
+		farm.produce[id] = 1
+	var coins: int = farm.coins
+	_key(farm, KEY_J)
+	farm._open_collection()
+	for button: Button in farm.collection_menu.donation_buttons:
+		button.pressed.emit()
+	_check(farm.donated_specimens == farm.COMPLETE_COLLECTION and farm.coins == coins + 18 + 40,
+		"Finishing all nine specimens pays the classics reward and the full-collection bonus.")
+	_key(farm, KEY_ESCAPE)
+
+	farm._test_set_hour(22.0)
+	_check(farm.scenery._lamp_glow.albedo_color.a > 0.5, "Lantern light pools glow at night.")
+	farm._test_set_hour(12.0)
+	_check(is_zero_approx(farm.scenery._lamp_glow.albedo_color.a), "Lantern light pools fade out by day.")
+	farm.scenery.set_wet(true)
+	_check(farm.scenery._puddles.visible, "Rain leaves puddles on the paths.")
+	farm.scenery.set_season(Catalog.Season.WINTER)
+	_check(farm.scenery._snow_caps.all(func(cap: Node3D) -> bool: return cap.visible)
+		and not farm.scenery._flowers._nodes[0].visible, "Winter adds snow to the roofs and hides the flowers.")
+	farm.scenery.set_season(Catalog.Season.SPRING)
+	_check(not farm.scenery._snow_caps[1].visible, "Snow melts in spring.")
 	farm.queue_free()
 	await process_frame
 
@@ -466,7 +539,7 @@ func _test_collection_and_skills() -> void:
 func _visit_resident(farm: Node, id: String) -> void:
 	if farm.active_menu != null:
 		_key(farm, KEY_ESCAPE)
-	farm.avatar.position = farm.village.models[farm.village.resident_indices[id]].position
+	farm.player.position = farm.village.models[farm.village.resident_indices[id]].position
 	_key(farm, KEY_E)
 	_check(farm.active_menu == farm.resident_menu and farm.village.residents[farm.resident_index].id == id,
 		"The normal interaction opens %s's dialogue." % id)
@@ -476,7 +549,7 @@ func _choose_village(farm: Node, action: String) -> void:
 	var index: int = farm.resident_actions.find(action)
 	_check(index >= 0, "Village dialogue offers %s." % action)
 	if index >= 0:
-		farm.resident_choices[index].pressed.emit()
+		farm.resident_menu.choices[index].pressed.emit()
 
 
 func _test_village_story() -> void:
@@ -487,11 +560,11 @@ func _test_village_story() -> void:
 	_check(farm.village.residents.size() == 32 and farm.village.models.size() == 32,
 		"All 32 character JSON files load into the playable valley.")
 	_visit_resident(farm, "mara")
-	farm.gift_stock.select(1)
-	farm.gift_button.pressed.emit()
+	farm.resident_menu.gifts.select(1)
+	farm.resident_menu.gift_button.pressed.emit()
 	_check(farm.village.favor.mara == 15 and farm.produce[Catalog.POND_PERCH] == 0
-		and farm.resident_line.text.contains("flour"), "A disliked gift consumes the item and triggers her own reply.")
-	farm.gift_button.pressed.emit()
+		and farm.resident_menu.line.text.contains("flour"), "A disliked gift consumes the item and triggers her own reply.")
+	farm.resident_menu.gift_button.pressed.emit()
 	_check(farm.rations == 2, "A second gift on the same day cannot be given.")
 	_choose_village(farm, "supper-families")
 	_check(farm.village.supper_table.visible, "The supper sets a table in the meadow that evening.")
@@ -500,17 +573,17 @@ func _test_village_story() -> void:
 		_visit_resident(farm, witness)
 		_choose_village(farm, "witness")
 	_choose_village(farm, "supper-reaction")
-	_check(farm.resident_line.text.contains("place set for us"), "Orin reacts to the chosen supper dedication.")
+	_check(farm.resident_menu.line.text.contains("place set for us"), "Orin reacts to the chosen supper dedication.")
 	_visit_resident(farm, "iona")
 	_check(not farm.resident_actions.has("publish"), "The hearing opens the day after collecting the accounts.")
 	_key(farm, KEY_ESCAPE)
 	farm._test_advance_day()
 	farm._test_set_hour(11.0)
 	_visit_resident(farm, "mara")
-	farm.gift_stock.select(0)
-	farm.gift_button.pressed.emit()
+	farm.resident_menu.gifts.select(0)
+	farm.resident_menu.gift_button.pressed.emit()
 	_check(farm.village.favor.mara == 27 and farm.rations == 1
-		and farm.resident_line.text.contains("scored"), "A favorite gift raises favor and triggers her bread reply.")
+		and farm.resident_menu.line.text.contains("scored"), "A favorite gift raises favor and triggers her bread reply.")
 	_choose_village(farm, "partner")
 	_visit_resident(farm, "iona")
 	var seeds: int = farm.seed_bag[Catalog.TURNIP]
@@ -536,14 +609,14 @@ func _test_town_events() -> void:
 	var event: Dictionary = farm.village.town_events[host]
 	_key(farm, KEY_J)
 	farm._open_village_journal()
-	_check(farm.village_story.text.contains(event.title), "The journal announces the daily town event.")
+	_check(farm.village_menu.story.text.contains(event.title), "The journal announces the daily town event.")
 	_visit_resident(farm, host)
 	var before: int = farm.village.affinity(farm.resident_index)
 	_choose_village(farm, "town-event")
-	_check(farm.resident_line.text == event.prompt and farm.resident_choices[1].visible,
+	_check(farm.resident_menu.line.text == event.prompt and farm.resident_menu.choices[1].visible,
 		"The host opens the scene with both choices available.")
 	_choose_village(farm, "town-event-second")
-	_check(farm.resident_line.text == event.choices[1].reply and farm.village.affinity(farm.resident_index) == before + 3,
+	_check(farm.resident_menu.line.text == event.choices[1].reply and farm.village.affinity(farm.resident_index) == before + 3,
 		"The chosen reply appears and favor increases once.")
 	_check(farm._save_farm() == OK, "The selected town event can be saved.")
 	farm.queue_free()
@@ -619,9 +692,9 @@ func _test_resident_routines() -> void:
 	_check(saw_return and not body.visible and is_zero_approx(door.rotation.y),
 		"At the end of the day Mara walks home, enters, and shuts the door.")
 	farm._open_resident_tests()
-	for item in range(farm.test_resident_picker.item_count):
-		if farm.test_resident_picker.get_item_id(item) == index:
-			farm.test_resident_picker.select(item)
+	for item in range(farm.resident_test_menu.picker.item_count):
+		if farm.resident_test_menu.picker.get_item_id(item) == index:
+			farm.resident_test_menu.picker.select(item)
 			break
 	farm._test_favor_preset(12)
 	village.last_gift.mara = farm.day
@@ -631,7 +704,7 @@ func _test_resident_routines() -> void:
 		and not village.last_gift.has("mara"), "Resident Test sets exact favor, stocks gifts, and previews dialogue without visit favor.")
 	farm._open_resident_tests()
 	farm._test_watch_departure()
-	_check(not body.visible and farm.active_menu == null and farm.avatar.position.distance_to(porch) < 4.0
+	_check(not body.visible and farm.active_menu == null and farm.player.position.distance_to(porch) < 4.0
 		and farm.clock.hour < 6.5 and farm.clock.hour > 6.3, "Departure test waits in front of the house just before the resident leaves.")
 	_check(village.location_hint("vera", 1, 15.0) == "Reedmere", "Before testimony Vera visits the new bank.")
 	village.evidence = 2
@@ -640,7 +713,7 @@ func _test_resident_routines() -> void:
 	farm.clock.tick(24.0, false)
 	_check(is_equal_approx(farm.clock.hour, 7.0), "One game hour takes 24 seconds at the slower clock rate.")
 	farm._open_resident_directory()
-	_check(farm.directory_select.item_count == 32 and not farm.directory_text.text.is_empty(),
+	_check(farm.resident_directory.select.item_count == 32 and not farm.resident_directory.text.text.is_empty(),
 		"The journal directory offers a schedule hint for every resident.")
 	for player: AudioStreamPlayer in farm.sound.players.values():
 		player.stop()

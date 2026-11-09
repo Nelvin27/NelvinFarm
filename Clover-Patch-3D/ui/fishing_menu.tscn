@@ -1,0 +1,56 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://action_menu.tscn" id="1"]
+
+[ext_resource type="Script" path="res://pond_fishing.gd" id="2"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_24.svg" id="3"]
+
+[node name="FishingMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+anchors_preset = 6
+anchor_left = 1
+anchor_right = 1
+offset_left = -495
+offset_right = -32
+offset_top = -190
+offset_bottom = 190
+
+[node name="Title" parent="Rows"]
+text = "Willow Pond"
+
+[node name="Instructions" type="Label" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+
+[node name="BiteMeter" type="ProgressBar" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 12)
+max_value = 1.6
+show_percentage = false
+
+[node name="CatchIcon" type="TextureRect" parent="Rows"]
+visible = false
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(64, 64)
+size_flags_horizontal = 4
+texture_filter = 1
+texture = ExtResource("3")
+
+[node name="Reel" type="Button" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+text = "Reel in (E)"
+
+[node name="Leave" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Leave"
+
+[connection signal="pressed" from="Rows/Reel" to="." method="reel"]
+
+[connection signal="pressed" from="Rows/Leave" to="." method="emit_signal" binds= ["close_requested"]]

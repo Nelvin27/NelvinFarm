@@ -1,0 +1,28 @@
+[gd_scene format=3]
+
+[sub_resource type="BoxMesh" id="Box_0"]
+size = Vector3(0.13, 0.09, 0.13)
+
+[sub_resource type="StandardMaterial3D" id="Mat_e76e55"]
+albedo_color = Color(0.9059, 0.4314, 0.3333, 1)
+roughness = 0.85
+
+[sub_resource type="BoxMesh" id="Box_1"]
+size = Vector3(0.13, 0.05, 0.13)
+
+[sub_resource type="StandardMaterial3D" id="Mat_f2e6cf"]
+albedo_color = Color(0.949, 0.902, 0.8118, 1)
+roughness = 0.85
+
+[node name="Bobber" type="Node3D"]
+visible = false
+
+[node name="Float" type="MeshInstance3D" parent="."]
+position = Vector3(0, 0.045, 0)
+mesh = SubResource("Box_0")
+material_override = SubResource("Mat_e76e55")
+
+[node name="Weight" type="MeshInstance3D" parent="."]
+position = Vector3(0, -0.025, 0)
+mesh = SubResource("Box_1")
+material_override = SubResource("Mat_f2e6cf")

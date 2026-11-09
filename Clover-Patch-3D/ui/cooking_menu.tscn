@@ -1,0 +1,40 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://action_menu.tscn" id="1"]
+
+[ext_resource type="Script" path="res://cottage_cooking.gd" id="2"]
+
+[node name="CookingMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+offset_left = -380
+offset_right = 380
+
+[node name="Title" parent="Rows"]
+text = "Cottage Kitchen"
+
+[node name="Status" type="Label" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+
+[node name="Meal0" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = ""
+
+[node name="Meal1" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = ""
+
+[node name="Meal2" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = ""
+
+[node name="Close" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Close"
+
+[connection signal="pressed" from="Rows/Close" to="." method="emit_signal" binds= ["close_requested"]]

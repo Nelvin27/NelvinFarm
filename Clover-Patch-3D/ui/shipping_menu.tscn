@@ -1,0 +1,45 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://action_menu.tscn" id="1"]
+
+[ext_resource type="Script" path="res://ui/shipping_menu.gd" id="2"]
+
+[node name="ShippingMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+
+[node name="Title" parent="Rows"]
+text = "Shipping Bin"
+
+[node name="Summary" type="Label" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+
+[node name="Stock" type="OptionButton" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+theme_override_font_sizes/font_size = 24
+
+[node name="Ship" type="Button" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+text = "Ship all of selected item"
+
+[node name="Retrieve" type="Button" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+text = "Return shipment to bag"
+
+[node name="Close" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Close"
+
+[connection signal="pressed" from="Rows/Ship" to="." method="emit_signal" binds= ["ship_requested"]]
+
+[connection signal="pressed" from="Rows/Retrieve" to="." method="emit_signal" binds= ["retrieve_requested"]]
+
+[connection signal="pressed" from="Rows/Close" to="." method="emit_signal" binds= ["close_requested"]]

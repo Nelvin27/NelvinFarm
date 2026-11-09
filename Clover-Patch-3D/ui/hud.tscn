@@ -1,0 +1,399 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://almanac_icon.gd" id="1"]
+
+[ext_resource type="PackedScene" path="res://ui/hotbar_slot.tscn" id="2"]
+
+[ext_resource type="Theme" path="res://ui/hud_theme.tres" id="3"]
+
+[ext_resource type="Script" path="res://farm_hud.gd" id="4"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_1"]
+content_margin_left = 0
+content_margin_top = 0
+content_margin_right = 0
+content_margin_bottom = 0
+bg_color = Color(0.0902, 0.1569, 0.1137, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3451, 0.4118, 0.298, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_2"]
+content_margin_left = 0
+content_margin_top = 0
+content_margin_right = 0
+content_margin_bottom = 0
+bg_color = Color(0.6039, 0.7255, 0.4667, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.4549, 0.5451, 0.349, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_3"]
+content_margin_left = 0
+content_margin_top = 0
+content_margin_right = 0
+content_margin_bottom = 0
+bg_color = Color(0.0902, 0.1569, 0.1137, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3451, 0.4118, 0.298, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_4"]
+content_margin_left = 0
+content_margin_top = 0
+content_margin_right = 0
+content_margin_bottom = 0
+bg_color = Color(0.8314, 0.6431, 0.4471, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.6235, 0.4824, 0.3373, 1)
+corner_radius_top_left = 7
+corner_radius_top_right = 7
+corner_radius_bottom_right = 7
+corner_radius_bottom_left = 7
+
+[node name="HUD" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1
+anchor_bottom = 1
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme = ExtResource("3")
+script = ExtResource("4")
+
+[node name="Place" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0
+anchor_top = 0
+anchor_right = 0
+anchor_bottom = 0
+offset_left = 30
+offset_top = 28
+offset_right = 30
+offset_bottom = 28
+mouse_filter = 2
+
+[node name="Rows" type="VBoxContainer" parent="Place"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="Brand" type="Label" parent="Place/Rows"]
+layout_mode = 2
+text = "CLOVER PATCH"
+theme_override_font_sizes/font_size = 18
+theme_override_colors/font_color = Color(0.902, 0.7137, 0.3961, 1)
+
+[node name="Location" type="Label" parent="Place/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+text = "Clover Valley"
+theme_override_font_sizes/font_size = 33
+theme_type_variation = &"FarmHeading"
+
+[node name="CursorHint" type="Label" parent="Place/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+text = "Tab  ·  Free cursor"
+theme_override_font_sizes/font_size = 18
+
+[node name="Almanac" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 1
+anchor_top = 0
+anchor_right = 1
+anchor_bottom = 0
+offset_left = -30
+offset_top = 28
+offset_right = -30
+offset_bottom = 28
+mouse_filter = 2
+grow_horizontal = 0
+
+[node name="Rows" type="VBoxContainer" parent="Almanac"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="DateRow" type="HBoxContainer" parent="Almanac/Rows"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Clock" type="Control" parent="Almanac/Rows/DateRow"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(68, 68)
+script = ExtResource("1")
+
+[node name="DateDetails" type="VBoxContainer" parent="Almanac/Rows/DateRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Date" type="Label" parent="Almanac/Rows/DateRow/DateDetails"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 29
+theme_type_variation = &"FarmHeading"
+
+[node name="Period" type="Label" parent="Almanac/Rows/DateRow/DateDetails"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 17
+
+[node name="WeatherIcon" type="Control" parent="Almanac/Rows/DateRow"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(44, 44)
+size_flags_vertical = 4
+script = ExtResource("1")
+face = 1
+
+[node name="Stock" type="Label" parent="Almanac/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 21
+
+[node name="Rule" type="HSeparator" parent="Almanac/Rows"]
+layout_mode = 2
+
+[node name="HungerRow" type="HBoxContainer" parent="Almanac/Rows"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="Almanac/Rows/HungerRow"]
+layout_mode = 2
+text = "Food"
+theme_override_font_sizes/font_size = 19
+custom_minimum_size = Vector2(78, 0)
+
+[node name="HungerMeter" type="ProgressBar" parent="Almanac/Rows/HungerRow"]
+layout_mode = 2
+unique_name_in_owner = true
+mouse_filter = 2
+custom_minimum_size = Vector2(218, 24)
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.1529, 0.1216, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 16
+theme_override_styles/background = SubResource("StyleBoxFlat_1")
+theme_override_styles/fill = SubResource("StyleBoxFlat_2")
+
+[node name="FatigueRow" type="HBoxContainer" parent="Almanac/Rows"]
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Caption" type="Label" parent="Almanac/Rows/FatigueRow"]
+layout_mode = 2
+text = "Fatigue"
+theme_override_font_sizes/font_size = 19
+custom_minimum_size = Vector2(78, 0)
+
+[node name="FatigueMeter" type="ProgressBar" parent="Almanac/Rows/FatigueRow"]
+layout_mode = 2
+unique_name_in_owner = true
+mouse_filter = 2
+custom_minimum_size = Vector2(218, 24)
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.1529, 0.1216, 1)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 16
+theme_override_styles/background = SubResource("StyleBoxFlat_3")
+theme_override_styles/fill = SubResource("StyleBoxFlat_4")
+
+[node name="Needs" type="Label" parent="Almanac/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 18
+
+[node name="Belt" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 1
+anchor_right = 0.5
+anchor_bottom = 1
+offset_left = 0
+offset_top = -30
+offset_right = 0
+offset_bottom = -30
+mouse_filter = 2
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Rows" type="VBoxContainer" parent="Belt"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="Tool" type="Label" parent="Belt/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+theme_type_variation = &"FarmHeading"
+horizontal_alignment = 1
+
+[node name="Hotbar" type="HBoxContainer" parent="Belt/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+alignment = 1
+theme_override_constants/separation = 6
+
+[node name="Slot0" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot1" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot2" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot3" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot4" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot5" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot6" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot7" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot8" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot9" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot10" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Slot11" parent="Belt/Rows/Hotbar" instance=ExtResource("2")]
+layout_mode = 2
+
+[node name="Shortcuts" type="HBoxContainer" parent="Belt/Rows"]
+layout_mode = 2
+alignment = 1
+theme_override_constants/separation = 8
+
+[node name="Bag" type="Button" parent="Belt/Rows/Shortcuts"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+text = "I  Bag"
+focus_mode = 0
+
+[node name="Journal" type="Button" parent="Belt/Rows/Shortcuts"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+text = "J  Journal"
+focus_mode = 0
+
+[node name="Pause" type="Button" parent="Belt/Rows/Shortcuts"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 52)
+text = "Esc  Pause"
+focus_mode = 0
+
+[node name="Action" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1
+anchor_right = 1
+anchor_bottom = 1
+offset_top = -318
+offset_bottom = -224
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+alignment = 2
+
+[node name="Crop" type="Label" parent="Action"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+horizontal_alignment = 1
+theme_override_colors/font_outline_color = Color(0.2, 0.1529, 0.1216, 1)
+theme_override_constants/outline_size = 9
+
+[node name="Prompt" type="Button" parent="Action"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 52)
+text = ""
+visible = false
+size_flags_horizontal = 4
+focus_mode = 0
+
+[node name="Notice" type="PanelContainer" parent="."]
+layout_mode = 1
+anchor_left = 0
+anchor_top = 1
+anchor_right = 0
+anchor_bottom = 1
+offset_left = 30
+offset_top = -30
+offset_right = 30
+offset_bottom = -30
+mouse_filter = 2
+grow_vertical = 0
+unique_name_in_owner = true
+visible = false
+
+[node name="Rows" type="VBoxContainer" parent="Notice"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 5
+
+[node name="Heading" type="Label" parent="Notice/Rows"]
+layout_mode = 2
+text = "FIELD NOTES"
+theme_override_font_sizes/font_size = 17
+theme_override_colors/font_color = Color(0.902, 0.7137, 0.3961, 1)
+
+[node name="NoticeText" type="Label" parent="Notice/Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 20
+custom_minimum_size = Vector2(390, 0)
+autowrap_mode = 3
+
+[node name="NoticeTimer" type="Timer" parent="."]
+unique_name_in_owner = true
+one_shot = true
+
+[connection signal="pressed" from="Belt/Rows/Shortcuts/Bag" to="." method="emit_signal" binds= ["bag_requested"]]
+
+[connection signal="pressed" from="Belt/Rows/Shortcuts/Journal" to="." method="emit_signal" binds= ["journal_requested"]]
+
+[connection signal="pressed" from="Belt/Rows/Shortcuts/Pause" to="." method="emit_signal" binds= ["pause_requested"]]
+
+[connection signal="pressed" from="Action/Prompt" to="." method="emit_signal" binds= ["interact_requested"]]
+
+[connection signal="timeout" from="NoticeTimer" to="Notice" method="hide"]

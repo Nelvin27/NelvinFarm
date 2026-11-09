@@ -1,56 +1,28 @@
 extends Node
+## Music and sound effects. Players are authored as child nodes in effects/farm_audio.tscn.
 
 enum Effect {
 	GRASS_STEP, WOOD_STEP, TILL, PLANT, WATER, HARVEST, MENU, SLEEP, EAT, TRADE,
 	FISHING_CAST, FISHING_BITE, FISHING_CATCH, FRUIT_PLUCK,
 }
 
-const THEME := preload("res://assets/audio/clover_theme.ogg")
-const EFFECTS: Dictionary[Effect, AudioStream] = {
-	Effect.GRASS_STEP: preload("res://assets/audio/step_grass.wav"),
-	Effect.WOOD_STEP: preload("res://assets/audio/step_wood.wav"),
-	Effect.TILL: preload("res://assets/audio/till.wav"),
-	Effect.PLANT: preload("res://assets/audio/plant.wav"),
-	Effect.WATER: preload("res://assets/audio/water.wav"),
-	Effect.HARVEST: preload("res://assets/audio/harvest.wav"),
-	Effect.MENU: preload("res://assets/audio/menu.wav"),
-	Effect.SLEEP: preload("res://assets/audio/sleep.wav"),
-	Effect.EAT: preload("res://assets/audio/eat.wav"),
-	Effect.TRADE: preload("res://assets/audio/trade.wav"),
-	Effect.FISHING_CAST: preload("res://assets/audio/fishing_cast.wav"),
-	Effect.FISHING_BITE: preload("res://assets/audio/fishing_bite.wav"),
-	Effect.FISHING_CATCH: preload("res://assets/audio/fishing_catch.wav"),
-	Effect.FRUIT_PLUCK: preload("res://assets/audio/fruit_pluck.wav"),
-}
 const METERS_PER_STEP := 0.88
 
-var music: AudioStreamPlayer
-var players: Dictionary[Effect, AudioStreamPlayer] = {}
 var distance_to_next_step := METERS_PER_STEP
 
-
-func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	var loop := THEME.duplicate() as AudioStreamOggVorbis
-	loop.loop = true
-	music = _make_player(loop, &"Music")
-	for effect in EFFECTS:
-		players[effect] = _make_player(EFFECTS[effect], &"SFX")
-		players[effect].max_polyphony = 2
+@onready var music: AudioStreamPlayer = $Music
+@onready var players: Dictionary[Effect, AudioStreamPlayer] = {
+	Effect.GRASS_STEP: $GrassStep, Effect.WOOD_STEP: $WoodStep, Effect.TILL: $Till,
+	Effect.PLANT: $Plant, Effect.WATER: $Water, Effect.HARVEST: $Harvest, Effect.MENU: $Menu,
+	Effect.SLEEP: $Sleep, Effect.EAT: $Eat, Effect.TRADE: $Trade, Effect.FISHING_CAST: $FishingCast,
+	Effect.FISHING_BITE: $FishingBite, Effect.FISHING_CATCH: $FishingCatch, Effect.FRUIT_PLUCK: $FruitPluck,
+}
 
 
 func _exit_tree() -> void:
 	music.stop()
 	for player in players.values():
 		player.stop()
-
-
-func _make_player(stream: AudioStream, bus: StringName) -> AudioStreamPlayer:
-	var player := AudioStreamPlayer.new()
-	player.stream = stream
-	player.bus = bus
-	add_child(player)
-	return player
 
 
 func play_effect(effect: Effect, pitch := 1.0) -> void:

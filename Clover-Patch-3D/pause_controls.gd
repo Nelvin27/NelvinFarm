@@ -1,4 +1,5 @@
 extends CanvasLayer
+## Pause, settings, graphics, and audio screens. Layout and signal wiring live in ui/pause_menu.tscn.
 
 signal resume_requested
 signal settings_changed
@@ -6,72 +7,31 @@ signal save_requested
 
 const Settings := preload("res://game_settings.gd")
 const ActionMenu := preload("res://action_menu.gd")
-const UISkin := preload("res://farm_ui_theme.gd")
-const MENU_SCENE := preload("res://action_menu.tscn")
 
 var settings: Settings
-var pause_menu: ActionMenu
-var save_status: Label
-var options_menu: ActionMenu
-var graphics_menu: ActionMenu
-var audio_menu: ActionMenu
-var master_slider: HSlider
-var music_slider: HSlider
-var effects_slider: HSlider
-var master_value := Label.new()
-var music_value := Label.new()
-var effects_value := Label.new()
-var render_resolution: OptionButton
-var antialiasing: OptionButton
-var shadows: CheckButton
-var vsync: CheckButton
-var backdrop: ColorRect
-var sensitivity: HSlider
-var brightness: HSlider
-var invert_y: CheckButton
-var fullscreen: CheckButton
-var sensitivity_value: Label
-var brightness_value: Label
 
-
-func _ready() -> void:
-	process_mode = Node.PROCESS_MODE_ALWAYS
-	layer = 10
-	backdrop = ColorRect.new()
-	backdrop.color = Color(0.07, 0.11, 0.10, 0.66)
-	add_child(backdrop)
-	backdrop.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	backdrop.hide()
-
-	pause_menu = _new_menu("Taking a breather")
-	pause_menu.offset_top = -112
-	pause_menu.offset_bottom = 112
-	pause_menu.add_action("Resume farming", resume_requested.emit)
-	pause_menu.add_action("Settings", _show_options)
-	pause_menu.add_action("Save farm", save_requested.emit)
-	save_status = Label.new()
-	save_status.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	pause_menu.rows.add_child(save_status)
-
-	options_menu = _new_menu("Settings")
-	sensitivity_value = Label.new()
-	sensitivity = _slider(options_menu, "Mouse sensitivity", Settings.MIN_SENSITIVITY,
-		Settings.MAX_SENSITIVITY, sensitivity_value)
-	sensitivity.value_changed.connect(_change_sensitivity)
-	invert_y = _toggle(options_menu, "Invert vertical look")
-	invert_y.toggled.connect(_change_invert_y)
-	brightness_value = Label.new()
-	brightness = _slider(options_menu, "Brightness", Settings.MIN_BRIGHTNESS,
-		Settings.MAX_BRIGHTNESS, brightness_value)
-	brightness.value_changed.connect(_change_brightness)
-	fullscreen = _toggle(options_menu, "Fullscreen")
-	fullscreen.toggled.connect(_change_fullscreen)
-	options_menu.add_action("Graphics", _show_graphics)
-	options_menu.add_action("Audio", _show_audio)
-	options_menu.add_action("Restore defaults", _restore_defaults)
-	options_menu.add_action("Back", _show_pause)
-	_build_graphics_menu()
-	_build_audio_menu()
+@onready var backdrop: ColorRect = %Backdrop
+@onready var pause_menu: ActionMenu = %PauseMenu
+@onready var options_menu: ActionMenu = %OptionsMenu
+@onready var graphics_menu: ActionMenu = %GraphicsMenu
+@onready var audio_menu: ActionMenu = %AudioMenu
+@onready var save_status: Label = %SaveStatus
+@onready var sensitivity: HSlider = %Sensitivity
+@onready var sensitivity_value: Label = %SensitivityValue
+@onready var brightness: HSlider = %Brightness
+@onready var brightness_value: Label = %BrightnessValue
+@onready var invert_y: CheckButton = %InvertY
+@onready var fullscreen: CheckButton = %Fullscreen
+@onready var render_resolution: OptionButton = %RenderResolution
+@onready var antialiasing: OptionButton = %Antialiasing
+@onready var shadows: CheckButton = %Shadows
+@onready var vsync: CheckButton = %VSync
+@onready var master_slider: HSlider = %MasterVolume
+@onready var music_slider: HSlider = %MusicVolume
+@onready var effects_slider: HSlider = %EffectsVolume
+@onready var master_value: Label = %MasterVolumeValue
+@onready var music_value: Label = %MusicVolumeValue
+@onready var effects_value: Label = %EffectsVolumeValue
 
 
 func _input(event: InputEvent) -> void:
@@ -102,42 +62,6 @@ func close() -> void:
 	graphics_menu.hide()
 	audio_menu.hide()
 	backdrop.hide()
-
-
-func _new_menu(caption: String) -> ActionMenu:
-	var menu := MENU_SCENE.instantiate() as ActionMenu
-	add_child(menu)
-	menu.theme = UISkin.menu()
-	menu.title.text = caption
-	return menu
-
-
-func _slider(menu: ActionMenu, caption: String, minimum: float, maximum: float, value_label: Label) -> HSlider:
-	var row := HBoxContainer.new()
-	menu.rows.add_child(row)
-	var label := Label.new()
-	label.text = caption
-	label.add_theme_font_size_override("font_size", 22)
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(label)
-	value_label.add_theme_font_size_override("font_size", 22)
-	row.add_child(value_label)
-	var control := HSlider.new()
-	control.min_value = minimum
-	control.max_value = maximum
-	control.step = 0.05
-	control.custom_minimum_size.y = 28
-	menu.rows.add_child(control)
-	return control
-
-
-func _toggle(menu: ActionMenu, caption: String) -> CheckButton:
-	var control := CheckButton.new()
-	control.text = caption
-	control.add_theme_font_size_override("font_size", 22)
-	control.custom_minimum_size.y = 44
-	menu.rows.add_child(control)
-	return control
 
 
 func _show_pause() -> void:
@@ -197,41 +121,6 @@ func _restore_defaults() -> void:
 	settings_changed.emit()
 
 
-func _build_graphics_menu() -> void:
-	graphics_menu = _new_menu("Graphics")
-	render_resolution = _graphics_choice("3D resolution")
-	for height: int in Settings.RENDER_HEIGHTS:
-		render_resolution.add_item("%dp" % height, height)
-	render_resolution.item_selected.connect(_change_resolution)
-
-	antialiasing = _graphics_choice("Anti-aliasing")
-	antialiasing.add_item("Off", Viewport.MSAA_DISABLED)
-	antialiasing.add_item("2× MSAA", Viewport.MSAA_2X)
-	antialiasing.add_item("4× MSAA", Viewport.MSAA_4X)
-	antialiasing.item_selected.connect(_change_antialiasing)
-
-	shadows = _toggle(graphics_menu, "Sun shadows")
-	shadows.toggled.connect(_change_shadows)
-	vsync = _toggle(graphics_menu, "VSync")
-	vsync.toggled.connect(_change_vsync)
-	graphics_menu.add_action("Restore graphics defaults", _restore_graphics)
-	graphics_menu.add_action("Back", _show_options)
-
-
-func _graphics_choice(caption: String) -> OptionButton:
-	var row := HBoxContainer.new()
-	graphics_menu.rows.add_child(row)
-	var label := Label.new()
-	label.text = caption
-	label.add_theme_font_size_override("font_size", 22)
-	label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(label)
-	var choice := OptionButton.new()
-	choice.custom_minimum_size = Vector2(170, 44)
-	row.add_child(choice)
-	return choice
-
-
 func _show_graphics() -> void:
 	_sync_graphics()
 	options_menu.hide()
@@ -270,18 +159,6 @@ func _restore_graphics() -> void:
 	settings.reset_graphics()
 	_sync_graphics()
 	settings_changed.emit()
-
-
-func _build_audio_menu() -> void:
-	audio_menu = _new_menu("Audio")
-	master_slider = _slider(audio_menu, "Master volume", 0.0, 1.0, master_value)
-	music_slider = _slider(audio_menu, "Music volume", 0.0, 1.0, music_value)
-	effects_slider = _slider(audio_menu, "Sound effects", 0.0, 1.0, effects_value)
-	master_slider.value_changed.connect(_change_audio)
-	music_slider.value_changed.connect(_change_audio)
-	effects_slider.value_changed.connect(_change_audio)
-	audio_menu.add_action("Restore audio defaults", _restore_audio)
-	audio_menu.add_action("Back", _show_options)
 
 
 func _show_audio() -> void:

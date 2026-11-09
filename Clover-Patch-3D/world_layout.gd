@@ -1,4 +1,5 @@
 extends RefCounted
+## Reads and validates world/clover_valley.json (written by tools/world/build_world.py).
 
 const DEFAULT_PATH := "res://world/clover_valley.json"
 const GRID_ORIGIN := Vector3(-5.5, 0, -3.0)
@@ -13,7 +14,7 @@ const LABELS := {
 	"cottage": "Cottage", "seed_market": "Seed market", "bakery": "Bakery", "spawn": "Player spawn",
 	"mountain": "Mountain", "resident_house": "Resident house", "lamp": "Lantern post",
 	"ridge_barrier": "Ridge barrier", "closed_pass": "Closed pass", "picnic": "Picnic table",
-	"bunting": "Bunting", "butterflies": "Butterflies",
+	"bunting": "Bunting", "butterflies": "Butterflies", "forage": "Forage spot", "bush": "Bush", "rock": "Rock", "tuft": "Grass tuft",
 }
 
 var bounds := Rect2()
@@ -53,6 +54,10 @@ func read(path: String) -> Error:
 			var height: Variant = item.get("height", MOUNTAIN_HEIGHT)
 			if not (height is float or height is int) or not is_finite(float(height)) or height <= 0 or height > MAX_MOUNTAIN_HEIGHT:
 				return ERR_INVALID_DATA
+			# Optional profile exponent: 2 is the classic dome, lower values give broad shoulders.
+			var falloff: Variant = item.get("falloff", 2.0)
+			if not (falloff is float or falloff is int) or falloff < 0.5 or falloff > 4.0:
+				return ERR_INVALID_DATA
 		for key in ["length", "scale", "yaw"]:
 			if item.has(key) and (not (item[key] is float or item[key] is int) or not is_finite(float(item[key]))):
 				return ERR_INVALID_DATA
@@ -90,24 +95,6 @@ func read(path: String) -> Error:
 	return OK
 
 
-func write(path: String) -> Error:
-	var temporary := path + ".%d.tmp" % Time.get_ticks_usec()
-	var file := FileAccess.open(temporary, FileAccess.WRITE)
-	if file == null:
-		return FileAccess.get_open_error()
-	file.store_string(JSON.stringify({
-		"version": 1, "bounds": [bounds.position.x, bounds.position.y, bounds.size.x, bounds.size.y],
-		"entities": entities,
-	}, "\t") + "\n")
-	var error := file.get_error()
-	file.close()
-	if error == OK:
-		error = DirAccess.rename_absolute(ProjectSettings.globalize_path(temporary), ProjectSettings.globalize_path(path))
-	if error != OK:
-		DirAccess.remove_absolute(ProjectSettings.globalize_path(temporary))
-	return error
-
-
 func anchor(kind: String) -> Vector3:
 	for item in entities:
 		if item["kind"] == kind:
@@ -126,6 +113,7 @@ func refresh_mountains() -> void:
 			"center": Vector2(at.x, at.z),
 			"radius": Vector2(size[0], size[1]) * 0.5,
 			"height": float(entity.get("height", MOUNTAIN_HEIGHT)),
+			"falloff": float(entity.get("falloff", 2.0)),
 		})
 
 
@@ -136,7 +124,7 @@ func elevation(at: Vector2) -> float:
 	for mountain in mountains:
 		var offset: Vector2 = (cell - mountain["center"]) / mountain["radius"]
 		var falloff := maxf(0.0, 1.0 - offset.length_squared())
-		highest = maxf(highest, mountain["height"] * falloff * falloff)
+		highest = maxf(highest, mountain["height"] * pow(falloff, mountain["falloff"]))
 	return roundf(highest)
 
 
@@ -147,10 +135,6 @@ func grounded(at: Vector3) -> Vector3:
 static func position_of(entity: Dictionary) -> Vector3:
 	var at: Array = entity["position"]
 	return Vector3(at[0], at[1], at[2])
-
-
-static func set_position(entity: Dictionary, at: Vector3) -> void:
-	entity["position"] = [at.x, at.y, at.z]
 
 
 static func tile_at(at: Vector3) -> Vector2i:

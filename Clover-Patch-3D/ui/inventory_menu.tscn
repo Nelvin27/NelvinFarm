@@ -1,0 +1,36 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://action_menu.tscn" id="1"]
+
+[ext_resource type="Script" path="res://ui/inventory_menu.gd" id="2"]
+
+[ext_resource type="PackedScene" path="res://ui/inventory_grid.tscn" id="3"]
+
+[node name="InventoryMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+offset_left = -530
+offset_right = 530
+offset_top = -236
+offset_bottom = 236
+
+[node name="Title" parent="Rows"]
+text = "Farm Bag"
+
+[node name="Grid" parent="Rows" instance=ExtResource("3")]
+layout_mode = 2
+unique_name_in_owner = true
+
+[node name="BackpackUpgrade" type="Button" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+text = ""
+
+[node name="Close" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Close"
+
+[connection signal="pressed" from="Rows/BackpackUpgrade" to="." method="emit_signal" binds= ["backpack_upgrade_requested"]]
+
+[connection signal="pressed" from="Rows/Close" to="." method="emit_signal" binds= ["close_requested"]]

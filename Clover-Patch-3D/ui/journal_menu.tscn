@@ -1,0 +1,94 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://action_menu.tscn" id="1"]
+
+[ext_resource type="Script" path="res://ui/journal_menu.gd" id="2"]
+
+[node name="Journal" instance=ExtResource("1")]
+script = ExtResource("2")
+offset_left = -395
+offset_right = 395
+offset_top = -275
+offset_bottom = 275
+
+[node name="Title" parent="Rows"]
+text = "Valley Journal"
+
+[node name="Forecast" type="Label" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+theme_override_font_sizes/font_size = 22
+
+[node name="Order0" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = ""
+expand_icon = true
+theme_override_constants/h_separation = 12
+theme_override_constants/icon_max_width = 34
+
+[node name="Order1" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = ""
+expand_icon = true
+theme_override_constants/h_separation = 12
+theme_override_constants/icon_max_width = 34
+
+[node name="Order2" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = ""
+expand_icon = true
+theme_override_constants/h_separation = 12
+theme_override_constants/icon_max_width = 34
+
+[node name="Milestone" type="Button" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+text = ""
+
+[node name="WateringUpgrade" type="Button" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 48)
+text = ""
+tooltip_text = "Water a dry crop to also water its four side neighbors."
+
+[node name="Sections" type="HBoxContainer" parent="Rows"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Collection" type="Button" parent="Rows/Sections"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Collection & Skills"
+size_flags_horizontal = 3
+
+[node name="Village" type="Button" parent="Rows/Sections"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Village & Story"
+size_flags_horizontal = 3
+
+[node name="Close" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Close"
+
+[connection signal="pressed" from="Rows/Order0" to="." method="emit_signal" binds= ["deliver_requested", 0]]
+
+[connection signal="pressed" from="Rows/Order1" to="." method="emit_signal" binds= ["deliver_requested", 1]]
+
+[connection signal="pressed" from="Rows/Order2" to="." method="emit_signal" binds= ["deliver_requested", 2]]
+
+[connection signal="pressed" from="Rows/Milestone" to="." method="emit_signal" binds= ["milestone_requested"]]
+
+[connection signal="pressed" from="Rows/WateringUpgrade" to="." method="emit_signal" binds= ["watering_upgrade_requested"]]
+
+[connection signal="pressed" from="Rows/Sections/Collection" to="." method="emit_signal" binds= ["collection_requested"]]
+
+[connection signal="pressed" from="Rows/Sections/Village" to="." method="emit_signal" binds= ["village_requested"]]
+
+[connection signal="pressed" from="Rows/Close" to="." method="emit_signal" binds= ["close_requested"]]

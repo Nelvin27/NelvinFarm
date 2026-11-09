@@ -1,0 +1,161 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://action_menu.tscn" id="1"]
+
+[ext_resource type="Script" path="res://ui/collection_menu.gd" id="2"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_24.svg" id="icon0"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_05.svg" id="icon1"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_23.svg" id="icon2"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_25.svg" id="icon3"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_26.svg" id="icon4"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_27.svg" id="icon5"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_28.svg" id="icon6"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_29.svg" id="icon7"]
+
+[ext_resource type="Texture2D" path="res://assets/items/crop_30.svg" id="icon8"]
+
+[node name="CollectionMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+offset_left = -500
+offset_right = 500
+offset_top = -300
+offset_bottom = 300
+
+[node name="Title" parent="Rows"]
+text = "Valley Collection"
+
+[node name="Skills" type="Label" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+autowrap_mode = 3
+theme_override_font_sizes/font_size = 21
+
+[node name="Donations" type="GridContainer" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+columns = 2
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 8
+
+[node name="Donate0" type="Button" parent="Rows/Donations"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+text = ""
+icon = ExtResource("icon0")
+expand_icon = false
+alignment = 0
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 19
+
+[node name="Donate1" type="Button" parent="Rows/Donations"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+text = ""
+icon = ExtResource("icon1")
+expand_icon = false
+alignment = 0
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 19
+
+[node name="Donate2" type="Button" parent="Rows/Donations"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+text = ""
+icon = ExtResource("icon2")
+expand_icon = false
+alignment = 0
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 19
+
+[node name="Donate3" type="Button" parent="Rows/Donations"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+text = ""
+icon = ExtResource("icon3")
+expand_icon = false
+alignment = 0
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 19
+
+[node name="Donate4" type="Button" parent="Rows/Donations"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+text = ""
+icon = ExtResource("icon4")
+expand_icon = false
+alignment = 0
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 19
+
+[node name="Donate5" type="Button" parent="Rows/Donations"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+text = ""
+icon = ExtResource("icon5")
+expand_icon = false
+alignment = 0
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 19
+
+[node name="Donate6" type="Button" parent="Rows/Donations"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+text = ""
+icon = ExtResource("icon6")
+expand_icon = false
+alignment = 0
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 19
+
+[node name="Donate7" type="Button" parent="Rows/Donations"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+text = ""
+icon = ExtResource("icon7")
+expand_icon = false
+alignment = 0
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 19
+
+[node name="Donate8" type="Button" parent="Rows/Donations"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 46)
+size_flags_horizontal = 3
+text = ""
+icon = ExtResource("icon8")
+expand_icon = false
+alignment = 0
+theme_override_constants/icon_max_width = 30
+theme_override_font_sizes/font_size = 19
+
+[node name="Back" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+text = "Back to journal"
+
+[connection signal="pressed" from="Rows/Donations/Donate0" to="." method="emit_signal" binds= ["donate_requested", 0]]
+[connection signal="pressed" from="Rows/Donations/Donate1" to="." method="emit_signal" binds= ["donate_requested", 1]]
+[connection signal="pressed" from="Rows/Donations/Donate2" to="." method="emit_signal" binds= ["donate_requested", 2]]
+[connection signal="pressed" from="Rows/Donations/Donate3" to="." method="emit_signal" binds= ["donate_requested", 3]]
+[connection signal="pressed" from="Rows/Donations/Donate4" to="." method="emit_signal" binds= ["donate_requested", 4]]
+[connection signal="pressed" from="Rows/Donations/Donate5" to="." method="emit_signal" binds= ["donate_requested", 5]]
+[connection signal="pressed" from="Rows/Donations/Donate6" to="." method="emit_signal" binds= ["donate_requested", 6]]
+[connection signal="pressed" from="Rows/Donations/Donate7" to="." method="emit_signal" binds= ["donate_requested", 7]]
+[connection signal="pressed" from="Rows/Donations/Donate8" to="." method="emit_signal" binds= ["donate_requested", 8]]
+[connection signal="pressed" from="Rows/Back" to="." method="emit_signal" binds= ["back_requested"]]

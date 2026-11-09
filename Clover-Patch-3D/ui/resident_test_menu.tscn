@@ -1,0 +1,97 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://action_menu.tscn" id="1"]
+
+[ext_resource type="Script" path="res://ui/resident_test_menu.gd" id="2"]
+
+[node name="ResidentTestMenu" instance=ExtResource("1")]
+script = ExtResource("2")
+offset_left = -410
+offset_right = 410
+
+[node name="Title" parent="Rows"]
+text = "Resident Testing"
+
+[node name="Picker" type="OptionButton" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+
+[node name="Status" type="Label" parent="Rows"]
+layout_mode = 2
+unique_name_in_owner = true
+autowrap_mode = 3
+
+[node name="FavorRow" type="HBoxContainer" parent="Rows"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Favor" type="SpinBox" parent="Rows/FavorRow"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(115, 0)
+min_value = -20
+step = 1
+
+[node name="SetFavor" type="Button" parent="Rows/FavorRow"]
+layout_mode = 2
+text = "Set favor"
+size_flags_horizontal = 3
+
+[node name="Date" type="Button" parent="Rows/FavorRow"]
+layout_mode = 2
+text = "Date (12)"
+size_flags_horizontal = 3
+
+[node name="Partner" type="Button" parent="Rows/FavorRow"]
+layout_mode = 2
+text = "Partner (24)"
+size_flags_horizontal = 3
+
+[node name="ResetRomance" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Reset selected resident’s date and partnership"
+
+[node name="GiftKit" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Stock favorite and disliked gifts; reset daily gift"
+
+[node name="OpenDialogue" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Open dialogue without adding favor"
+
+[node name="GoToResident" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Go to resident during work hours"
+
+[node name="WatchDeparture" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Go to house just before departure"
+
+[node name="Back" type="Button" parent="Rows"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 40)
+text = "Back to Farm Test Menu"
+
+[connection signal="pressed" from="Rows/FavorRow/SetFavor" to="." method="emit_signal" binds= ["set_favor_requested"]]
+
+[connection signal="pressed" from="Rows/FavorRow/Date" to="." method="emit_signal" binds= ["favor_preset_requested", 12]]
+
+[connection signal="pressed" from="Rows/FavorRow/Partner" to="." method="emit_signal" binds= ["favor_preset_requested", 24]]
+
+[connection signal="pressed" from="Rows/ResetRomance" to="." method="emit_signal" binds= ["reset_romance_requested"]]
+
+[connection signal="pressed" from="Rows/GiftKit" to="." method="emit_signal" binds= ["gift_kit_requested"]]
+
+[connection signal="pressed" from="Rows/OpenDialogue" to="." method="emit_signal" binds= ["open_dialogue_requested"]]
+
+[connection signal="pressed" from="Rows/GoToResident" to="." method="emit_signal" binds= ["go_to_resident_requested"]]
+
+[connection signal="pressed" from="Rows/WatchDeparture" to="." method="emit_signal" binds= ["watch_departure_requested"]]
+
+[connection signal="pressed" from="Rows/Back" to="." method="emit_signal" binds= ["back_requested"]]

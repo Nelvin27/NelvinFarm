@@ -1,34 +1,42 @@
 # Editing Clover Patch worlds
 
-World Builder is the authoring tool for Clover Patch. Open `Clover-Patch-World-Builder/project.godot` in Godot 4.7 and run it with F5. It opens the game's shared `Clover-Patch-3D/world/clover_valley.json` automatically when the projects are siblings. Save in World Builder and restart the game to load the updated map.
+The valley map is `Clover-Patch-3D/world/clover_valley.json`, and it is generated. Change the layout in `tools/world/build_world.py`, run the script, and restart the game. Don't hand-edit the JSON; the next build overwrites it. [world/guide.md](Clover-Patch-3D/world/guide.md) describes the town, its anchors, and the story behind each neighborhood.
 
-## Build in World Builder
+## Build, check, and preview
 
-1. Use **Select** to inspect an object, **Place** to add one from the palette, and **Move selected** to reposition it. The entity list also selects things hidden under props. Scroll to zoom and middle-drag to pan.
-2. Select **Mountain** in the palette and place its center. Select it and set **Width**, **Depth**, and **Height**, then choose **Apply properties**. Terrain columns are one unit wide, one unit deep, and rise in whole-block steps. Broad footprints give more walkable terraces.
-3. Add overlapping dirt path strips to connect existing routes to the foothills and lookout. Place trees and other small props on individual terraces. Put ponds, large buildings, fences, and groups of farm plots on level ground because those objects have flat footprints.
-4. Use **Undo** to back out a placement or property change. Save and check the route in-game from spawn. Keep navigation readable with paths, silhouettes, and props. Keep the 3D world free of text labels. Editor list names and on-screen interaction prompts are fine.
+From the repository root:
 
-## Edit the same map data headlessly
-
-When the editor is unavailable, edit the shared JSON directly and verify that World Builder can reopen it. The game and editor validate the same version-1 layout.
-
-- `bounds` is `[min_x, min_z, width, depth]`. Each entity has a `kind` and `position` in `[x, y, z]` order. The authored Y is an offset above terrain. Use 0 for mountains and plot centers.
-- A mountain has `kind: "mountain"`, a center `position`, `size: [width, depth]`, and `height` in `(0, 16]`. For example, `{"kind":"mountain","position":[-13.5,0,-26],"size":[23,23],"height":8}`. Overlapping mountains use the higher column.
-- Keep one `spawn`, `cottage`, `seed_market`, and `bakery`. Preserve existing plot coordinates unless the task calls for moving them. Crop saves use those grid coordinates. Plot centers have half-integer X and integer Z.
-- For new entity kinds or terrain rules, update the game and builder copies of `world_layout.gd` and the relevant rendering code together.
-
-From the repository root, verify with the same Godot 4.7 executable used to run the game:
-
-```powershell
-godot --headless --path Clover-Patch-3D --import
-godot --headless --path Clover-Patch-3D --script res://tests/valley_life_smoke.gd
-godot --headless --path Clover-Patch-World-Builder --import
-godot --headless --path Clover-Patch-World-Builder --quit-after 3
+```bash
+python3 tools/world/build_world.py
+cd Clover-Patch-3D
+godot --headless --import
+godot --headless --script ../tools/world/check_world.gd
+godot --headless --script ../tools/world/audit_world.gd
+godot --script ../tools/world/render_world.gd -- overview bread_lane council_row
+godot --headless --script res://tests/valley_life_smoke.gd
 ```
+
+- `build_world.py` writes the map deterministically and reports Python-side problems, such as a fence or path on a slope.
+- `check_world.gd` loads the real game and checks level ground for flat objects, routes from spawn to every landmark and picnic table, and each resident's walk from home to work, leisure, story stop, and back. It exits non-zero on failure.
+- `audit_world.gd` walks the map in 5×5 cells and lists visual problems: trees or props straddling block ledges, canopies pushed into terrain walls, trees clipping each other or buildings, flowers and lanterns on paths or in ponds, and dead-end paths. It exits non-zero on any finding. Add `-- --verbose` for a per-cell list.
+- `render_world.gd` needs a window. It saves PNG previews to `tools/world/renders/` (ignored by git). Pass named views or a custom `x,z,distance,pitch,yaw`, plus `--hour`, `--season`, and `--rain` to preview night, the seasons, and weather.
+
+## Layout rules
+
+- `bounds` is `[min_x, min_z, width, depth]`. Each entity has a `kind` and `position` in `[x, y, z]` order. The authored Y is an offset above terrain.
+- A mountain has a center, `size: [width, depth]`, and `height` in `(0, 16]`. Terrain rises in whole-block steps; overlapping mountains use the higher column. An optional `falloff` (0.5–4, default 2) shapes the profile: lower values give broad shoulders and wide summits. The outer range is built in the builder's "Mountain range" section from crest, ridge, and foothill layers, and pieces that would lift ground the town needs flat are skipped. Wall faces above height 7 render as stone, and tops at 11 and above as snow. `elevation()` in the builder mirrors `world_layout.gd`. If you change one, change both.
+- Keep one `spawn`, `cottage`, `seed_market`, and `bakery`. Never move farm plots: crop saves use their grid coordinates. Plot centers have half-integer X and integer Z.
+- Put paths, ponds, houses, fences, picnic tables, and plots on level ground. Villagers only walk level, unobstructed tiles.
+- Houses face positive Z. Keep `[x, z + 2]` clear for the door. A house with an empty `resident` is allowed and stays empty.
+- A `pond` takes `fish` (`perch`, `trout`, or `carp`) and an optional `rare` Moonfin chance. Its dock is built on the north bank.
+- A `forage` spot takes `item` (`berries`, `mushroom`, or `shell`). Seasons and daily refills are handled in `farm.gd`. Put spots on level ground the villagers' grid can reach; `check_world.gd` tests each one.
+- `bush`, `rock`, and `tuft` are batched ground cover with optional `scale`, `yaw`, and (tufts) `color`. The builder's fill pass adds them to any bare 5×5 cell.
+- A 1×1 `mountain` makes a single raised column. The standing stones use this.
+- New entity kinds need a validator entry in `world_layout.gd` and rendering in `farm_scenery.gd`.
+- Keep the 3D world free of text labels. A sign's `label` is only a note in the JSON.
 
 ## Authoring villager routines
 
-- Place one `resident_house` per character, with a unique `resident` matching the character JSON filename. The house faces positive Z; keep the area around `[x, z + 2]` walkable and connect the lot to the surrounding town. Use `street` for journal directions and `style` (0–3), `color`, `trim`, and `detail` for appearance.
-- Read the resident's `character.backstory` and `character.connections` before choosing their neighbors. Store the reason for their home location in `routine.home_context`. In `routine`, set `depart`, `break_at`, and `home` as ascending decimal clock hours. The `work` and `leisure` stops are `[x, z]` points on level, connected ground. Give each stop an activity and a recognizable location in the journal. An optional `story_stop` can replace leisure after that resident's testimony or after the hearing.
-- If a road, house, or landmark moves, update any affected routine coordinates and journal directions, then run the village route smoke checks.
+- Give each resident one `resident_house` whose `resident` matches their character JSON filename. Use `street` for journal directions and `style` (0–3), `color`, `trim`, and `detail` for appearance.
+- Read `character.backstory` and `character.connections` before choosing neighbors. Store the reason for the home in `routine.home_context`. `depart`, `break_at`, and `home` are ascending clock hours. `work`, `leisure`, and the optional `story_stop.at` are `[x, z]` points on level, connected ground with a recognizable place name for the journal.
+- When a road, house, or landmark moves, update the affected routine coordinates and journal text, then run `check_world.gd`.
