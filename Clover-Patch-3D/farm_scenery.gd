@@ -36,6 +36,16 @@ var resident_doors: Dictionary = {}
 var fishing_waters: Array[Dictionary] = []
 ## Forage spots in map order: {"at": authored position, "item": "berries"|"mushroom"|"shell", "goods": Node3D}.
 var forage_spots: Array[Dictionary] = []
+## World interactables, filled while building (see valley_interactions.gd).
+var signs: Array[Dictionary] = []          # {"at": Vector3, "text": String}
+var tree_spots: Array[Vector3] = []        # parallel to the tree batch's instances
+var bush_spots: Array[Vector3] = []        # parallel to the bush batch's instances
+var ponds: Array[Dictionary] = []          # {"area": Rect2, "ducks": Array[Details]}
+var dig_spots: Array[Dictionary] = []      # {"at": authored Vector3, "sparkle": Node3D}
+var landmarks: Array[Dictionary] = []      # {"at": Vector3, "name": String, "radius": float}
+var well := Vector3.INF
+var bell := Vector3.INF
+var bell_body: Node3D
 var _snow_caps: Array[Node3D] = []
 var _apple_leaves: Array[MeshInstance3D] = []
 var _lamp_glow: StandardMaterial3D
@@ -62,6 +72,14 @@ func rebuild(layout: WorldLayout) -> void:
 	fishing_spots.clear()
 	fishing_waters.clear()
 	forage_spots.clear()
+	signs.clear()
+	tree_spots.clear()
+	bush_spots.clear()
+	ponds.clear()
+	dig_spots.clear()
+	landmarks.clear()
+	well = Vector3.INF
+	bell = Vector3.INF
 	_snow_caps.clear()
 	_apple_leaves.clear()
 	_lamp_pools.clear()
@@ -100,9 +118,27 @@ func _build_entity(layout: WorldLayout, entity: Dictionary) -> void:
 		"pond":
 			_build_pond(area, at.y)
 			fishing_waters.append({"fish": str(entity.get("fish", "perch")), "rare": float(entity.get("rare", 0.0))})
+			var ducks: Array[Details] = []
 			for index in range(2):
-				_add_wildlife(at + Vector3.UP * 0.065, area.size * (0.25 + index * 0.07),
-					false, 2.5 + index * 6.0)
+				ducks.append(_add_wildlife(at + Vector3.UP * 0.065, area.size * (0.25 + index * 0.07),
+					false, 2.5 + index * 6.0))
+			ponds.append({"area": area, "ducks": ducks})
+		"stream":
+			_build_stream(area, at.y)
+		"bridge":
+			_build_bridge(at, area, entity)
+		"well":
+			_build_well(at)
+		"bell":
+			_build_bell(at)
+		"dig":
+			_build_dig_spot(at, authored)
+		"ruin":
+			_build_ruin(at, float(entity.get("yaw", 0.0)))
+		"floodgate":
+			_build_floodgate(at)
+		"landmark":
+			landmarks.append({"at": at, "name": str(entity.get("name", "Landmark")), "radius": float(entity.get("radius", 4.0))})
 		"ridge_barrier":
 			obstacles.append(area)
 		"closed_pass":
@@ -121,6 +157,7 @@ func _build_entity(layout: WorldLayout, entity: Dictionary) -> void:
 			_build_fence(at, float(entity.get("length", 1.0)), float(entity.get("yaw", 0.0)))
 		"tree":
 			_trees.add(at, float(entity.get("scale", 1.0)))
+			tree_spots.append(at)
 		"apple_tree":
 			var fruit := Voxels.tree(self, at, float(entity.get("scale", 1.0)), true)
 			orchard_fruit[authored] = fruit
@@ -130,6 +167,8 @@ func _build_entity(layout: WorldLayout, entity: Dictionary) -> void:
 			_build_forage(at, authored, str(entity.get("item", "berries")))
 		"bush", "rock", "tuft":
 			var batch: VoxelBatch = {"bush": _bushes, "rock": _rocks, "tuft": _tufts}[entity["kind"]]
+			if entity["kind"] == "bush":
+				bush_spots.append(at)
 			batch.add(at, float(entity.get("scale", 1.0)), Color(entity.get("color", "#6f9a57")),
 				float(entity.get("yaw", 0.0)))
 		"purple_flower", "yellow_flower":
@@ -137,6 +176,7 @@ func _build_entity(layout: WorldLayout, entity: Dictionary) -> void:
 			_flowers.add(at, float(entity.get("scale", 0.65)), Color(tint))
 		"sign":
 			_place_signpost(at)
+			signs.append({"at": at, "text": str(entity.get("text", entity.get("label", "")))})
 		"lamp":
 			FarmMesh.box(self, at + Vector3.UP * 0.65, Vector3(0.16, 1.3, 0.16), "#665044")
 			FarmMesh.box(self, at + Vector3.UP * 1.39, Vector3(0.27, 0.29, 0.27), "#ebbd6e", true)
@@ -154,11 +194,12 @@ func _build_entity(layout: WorldLayout, entity: Dictionary) -> void:
 			_build_food_stall(at)
 
 
-func _add_wildlife(at: Vector3, radius: Vector2, flight: bool, phase: float) -> void:
+func _add_wildlife(at: Vector3, radius: Vector2, flight: bool, phase: float) -> Details:
 	var animal := Details.new()
 	add_child(animal)
 	animal.populate(at, radius, flight, phase)
 	wildlife.append(animal)
+	return animal
 
 
 func update_wildlife(delta: float) -> void:
@@ -469,3 +510,159 @@ func _build_puddles(layout: WorldLayout) -> void:
 		layer.multimesh = batch
 		layer.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 		_puddles.add_child(layer)
+
+
+func _build_stream(area: Rect2, height: float) -> void:
+	obstacles.append(area)
+	_ground_patch(area.grow(0.22), height + 0.019, 0.028, "#d9c9ab", Voxels.PATH)
+	_ground_patch(area, height + 0.037, 0.018, "#e8f4ff", Voxels.WATER)
+	# Light streaks drifting along the current.
+	var along_x := area.size.x > area.size.y
+	var length := maxf(area.size.x, area.size.y)
+	for index in range(int(length / 1.7)):
+		var t := (index + 0.5) / maxf(1.0, floorf(length / 1.7))
+		var side := 0.25 + 0.5 * fposmod(index * 0.618, 1.0)
+		var at := Vector3(area.position.x + area.size.x * (t if along_x else side), height + 0.05,
+			area.position.y + area.size.y * (side if along_x else t))
+		FarmMesh.box(self, at, Vector3(0.42, 0.012, 0.05) if along_x else Vector3(0.05, 0.012, 0.42), "#a9cfd0")
+
+
+func _build_bridge(at: Vector3, deck: Rect2, entity: Dictionary) -> void:
+	# The deck spans a gap left between two stream segments; water is drawn beneath it.
+	var along_x := str(entity.get("axis", "x")) == "x"
+	var water: Array = entity.get("water", [1.6, 1.6])
+	_ground_patch(Rect2(at.x - float(water[0]) * 0.5, at.z - float(water[1]) * 0.5, float(water[0]), float(water[1])),
+		at.y + 0.037, 0.018, "#e8f4ff", Voxels.WATER)
+	var bridge := Node3D.new()
+	bridge.position = at
+	add_child(bridge)
+	var length := deck.size.x if along_x else deck.size.y
+	var width := deck.size.y if along_x else deck.size.x
+	var planks := maxi(2, int(length / 0.42))
+	for index in range(planks):
+		var offset := lerpf(-length * 0.5, length * 0.5, (index + 0.5) / planks)
+		var tone := "#b98a5e" if index % 2 == 0 else "#a97c53"
+		var size := Vector3(length / planks - 0.03, 0.1, width) if along_x else Vector3(width, 0.1, length / planks - 0.03)
+		FarmMesh.box(bridge, Vector3(offset, 0.14, 0) if along_x else Vector3(0, 0.14, offset), size, tone)
+	for side: float in [-1.0, 1.0]:
+		var edge: float = side * (width * 0.5 - 0.06)
+		for end: float in [-1.0, 0.0, 1.0]:
+			var along: float = end * (length * 0.5 - 0.1)
+			FarmMesh.box(bridge, Vector3(along, 0.5, edge) if along_x else Vector3(edge, 0.5, along),
+				Vector3(0.12, 0.72, 0.12), "#7a5a43")
+		FarmMesh.box(bridge, Vector3(0, 0.78, edge) if along_x else Vector3(edge, 0.78, 0),
+			Vector3(length, 0.09, 0.09) if along_x else Vector3(0.09, 0.09, length), "#c79a6b")
+
+
+func _build_well(at: Vector3) -> void:
+	well = at
+	obstacles.append(Rect2(at.x - 0.75, at.z - 0.75, 1.5, 1.5))
+	var root := Node3D.new()
+	root.position = at
+	add_child(root)
+	for side in [-1.0, 1.0]:
+		FarmMesh.box(root, Vector3(side * 0.6, 0.3, 0), Vector3(0.3, 0.6, 1.5), "#9a958b")
+		FarmMesh.box(root, Vector3(0, 0.3, side * 0.6), Vector3(0.9, 0.6, 0.3), "#a8a297")
+		FarmMesh.box(root, Vector3(side * 0.6, 1.2, 0), Vector3(0.14, 1.3, 0.14), "#7a5a43")
+	FarmMesh.box(root, Vector3(0, 0.34, 0), Vector3(0.9, 0.05, 0.9), "#3f6f86")
+	FarmMesh.box(root, Vector3(0, 1.62, 0), Vector3(1.36, 0.1, 0.12), "#7a5a43")
+	for step in range(3):
+		FarmMesh.tile(root, Vector3(0, 1.9 + step * 0.16, 0), Vector3(1.7 - step * 0.5, 0.16, 1.5 - step * 0.36), Voxels.ROOF)
+	FarmMesh.box(root, Vector3(0.12, 1.28, 0), Vector3(0.04, 0.6, 0.04), "#d9c9a8")
+	FarmMesh.box(root, Vector3(0.12, 0.92, 0), Vector3(0.26, 0.24, 0.26), "#8b6750")
+
+
+func _build_bell(at: Vector3) -> void:
+	bell = at
+	obstacles.append(Rect2(at.x - 0.75, at.z - 0.2, 1.5, 0.4))
+	var root := Node3D.new()
+	root.position = at
+	add_child(root)
+	for side in [-1.0, 1.0]:
+		FarmMesh.box(root, Vector3(side * 0.62, 1.15, 0), Vector3(0.16, 2.3, 0.16), "#6c4f3e")
+	FarmMesh.box(root, Vector3(0, 2.3, 0), Vector3(1.6, 0.16, 0.22), "#6c4f3e")
+	FarmMesh.box(root, Vector3(0, 0.06, 0), Vector3(1.6, 0.12, 0.5), "#8b8378")
+	bell_body = Node3D.new()
+	bell_body.position = Vector3(0, 2.22, 0)
+	root.add_child(bell_body)
+	FarmMesh.box(bell_body, Vector3(0, -0.14, 0), Vector3(0.1, 0.2, 0.1), "#6c4f3e")
+	FarmMesh.box(bell_body, Vector3(0, -0.38, 0), Vector3(0.36, 0.3, 0.36), "#d8a94a")
+	FarmMesh.box(bell_body, Vector3(0, -0.6, 0), Vector3(0.52, 0.18, 0.52), "#e3b85a")
+	FarmMesh.box(bell_body, Vector3(0, -0.76, 0), Vector3(0.1, 0.14, 0.1), "#5b4636")
+
+
+## The foundation of a home the flood took: broken stone walls, a chimney stump, and moss on the floor.
+func _build_ruin(at: Vector3, yaw: float) -> void:
+	obstacles.append(Rect2(at.x - 1.6, at.z - 1.3, 3.2, 2.6))
+	var root := Node3D.new()
+	root.position = at
+	root.rotation_degrees.y = yaw
+	add_child(root)
+	FarmMesh.box(root, Vector3(0, 0.04, 0), Vector3(3.2, 0.08, 2.6), "#8f8c80")
+	for patch: Vector3 in [Vector3(-0.8, 0.09, 0.3), Vector3(0.7, 0.09, -0.4), Vector3(0.2, 0.09, 0.7)]:
+		FarmMesh.box(root, patch, Vector3(0.8, 0.03, 0.6), "#7f9a62")
+	# Back wall, tallest by the chimney and crumbling toward the far corner.
+	var heights := [1.5, 1.2, 1.3, 0.8, 0.5, 0.3]
+	for index in range(heights.size()):
+		var tall: float = heights[index]
+		FarmMesh.box(root, Vector3(-1.35 + index * 0.52, tall * 0.5, -1.18), Vector3(0.52, tall, 0.24),
+			"#a8a297" if index % 2 == 0 else "#9a958b")
+	# Side walls step down toward the front.
+	for index in range(4):
+		var left: float = 1.1 - index * 0.25
+		var right: float = 0.45 - index * 0.1
+		FarmMesh.box(root, Vector3(-1.48, left * 0.5, -0.8 + index * 0.55), Vector3(0.24, left, 0.55),
+			"#9a958b" if index % 2 == 0 else "#a8a297")
+		FarmMesh.box(root, Vector3(1.48, right * 0.5, -0.8 + index * 0.55), Vector3(0.24, right, 0.55), "#a39e93")
+	# Front wall with the doorway still open, and one doorpost standing.
+	FarmMesh.box(root, Vector3(-1.0, 0.2, 1.18), Vector3(1.0, 0.4, 0.24), "#a8a297")
+	FarmMesh.box(root, Vector3(1.05, 0.14, 1.18), Vector3(0.9, 0.28, 0.24), "#9a958b")
+	FarmMesh.box(root, Vector3(-0.42, 0.6, 1.18), Vector3(0.16, 1.2, 0.16), "#6c5546")
+	# Chimney stump in the back corner, a fallen roof beam, and loose stones.
+	FarmMesh.box(root, Vector3(-1.1, 1.1, -0.85), Vector3(0.62, 2.2, 0.56), "#8d8a80")
+	FarmMesh.box(root, Vector3(-1.1, 2.26, -0.85), Vector3(0.74, 0.14, 0.68), "#7d7a71")
+	var beam := FarmMesh.box(root, Vector3(0.45, 0.22, 0.1), Vector3(2.0, 0.14, 0.16), "#6c5546")
+	beam.rotation_degrees = Vector3(0, 28, 8)
+	for stone: Vector3 in [Vector3(1.0, 0.16, 0.55), Vector3(0.75, 0.13, -0.75), Vector3(-0.3, 0.12, -0.5)]:
+		FarmMesh.box(root, stone, Vector3(0.3, 0.18, 0.26), "#b3ada1")
+	# A high-water line stained across what is left of the walls.
+	FarmMesh.box(root, Vector3(-1.1, 0.95, -0.56), Vector3(0.64, 0.05, 0.02), "#5f7f8a")
+
+
+## The old floodgate across the brook: stone piers on both banks, a raised plank gate, and its wheel.
+func _build_floodgate(at: Vector3) -> void:
+	var root := Node3D.new()
+	root.position = at
+	add_child(root)
+	for side: float in [-1.0, 1.0]:
+		obstacles.append(Rect2(at.x + side * 1.2 - 0.35, at.z - 0.4, 0.7, 0.8))
+		FarmMesh.box(root, Vector3(side * 1.2, 0.8, 0), Vector3(0.6, 1.6, 0.8), "#9a958b")
+		FarmMesh.box(root, Vector3(side * 1.2, 1.66, 0), Vector3(0.72, 0.12, 0.92), "#8d8a80")
+		FarmMesh.box(root, Vector3(side * 0.82, 1.5, 0), Vector3(0.12, 3.0, 0.14), "#6c4f3e")
+	FarmMesh.box(root, Vector3(0, 3.0, 0), Vector3(1.9, 0.16, 0.2), "#6c4f3e")
+	FarmMesh.box(root, Vector3(0, 0.1, 0), Vector3(1.8, 0.2, 0.5), "#8d8a80")
+	for plank in range(4):
+		FarmMesh.box(root, Vector3(-0.57 + plank * 0.38, 1.7, 0), Vector3(0.36, 1.5, 0.1),
+			"#8b6750" if plank % 2 == 0 else "#7a5a43")
+	FarmMesh.box(root, Vector3(0, 1.3, 0.06), Vector3(1.56, 0.1, 0.04), "#4f4a44")
+	FarmMesh.box(root, Vector3(0, 2.1, 0.06), Vector3(1.56, 0.1, 0.04), "#4f4a44")
+	# The wheel on the east pier that raised the gate, rusted in place.
+	var wheel := Node3D.new()
+	wheel.position = Vector3(1.2, 2.05, 0.3)
+	root.add_child(wheel)
+	FarmMesh.box(wheel, Vector3(0, -0.2, -0.3), Vector3(0.12, 0.5, 0.12), "#4f4a44")
+	for spoke in range(4):
+		var arm := FarmMesh.box(wheel, Vector3.ZERO, Vector3(0.7, 0.08, 0.06), "#8a5a3c")
+		arm.rotation_degrees.z = spoke * 45.0
+
+
+func _build_dig_spot(at: Vector3, authored: Vector3) -> void:
+	var sparkle := Node3D.new()
+	sparkle.position = at
+	add_child(sparkle)
+	FarmMesh.tile(sparkle, Vector3(0, 0.04, 0), Vector3(0.62, 0.07, 0.56), Voxels.SOIL, "#cdb49d")
+	FarmMesh.tile(sparkle, Vector3(0.06, 0.09, -0.03), Vector3(0.36, 0.06, 0.32), Voxels.SOIL, "#bfa58d")
+	for glint in [Vector3(-0.12, 0.2, 0.08), Vector3(0.14, 0.3, -0.06), Vector3(0.02, 0.42, 0.1)]:
+		FarmMesh.box(sparkle, glint, Vector3(0.05, 0.05, 0.05), "#ffe9a3", true)
+	sparkle.hide()
+	dig_spots.append({"at": authored, "sparkle": sparkle})

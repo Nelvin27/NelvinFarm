@@ -171,8 +171,28 @@ def picnic(x, z, height=0.0):
     level(x - 1, z - 0.9, x + 1, z + 0.9, "picnic", height)
     reserve(x - 1.0, z - 0.9, x + 1.0, z + 0.9, 0.9)
 
+SIGN_TEXT = {
+    "Home Farm": "Home Farm. Your family's fields. The cottage stayed dry the night of the flood.",
+    "Old Pass": "Old Pass. CLOSED by order of the council. The rockslide is still moving.",
+    "Ridge Trail": "Ridge Trail. Follow the lanterns up to the Summit Lookout.",
+    "Market Lane": "Market Square. Seeds to the west, bread to the south, the council up the row to the north. A coin in the well brings luck.",
+    "Bread Lane": "Bread Lane. From the bakery to the commons. Mara bakes before dawn. Follow your nose.",
+    "Petition board": "@rumor",
+    "Council Row": "Council Row. Up the hill to the petition boards and the town bell. Petitions are heard daily.",
+    "Clinic": "Valley Clinic. Six beds. Open every day since the flood.",
+    "Floodgate": "The old floodgate. Opened once, the night of the flood. Nobody has oiled the wheel since.",
+    "Lost Cottages": "Three homes stood on this bank before the flood. Their plots were sold afterward.",
+    "Commons": "Village Commons. The great oak is older than the village.",
+    "Willow Pond": "Willow Pond. The old waterline. The ducks are fond of bread.",
+    "Clover Meadow": "Clover Meadow. Valley Suppers are held here. Fireflies gather on summer nights.",
+    "Orchard": "Apple Orchard. The fruit ripens in fall. Other trees drop things too, if shaken.",
+    "Reedmere Walk": "Reedmere Walk. East to Clover Lake and Reedmere pond.",
+    "Hilltop Trail": "Hilltop Trail. Around the orchard and back down to the main street.",
+    "Highwater Brook": "Highwater Brook. It ran three times this wide the night of the flood.",
+}
+
 def sign(x, z, label):
-    add("sign", x, z, y=0.02, label=label)
+    add("sign", x, z, y=0.02, label=label, text=SIGN_TEXT.get(label, label))
     reserve(x - 0.3, z - 0.2, x + 0.3, z + 0.2)
 
 def pond(x, z, w, d, fish="perch", rare=0.0):
@@ -190,14 +210,15 @@ lane_x(-6.5, -17.4, 3.6, name="ridge trail (lower)")
 lane_x(-6.5, -20.3, -17.4, trail=True)             # lantern trail north beside the north field
 lane_z(-19.5, -14.3, -5.7, name="ridge trail (terrace)", trail=True)
 lane_x(-13.5, -24.5, -18.7, trail=True)                          # final climb to the north peak
-lane_z(10.0, -22.3, 27.4, w=1.5, name="Pond Lane")               # cottage -> Willow Pond dock -> commons
+lane_z(10.0, -22.3, 10.75, w=1.5, name="Pond Lane")              # cottage -> Willow Pond dock -> bakery
+lane_z(11.0, 9.25, 27.4, w=1.5, name="Bread Lane")               # bakery -> Mara's step -> commons
 path(-13.7, 8.8, -11.3, 10.0, name="cottage forecourt")
 lane_x(-7.0, 5.4, 9.25, w=1.5, name="farm link")
 lane_x(10.0, 8.6, 9.25, w=1.5, name="bakery link")
 lane_x(-21.5, 9.25, 14.75, w=1.5, name="old pass road")
 lane_z(14.0, -26.7, -20.75, w=1.5, name="old pass road")
-lane_x(11.0, -17.6, 0.6, name="Orchard Lane")
-lane_z(-12.5, 11.8, 30.0, w=1.2, name="orchard aisle")
+lane_x(11.0, -9.0, 0.6, name="Council Row")                    # short climb from the square to the boards
+lane_z(-12.5, 15.6, 36.0, w=1.2, name="orchard aisle")
 # Village Commons ring
 lane_z(8.4, 27.4, 44.6, w=1.2, name="commons north")
 lane_z(16.6, 27.4, 44.6, w=1.2, name="commons south")
@@ -213,6 +234,56 @@ lane_z(31.5, 85.2, 94.6, name="Reedmere Walk (pond)")
 lane_z(21.5, 86.8, 92.0, trail=True)
 lane_x(92.0, 13.2, 22.3, trail=True)
 lane_z(13.0, 91.2, 95.6, w=1.4, trail=True)    # up onto the knoll top (flat at x 95..99, z 11.5..14.5)
+
+# --- Highwater Brook -----------------------------------------------------------------------
+# The brook comes down from the Highbank hills, crosses the main street, bends east below the commons,
+# and empties into Clover Lake. Stream segments block movement; each bridge fills a gap between two.
+def stream(x0, z0, x1, z1):
+    add("stream", (x0 + x1) / 2, (z0 + z1) / 2, size=[round(x1 - x0, 3), round(z1 - z0, 3)])
+    level(x0, z0, x1, z1, "stream")
+    reserve(x0, z0, x1, z1, 0.7)
+
+def bridge(x0, z0, x1, z1, axis, water):
+    add("bridge", (x0 + x1) / 2, (z0 + z1) / 2, size=[round(x1 - x0, 3), round(z1 - z0, 3)], axis=axis, water=water)
+    level(x0, z0, x1, z1, "bridge")
+    reserve(x0, z0, x1, z1, 0.5)
+
+lane_z(12.5, 44.6, 59.2, w=1.4, name="Brook Path")
+lane_x(54.4, -12.0, 3.6, w=1.2, name="Old Gate Route")       # east bank, main street -> the floodgate          # commons -> footbridge -> Reedmere Walk
+stream(51.1, -17.0, 52.9, 3.0)
+bridge(50.6, 3.2, 53.4, 5.8, "x", [1.8, 3.0])                # main street bridge
+stream(51.1, 6.0, 52.9, 11.2)
+bridge(50.6, 11.4, 53.4, 13.6, "x", [1.8, 2.6])              # Brook Path footbridge
+stream(51.1, 13.8, 52.9, 19.9)
+stream(52.9, 18.1, 58.7, 19.9)                               # the bend east
+bridge(58.9, 17.6, 61.1, 20.4, "z", [2.6, 1.8])              # Reedmere Walk bridge
+stream(61.3, 18.1, 66.9, 19.9)
+stream(65.1, 19.9, 66.9, 20.5)
+bridge(64.6, 20.6, 67.4, 22.4, "x", [1.8, 2.0])              # lakeside bridge at the brook's mouth
+for x, z in ((50.3, 6.2), (53.7, 2.8), (50.3, 13.9), (53.7, 11.1)):
+    lamp(x, z)
+sign(54.2, 6.3, "Highwater Brook")
+
+# --- Things to use ---------------------------------------------------------------------------
+add("well", 8.6, 2.2)                                        # wishing well in Market Square
+reserve(7.7, 1.3, 9.5, 3.1)
+add("bell", 14.0, -10.6)                                     # town bell on the Council Row plaza
+reserve(13.1, -11.0, 14.9, -10.2)
+
+DIG_SPOTS = [(-2.0, 21.0), (17.5, 22.5), (24.0, -4.6), (32.6, -3.8), (47.2, -6.6), (48.6, 15.4), (64.2, 12.0),
+             (79.0, 17.4), (88.6, 26.2), (100.4, 36.2), (72.0, 33.6), (44.0, 22.4), (30.0, 21.2), (-10.0, 20.2),
+             (5.8, -16.0), (57.4, -8.0), (-17.6, 14.9), (83.0, 40.0)]
+
+LANDMARKS = [("the Summit Lookout", -13.5, -26.0, 3.0), ("the Knoll Lookout", 97.0, 13.0, 2.6),
+             ("the Secret Glade", 66.0, -15.0, 3.6), ("the Hidden Pond", -8.0, 38.5, 4.6),
+             ("the Standing Stones", 48.5, 28.0, 3.0), ("the Great Oak", 36.0, 12.5, 3.0),
+             ("the Old Pass", -26.0, 14.0, 3.0), ("Clover Lake", 70.0, 21.5, 4.0), ("Reedmere", 93.0, 32.5, 4.0),
+             ("Willow Pond", 3.0, 10.6, 3.0), ("Highwater Brook", 52.0, 4.5, 2.6), ("the Wishing Well", 8.6, 2.2, 2.6),
+             ("the Meadow Oak", 21.6, 13.8, 2.6),
+             ("Council Row", 11.0, -11.0, 3.0), ("the Old Floodgate", 53.6, -12.0, 3.0),
+             ("the Lost Cottages", 57.2, 10.4, 3.2)]
+for name, x, z, radius in LANDMARKS:
+    add("landmark", x, z, name=name, radius=radius)
 
 # --- Water -----------------------------------------------------------------------------
 pond(2.95, 13.925, 7.9, 5.35)         # Willow Pond (original position; the flood landmark)
@@ -251,42 +322,62 @@ def house(x, z, street, **fields):
     level(x - 2.2, z - 1.6, x + 2.2, z + 2.4, "house " + fields.get("resident", "?"))
     reserve(x - 2.2, z - 1.6, x + 2.2, z + 2.6, 0.4)
 
-house(25.0, 1.5, "Bread Lane", resident="mara", color="#af6052", trim="#f0d39c", style=1, detail="crate")
-path(24.4, 2.2, 25.6, 3.6, name="Mara's front walk")
-bed(26.3, 2.6, 27.0, 3.3, 3)
-bed(23.0, 2.6, 23.4, 3.3, 2, "yellow_flower")
-fence(22.2, -1.1, 28.4, -1.1)              # Mara's kitchen garden behind the house
-fence(22.2, -1.1, 22.2, 0.9)
-fence(28.4, -1.1, 28.4, 0.9)
-for x in (23.6, 25.0, 27.0):
-    flower(x, -0.6, "yellow_flower", 0.75)
-for x in (22.5, 26.5):
-    tree(x, -3.0, 1.25)
-sign(21.8, 3.0, "Bread Lane")
+house(18.0, 7.6, "Bread Lane", resident="mara", color="#af6052", trim="#f0d39c", style=1, detail="crate")
+path(17.4, 8.3, 18.6, 10.25, name="Mara's front walk")
+bed(19.0, 9.3, 19.9, 9.9, 3)
+bed(16.1, 9.3, 16.9, 9.9, 2, "yellow_flower")
+fence(21.0, 6.2, 24.8, 6.2)                # Mara's kitchen garden beside the house
+fence(24.8, 6.2, 24.8, 9.6)
+fence(21.0, 6.2, 21.0, 7.4)
+for x, z in ((21.8, 7.0), (22.8, 7.2), (23.8, 7.0), (22.2, 8.4), (23.6, 8.6)):
+    flower(x, z, "yellow_flower", 0.75)
+reserve(21.0, 6.2, 24.8, 9.6)
+sign(13.0, 9.6, "Bread Lane")
 
 # --- Council Row (Iona) --------------------------------------------------------------------------
-# Iona keeps the council book. Her house heads a small civic plaza north of the main street, where the
-# petition boards stand; she works there and walks down to the market and Willow Pond.
-lane_x(40.0, -5.4, 3.6, name="Council Row")
-path(35.6, -9.0, 44.4, -5.4, name="Council plaza")
-house(40.0, -11.2, "Council Row", resident="iona", color="#655782", trim="#dfbe7e", style=2, detail="woodpile")
-path(39.4, -10.5, 40.6, -9.0, name="Iona's front walk")
-for x in (36.6, 38.0, 42.0, 43.4):             # petition boards around the plaza
-    sign(x, -9.5 if x in (36.6, 43.4) else -5.0, "Petition board")
-lamp(35.8, -5.6); lamp(44.2, -5.6); lamp(39.1, 2.6)
-bed(36.0, -8.6, 37.0, -7.8, 4, "purple_flower")
-bed(43.0, -8.6, 44.0, -7.8, 4, "purple_flower")
-picnic(37.4, -3.2)                            # where neighbors wait to sign
-hedge_later = [(34.6, -13.4, 45.4, -13.4), (34.6, -13.4, 34.6, -9.6), (45.4, -13.4, 45.4, -9.6)]
-reserve(34.4, -13.6, 45.6, -2.2)
-sign(41.2, 3.0, "Council Row")
+# Iona keeps the council book. Council Row climbs north out of Market Square toward the hills: a short
+# walk up from the market to a civic plaza with the petition boards and the town bell, and her house at
+# its head with the second hill behind it.
+path(6.4, -13.0, 15.6, -9.0, name="Council plaza")
+house(11.0, -15.2, "Council Row", resident="iona", color="#655782", trim="#dfbe7e", style=2, detail="woodpile")
+path(10.4, -14.5, 11.6, -13.0, name="Iona's front walk")
+for x, z in ((7.0, -12.4), (15.0, -12.4), (8.8, -9.5), (13.2, -9.5)):      # petition boards around the plaza
+    sign(x, z, "Petition board")
+lamp(6.6, -9.2); lamp(15.4, -9.2); lamp(11.9, -4.0)
+bed(9.0, -12.9, 10.0, -12.3, 4, "purple_flower")
+bed(12.0, -12.9, 13.0, -12.3, 4, "purple_flower")
+picnic(8.4, -10.9)                            # where neighbors wait to sign
+hedge_later = [(7.4, -17.6, 14.6, -17.6), (7.4, -17.6, 7.4, -13.6), (14.6, -17.6, 14.6, -13.6)]
+sign(12.1, -1.6, "Council Row")
+
+# --- The flood's mark: clinic, floodgate, lost cottages ---------------------------------------------
+# The clinic stands on the west bank by the main-street bridge. Upstream is the floodgate Vera opened to
+# save its six patients; the water went down the east bank instead and took three homes. Their
+# foundations still stand between the brook and Reedmere Walk, on the plots the council later sold.
+house(45.6, 0.4, "Main Street", resident="", color="#e8e4d8", trim="#b5524a", style=0, detail="planter")
+path(45.0, 1.1, 46.2, 3.6, name="clinic front walk")
+sign(43.2, 3.0, "Clinic")
+bed(47.0, 3.0, 47.8, 3.4, 3, "yellow_flower")
+add("floodgate", 52.0, -12.0)
+reserve(50.4, -12.8, 53.6, -11.2)
+sign(55.7, -12.0, "Floodgate")
+lamp(55.6, -4.0); lamp(55.6, -10.4)
+def ruin(x, z, yaw=0):
+    add("ruin", x, z, yaw=yaw)
+    level(x - 1.6, z - 1.3, x + 1.6, z + 1.3, "ruin")
+    reserve(x - 1.6, z - 1.3, x + 1.6, z + 1.3, 0.3)
+ruin(56.6, 8.6)
+ruin(55.9, 15.5, 180)
+ruin(64.0, 8.6, 180)
+sign(58.3, 10.9, "Lost Cottages")
 
 # Main-street lanterns and street trees
 for x in (17.5, 31.0, 50.0, 58.0):
     lamp(x, 3.0)
-for x in (20.0, 44.5, 54.0):
+for x in (26.2, 44.5, 54.0):
     lamp(x, 6.0)
-for x in (16.0, 23.0, 30.5, 38.0, 47.0, 51.5, 56.5):
+lamp(15.0, 11.9); lamp(22.6, 10.1)                           # Bread Lane
+for x in (30.5, 41.0, 47.0, 49.2):
     tree(x, 6.6, 1.15)
 
 # --- Village Commons ---------------------------------------------------------------------
@@ -306,7 +397,8 @@ add("butterflies", 36.0, 11.0)
 sign(37.2, 6.2, "Commons")
 for x in (26.0, 46.0):
     for z in (9.5, 12.5, 15.5):
-        tree(x, z, 1.0)
+        if (x, z) != (46.0, 12.5):          # the Brook Path leaves the commons here
+            tree(x, z, 1.0)
 
 # --- Willow Pond and Clover Meadow ------------------------------------------------------------
 sign(1.6, 9.0, "Willow Pond")
@@ -318,7 +410,7 @@ bed(-1.2, 17.3, 6.8, 17.6, 6)
 add("butterflies", 20.0, 15.0)
 add("butterflies", 9.0, 21.5)
 picnic(22.0, 21.5)
-sign(18.5, 11.0, "Clover Meadow")
+sign(19.8, 12.3, "Clover Meadow")
 reserve(-1.4, 10.8, 7.4, 17.4, 0.4)    # pond plus banks
 # Wildflowers across the meadow, leaving the Supper clearing open
 for _ in range(70):
@@ -327,25 +419,26 @@ for _ in range(70):
         flower(x, z)
 
 # --- Orchard -----------------------------------------------------------------------------------
-for x in (14, 17, 20, 23, 26, 29):
+# East of Council Row, reached by the aisle from the plaza.
+for x in (20, 23, 26, 29, 32, 35):
     for z in (-8, -11, -14, -17):
         tree(x + rng.uniform(-0.15, 0.15), z + rng.uniform(-0.15, 0.15), round(rng.uniform(0.95, 1.1), 2), "apple_tree")
-reserve(12.6, -18.6, 30.4, -6.4)
-fence(12.6, -18.8, 30.6, -18.8)
-fence(12.6, -6.2, 30.6, -6.2)
-fence(30.6, -18.8, 30.6, -6.2)
-fence(12.6, -18.8, 12.6, -13.3)
-fence(12.6, -11.7, 12.6, -6.2)
-add("butterflies", 20.0, -12.5)
-add("butterflies", 27.0, -9.5)
-sign(12.0, 3.0, "Orchard")
-lamp(11.9, -5.0); lamp(10.1, -12.0)
+reserve(18.6, -18.6, 36.4, -6.4)
+fence(18.6, -18.8, 36.6, -18.8)
+fence(18.6, -6.2, 36.6, -6.2)
+fence(36.6, -18.8, 36.6, -13.3)
+fence(36.6, -11.7, 36.6, -6.2)
+fence(18.6, -18.8, 18.6, -13.3)
+fence(18.6, -11.7, 18.6, -6.2)
+add("butterflies", 26.0, -12.5)
+add("butterflies", 33.0, -9.5)
+sign(17.8, -11.2, "Orchard")
 
 # --- Reedmere Walk and the eastern lakes ----------------------------------------------------------
 sign(61.2, 6.0, "Reedmere Walk")
 for z in (10.0, 16.0):
     lamp(61.0, z)
-lamp(66.0, 20.4); lamp(78.0, 20.4); lamp(87.1, 27.0); lamp(95.0, 30.4)
+lamp(68.4, 20.4); lamp(78.0, 20.4); lamp(87.1, 27.0); lamp(95.0, 30.4)
 picnic(80.6, 26.0)
 picnic(90.0, 43.0)
 reeds(65.0, 75.0, 28.95)
@@ -359,14 +452,13 @@ reserve(64.0, 21.8, 76.0, 29.3, 0.4)
 reserve(88.5, 31.6, 97.5, 41.3, 0.4)
 
 # --- Exploration: secret spots, loops, the summit, landmarks -------------------------------------
-# Hilltop Trail: from the top of Orchard Lane over the shoulder of the second hill to Council Row.
-lane_x(11.0, -22.3, -17.6, trail=True)                  # over the second hill's shoulder
-lane_z(-21.5, 11.8, 14.0, w=1.4, trail=True)
-lane_z(-21.5, 14.0, 36.7, w=1.4, name="Hilltop Trail")
-lane_x(36.0, -22.2, -9.0, w=1.4, name="Hilltop Trail (descent)")
-for x, z in ((18.0, -20.3), (26.0, -22.7), (34.8, -16.0)):
+# Hilltop Trail: from the Council plaza around the back of the orchard and down to the main street.
+lane_x(17.0, -22.2, -12.5, w=1.4, name="Hilltop Trail (climb)")
+lane_z(-21.5, 16.3, 38.7, w=1.4, name="Hilltop Trail")
+lane_x(38.0, -22.2, 3.6, w=1.4, name="Hilltop Trail (descent)")
+for x, z in ((22.0, -20.3), (30.0, -22.7), (39.1, -15.0), (39.1, -4.0)):
     lamp(x, z)
-sign(12.2, -17.0, "Hilltop Trail")
+sign(15.9, -19.6, "Hilltop Trail")
 
 # Lakeside loop around Clover Lake.
 lane_x(63.2, 21.5, 30.9, w=1.2, name="lake loop west")
@@ -426,7 +518,7 @@ FORAGE = {
     "berries": [(-18.5, -11.5), (13.5, 23.5), (49.8, 10.4), (GLADE[0] - 2.4, GLADE[1] + 1.8), (33.5, 26.8),
                 (70.6, 13.5), (-6.0, 23.6), (87.5, 7.5)],
     "mushroom": [(-21.0, 30.5), (HIDDEN[0] - 2.4, HIDDEN[1] - 1.6), (5.5, 40.5), (47.0, 39.0), (58.0, -17.5),
-                 (72.5, -12.5), (40.0, -38.0), (86.0, -20.0)],
+                 (72.5, -12.5), (42.0, -17.0), (86.0, -20.0)],
     "shell": [(95.5, 42.2), (97.9, 36.5), (88.1, 37.5), (7.6, 14.6), (HIDDEN[0] + 2.4, HIDDEN[1] + 0.6), (65.4, 30.3 - 1.0)],
 }
 for item, spots in FORAGE.items():
@@ -435,6 +527,13 @@ for item, spots in FORAGE.items():
             problems.append(f"forage {item} on a slope at ({x},{z})")
         add("forage", x, z, item=item)
         reserve(x - 0.5, z - 0.5, x + 0.5, z + 0.5)
+
+for x, z in DIG_SPOTS:
+    if elevation(x, z) != 0.0 or not clear(x, z, 0.3):
+        problems.append(f"dig spot blocked at ({x},{z})")
+        continue
+    add("dig", x, z)
+    reserve(x - 0.6, z - 0.6, x + 0.6, z + 0.6)
 
 # --- Forests, hedgerows, and flower drifts --------------------------------------------------------
 placed = [(e["position"][0], e["position"][2]) for e in E if e["kind"] in ("tree", "apple_tree")]
@@ -516,7 +615,7 @@ added = sum(1 for e in E if e["kind"] == "tree")
 # Three layers per stretch of the ring: a crest of uneven peaks on the ridge line, broken ridges in front,
 # and broad low foothills reaching into the valley. Broad, low shapes give wide green terraces; only the
 # crest climbs to bare rock and snow. Any piece that would lift ground the town needs flat is skipped.
-FLAT_KINDS = ("path", "pond", "picnic", "resident_house", "fence", "plot", "cottage", "seed_market", "bakery",
+FLAT_KINDS = ("ruin", "floodgate", "stream", "bridge", "well", "bell", "dig", "path", "pond", "picnic", "resident_house", "fence", "plot", "cottage", "seed_market", "bakery",
               "lamp", "sign", "forage", "bunting", "closed_pass", "spawn")
 FLAT_POINTS = []
 for e in E:
@@ -606,6 +705,24 @@ for (x0, z0), (x1, z1), (ix, iz) in EDGES:
             if place(mound(cx + ix * inset + ux * shift, cz + iz * inset + uz * shift, w, d, rng.uniform(1.6, 3.6))):
                 placed_range["foothill"] += 1
         s += step
+# Close any low gap on the ridge-barrier line, so the wall that stops the player always looks like a
+# mountain (the smoke test checks four crossings for ground at least 2 blocks high).
+INNER = [((-34, -50), (113, -50), (0, -1)), ((113, -50), (113, 57), (1, 0)),
+         ((113, 57), (-34, 57), (0, 1)), ((-34, 57), (-34, -50), (-1, 0))]
+for (x0, z0), (x1, z1), (ox, oz) in INNER:
+    length = math.hypot(x1 - x0, z1 - z0)
+    for i in range(int(length / 2) + 1):
+        x, z = x0 + (x1 - x0) * i * 2 / length, z0 + (z1 - z0) * i * 2 / length
+        if elevation(x, z) >= 3:
+            continue
+        for size, height in ((16, 10), (12, 8), (9, 7)):
+            if place(mound(x + ox * 3, z + oz * 3, size, size, height, 1.2)):
+                placed_range["gap fill"] += 1
+                break
+low = [(x0 + (x1 - x0) * s / 50, z0 + (z1 - z0) * s / 50) for (x0, z0), (x1, z1), _ in INNER for s in range(51)]
+low = [(round(x), round(z)) for x, z in low if elevation(x, z) < 2]
+if low:
+    problems.append(f"ridge line is low at {low[:6]}")
 print("mountain range:", dict(placed_range))
 
 # Trees climb the foothills and the lower ridge terraces.
@@ -632,6 +749,9 @@ PATHS = [(e["position"][0] - e["size"][0] / 2, e["position"][2] - e["size"][1] /
           e["position"][0] + e["size"][0] / 2, e["position"][2] + e["size"][1] / 2) for e in E if e["kind"] == "path"]
 PONDS = [(e["position"][0] - e["size"][0] / 2 - 0.45, e["position"][2] - e["size"][1] / 2 - 1.3,
           e["position"][0] + e["size"][0] / 2 + 0.45, e["position"][2] + e["size"][1] / 2 + 0.3) for e in E if e["kind"] == "pond"]
+PONDS += [(e["position"][0] - e["size"][0] / 2 - 0.4, e["position"][2] - e["size"][1] / 2 - 0.4,
+           e["position"][0] + e["size"][0] / 2 + 0.4, e["position"][2] + e["size"][1] / 2 + 0.4)
+          for e in E if e["kind"] in ("stream", "bridge")]
 HOUSES = [(e["position"][0] - 2.0, e["position"][2] - 1.6, e["position"][0] + 2.0, e["position"][2] + 2.4)
           for e in E if e["kind"] == "resident_house"]
 HOUSES.append((-15.9, 3.1, -9.1, 9.6))                      # cottage, porch, shipping bin
@@ -671,7 +791,7 @@ def occupied_cells():
         if e["kind"] in ("mountain", "ridge_barrier"):
             continue
         x, z = e["position"][0], e["position"][2]
-        if e["kind"] in ("path", "pond"):
+        if e["kind"] in ("path", "pond", "stream", "bridge"):
             w, d = e["size"]
             cx = math.floor((x - w / 2) / 5)
             while cx * 5 < x + w / 2:

@@ -1,5 +1,7 @@
 [gd_scene format=3 uid="uid://b1gbnfyelcxgw"]
 
+[ext_resource type="Script" path="res://valley_interactions.gd" id="interactions"]
+
 [ext_resource type="Script" uid="uid://cakobrrq4kfvx" path="res://farm.gd" id="1"]
 [ext_resource type="Script" uid="uid://dypkpe20y4vc0" path="res://farm_scenery.gd" id="2"]
 [ext_resource type="Script" uid="uid://e6auwtug8pnl" path="res://player/follow_camera.gd" id="3"]
@@ -132,6 +134,9 @@ spread = 180.0
 gravity = Vector3(0, 0, 0)
 initial_velocity_min = 0.08
 initial_velocity_max = 0.35
+
+[node name="Interactions" type="Node" parent="."]
+script = ExtResource("interactions")
 
 [node name="Audio" parent="." unique_id=888093643 instance=ExtResource("10")]
 

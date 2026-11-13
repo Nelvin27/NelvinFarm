@@ -8,6 +8,9 @@ var radius := Vector2.ONE
 var flight := false
 var elapsed := 0.0
 var wings: Array[MeshInstance3D] = []
+## Ducks swim to `lure` while `lure_time` runs (someone is feeding them), then drift back to their circuit.
+var lure := Vector3.ZERO
+var lure_time := 0.0
 
 
 static func picnic(parent: Node3D, at: Vector3) -> Rect2:
@@ -52,6 +55,11 @@ static func closed_pass(parent: Node3D, at: Vector3) -> Rect2:
 	return Rect2(Vector2(at.x - 0.8, at.z - 2.45), Vector2(1.8, 4.9))
 
 
+func attract(target: Vector3, seconds: float) -> void:
+	lure = target
+	lure_time = seconds
+
+
 func populate(at: Vector3, roaming_radius: Vector2, is_butterfly: bool, phase: float) -> void:
 	radius = roaming_radius
 	flight = is_butterfly
@@ -74,8 +82,18 @@ func populate(at: Vector3, roaming_radius: Vector2, is_butterfly: bool, phase: f
 func advance(delta: float) -> void:
 	elapsed += delta
 	var angle := elapsed * (0.9 if flight else 0.38)
-	position = origin + Vector3(cos(angle) * radius.x, sin(elapsed * 2.1) * (0.28 if flight else 0.025),
+	var circuit := origin + Vector3(cos(angle) * radius.x, sin(elapsed * 2.1) * (0.28 if flight else 0.025),
 		sin(angle) * radius.y)
-	rotation.y = atan2(-sin(angle) * radius.x, cos(angle) * radius.y)
+	if flight or delta <= 0.0:
+		position = circuit
+		rotation.y = atan2(-sin(angle) * radius.x, cos(angle) * radius.y)
+	else:
+		lure_time = maxf(0.0, lure_time - delta)
+		var goal := Vector3(lure.x, circuit.y, lure.z) if lure_time > 0.0 else circuit
+		var step := position.move_toward(goal, delta * (1.7 if lure_time > 0.0 else 2.4))
+		var heading := (step - position) * Vector3(1, 0, 1)
+		if heading.length_squared() > 0.000004:
+			rotation.y = lerp_angle(rotation.y, atan2(heading.x, heading.z), minf(1.0, delta * 8.0))
+		position = Vector3(step.x, circuit.y + (absf(sin(elapsed * 9.0)) * 0.05 if lure_time > 0.0 else 0.0), step.z)
 	for index in range(wings.size()):
 		wings[index].rotation.z = sin(elapsed * 18.0) * (0.8 if index == 0 else -0.8)

@@ -195,6 +195,13 @@ unique_name_in_owner = true
 size_flags_horizontal = 3
 horizontal_alignment = 1
 
+[node name="Sort" type="Button" parent="Pages"]
+layout_mode = 2
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 40)
+tooltip_text = "Merge stacks and put tools and seeds first"
+text = "Sort bag"
+
 [node name="Next" type="Button" parent="Pages"]
 layout_mode = 2
 unique_name_in_owner = true
@@ -202,6 +209,8 @@ custom_minimum_size = Vector2(0, 40)
 text = "Next"
 
 [connection signal="pressed" from="Body/Card/Inspection/Use" to="." method="_use_selected"]
+
+[connection signal="pressed" from="Pages/Sort" to="." method="sort"]
 
 [connection signal="pressed" from="Pages/Previous" to="." method="_move_page" binds= [-1]]
 

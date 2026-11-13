@@ -10,8 +10,9 @@ const VIEWS := {
 	"overview": "24,4,72,30,8",        # perspective: x, z, distance, pitch, yaw (degrees)
 	"farm": "-6,4,22,30,-25",
 	"square": "8,4,14,34,20",
-	"bread_lane": "26,3,15,24,0",
-	"council_row": "40,-6,15,30,10",
+	"bread_lane": "17,8,15,34,10",
+	"council_row": "11,-10,15,32,10",
+	"flood": "55,4,20,36,-15",
 	"commons": "36,12,17,36,15",
 	"lakes": "78,26,26,30,10",
 	"summit": "-13.5,-24,13,38,20",

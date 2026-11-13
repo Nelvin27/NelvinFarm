@@ -29,6 +29,7 @@ func _run() -> void:
 	var solids := _solids(farm.scenery)
 	var paths := _rects("path")
 	var ponds := _rects("pond")
+	ponds.append_array(_rects("stream"))
 	var trees: Array[Dictionary] = []
 	for e: Dictionary in layout.entities:
 		if e.kind in ["tree", "apple_tree"]:
@@ -54,7 +55,7 @@ func _run() -> void:
 					if _circle_hits(p, CANOPY * scale * 0.6, r.grow(0.4)):
 						_add(p, "%s at (%.1f, %.1f) stands in a pond" % [e.kind, p.x, p.y])
 						break
-			"purple_flower", "yellow_flower", "forage", "lamp", "sign", "grass", "picnic", "bunting":
+			"purple_flower", "yellow_flower", "forage", "lamp", "sign", "grass", "picnic", "bunting", "dig", "bush", "rock":
 				var half: float = {"picnic": 1.0, "bunting": 1.8, "grass": 0.5, "lamp": 0.18, "forage": 0.32}.get(e.kind, 0.12)
 				_check_ledge(e, p, half, "sits across a block ledge")
 				if e.kind in ["purple_flower", "yellow_flower", "forage", "grass"]:
@@ -125,6 +126,7 @@ func _rects(kind: String) -> Array[Rect2]:
 func _solids(scenery) -> Array[Rect2]:
 	var out: Array[Rect2] = []
 	var ponds := _rects("pond")
+	ponds.append_array(_rects("stream"))
 	var barriers := _rects("ridge_barrier")
 	for r: Rect2 in scenery.obstacles:
 		if r in ponds or r in barriers:
@@ -196,7 +198,7 @@ func _check_path(e: Dictionary, p: Vector2, paths: Array[Rect2], ponds: Array[Re
 
 func _near_landmark(at: Vector2) -> bool:
 	for e: Dictionary in layout.entities:
-		if e.kind in ["resident_house", "cottage", "seed_market", "bakery", "closed_pass", "picnic", "pond", "lamp"]:
+		if e.kind in ["resident_house", "cottage", "seed_market", "bakery", "closed_pass", "picnic", "pond", "lamp", "bridge", "floodgate", "ruin"]:
 			var p := Vector2(e.position[0], e.position[2])
 			var reach := 4.5 if e.kind in ["pond", "cottage"] else 2.6
 			if p.distance_to(at) < reach:

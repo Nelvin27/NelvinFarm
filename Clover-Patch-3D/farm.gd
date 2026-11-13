@@ -5,7 +5,7 @@ extends Node3D
 enum Plot { EMPTY, TILLED, PLANTED, WATERED, RIPE }
 enum Tool { HANDS, HOE, WATERING_CAN, SICKLE }
 enum Interaction { NONE, PLOT, SEEDS, FOOD, ENTER, EXIT, BED, REPAIR, SHIPPING, ORCHARD, FISHING, KITCHEN, RESIDENT,
-	PICNIC, CLOSED_PASS, FORAGE }
+	PICNIC, CLOSED_PASS, FORAGE, WORLD }
 
 const Save := preload("res://farm_save.gd")
 const Orders := preload("res://farm_orders.gd")
@@ -30,6 +30,7 @@ const UISkin := preload("res://farm_ui_theme.gd")
 const Player := preload("res://player/player.gd")
 const FollowCamera := preload("res://player/follow_camera.gd")
 const GardenPlot := preload("res://effects/garden_plot.gd")
+const WorldInteractions := preload("res://valley_interactions.gd")
 const GARDEN_PLOT_SCENE := preload("res://effects/garden_plot.tscn")
 const BakeryMenu := preload("res://ui/bakery_menu.gd")
 const ShippingMenu := preload("res://ui/shipping_menu.gd")
@@ -77,6 +78,9 @@ const FORAGE_ITEMS := {"berries": Catalog.WILD_BERRIES, "mushroom": Catalog.CHAN
 const FORAGE_REACH := 1.1
 const PLOT_REACH := 1.0
 const NO_PLOT := Vector2i(-1, -1)
+const RUN_FACTOR := 1.45
+## From this hour the farmer may go to bed without being tired.
+const BEDTIME_HOUR := 18.0
 
 var settings := Settings.new()
 var layout := WorldLayout.new()
@@ -116,6 +120,7 @@ var kitchen_point: Vector3
 var cursor_released := false
 var active_menu: Control
 var hotbar_slot := 0
+var last_worked_plot := NO_PLOT
 
 var message := "Welcome to Clover Valley. Press J to see your first delivery orders."
 
@@ -151,6 +156,7 @@ var message := "Welcome to Clover Valley. Press J to see your first delivery ord
 @onready var test_menu: TestMenu = $UI/TestMenu
 @onready var resident_test_menu: ResidentTestMenu = $UI/ResidentTestMenu
 @onready var fireflies: CPUParticles3D = $Fireflies
+@onready var world: WorldInteractions = $Interactions
 
 
 func _input(event: InputEvent) -> void:
@@ -190,10 +196,20 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif event is InputEventMouseButton and event.pressed:
 		match event.button_index:
 			MOUSE_BUTTON_LEFT:
-				_set_cursor_released(false)
+				# The first click takes the cursor back; after that a click is the same as E.
+				if cursor_released:
+					_set_cursor_released(false)
+				else:
+					_use_world_action()
+			MOUSE_BUTTON_RIGHT:
+				if not cursor_released:
+					_use_hotbar_item()
 			MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN:
 				var direction := 1 if event.button_index == MOUSE_BUTTON_WHEEL_DOWN else -1
-				_select_hotbar(posmod(hotbar_slot + direction, InventoryGrid.ROW_SIZE))
+				if event.shift_pressed:
+					camera.zoom(direction)
+				else:
+					_select_hotbar(posmod(hotbar_slot + direction, InventoryGrid.ROW_SIZE))
 				get_viewport().set_input_as_handled()
 
 
@@ -212,8 +228,7 @@ func _unhandled_key_input(event: InputEvent) -> void:
 		KEY_E:
 			_use_world_action()
 		KEY_F:
-			_update_bag()
-			inventory_grid.use_slot(hotbar_slot)
+			_use_hotbar_item()
 		KEY_1, KEY_2, KEY_3, KEY_4:
 			_select_belt_tool(key.physical_keycode - KEY_1)
 
@@ -221,6 +236,24 @@ func _unhandled_key_input(event: InputEvent) -> void:
 func _use_world_action() -> void:
 	_interact()
 	_refresh()
+
+
+func _use_hotbar_item() -> void:
+	_update_bag()
+	inventory_grid.use_slot(hotbar_slot)
+
+
+## Picks up the tool a job needs, so E always does the obvious thing to what the farmer faces.
+func _auto_equip(tool: Tool) -> void:
+	if equipped_tool == tool:
+		return
+	equipped_tool = tool
+	_update_held_tool()
+	for slot in range(InventoryGrid.ROW_SIZE):
+		var stack := inventory_grid.stack_at(slot)
+		if stack != null and stack.kind == InventoryGrid.Kind.TOOL and stack.item_id == tool:
+			hotbar_slot = slot
+			break
 
 
 func _select_belt_tool(index: int) -> void:
@@ -263,7 +296,15 @@ func _process(delta: float) -> void:
 	var distance := player.walk(Vector2i(horizontal, vertical), camera.yaw, _walk_speed(), delta)
 	player.animate(distance, delta)
 	sound.walk(0.0 if player.is_stepping() else distance, indoors)
+	if not indoors:
+		world.update(delta, player.position, distance)
 	_update_interaction_targets()
+	# Holding E while walking along a row works each new plot the farmer faces, once.
+	if Input.is_physical_key_pressed(KEY_E) and not cursor_released and not indoors:
+		var facing := _target_plot()
+		if (facing != NO_PLOT and facing != last_worked_plot and plots.get(facing, Plot.EMPTY) != Plot.WATERED
+				and _interaction(facing) == Interaction.PLOT):
+			_use_world_action()
 	_update_camera(delta)
 	clock.tick(delta, distance > 0.0)
 	village.update_routines(day, clock.hour, delta)
@@ -280,6 +321,8 @@ func _walk_speed() -> float:
 		return Player.WALK_SPEED * 0.70
 	if clock.hunger < 45.0 or clock.fatigue >= FarmClock.SLEEP_FATIGUE:
 		return Player.WALK_SPEED * 0.86
+	if Input.is_physical_key_pressed(KEY_SHIFT):
+		return Player.WALK_SPEED * RUN_FACTOR
 	return Player.WALK_SPEED
 
 
@@ -340,9 +383,9 @@ func _work_plot() -> void:
 		return
 
 	var required := _required_tool(target)
-	if required != Tool.HANDS and equipped_tool != required:
-		message = "Equip the %s from your bag first." % TOOL_NAMES[required]
-		return
+	last_worked_plot = target
+	if required != Tool.HANDS:
+		_auto_equip(required)
 
 	var action: Plot = plots.get(target, Plot.EMPTY)
 	match action:
@@ -368,7 +411,8 @@ func _work_plot() -> void:
 			elif equipped_seed == Catalog.GRASS:
 				message = "%s planted. It grows without watering." % crop.label
 			else:
-				message = "%s planted. Press 3 to equip the Watering Can." % crop.label
+				message = "%s planted. Press E again to water it." % crop.label
+			_switch_seed_when_out()
 		Plot.PLANTED:
 			var plant := growing[target]
 			var crop := Catalog.crops[plant.id]
@@ -408,6 +452,17 @@ func _work_plot() -> void:
 	_train_skill(Skills.Skill.FARMING)
 	_show_plot(target)
 	_animate_work(action, target)
+
+
+## When the equipped seed packet is empty, moves on to another in-season seed in the bag.
+func _switch_seed_when_out() -> void:
+	if seed_bag.get(equipped_seed, 0) > 0:
+		return
+	for id in range(Catalog.SEED_COUNT):
+		if seed_bag.get(id, 0) > 0 and Catalog.crops[id].grows_in(season):
+			equipped_seed = id
+			message += "  ·  Now planting %s." % Catalog.crops[id].label
+			return
 
 
 func _water_neighboring_crops(target: Vector2i) -> int:
@@ -493,7 +548,9 @@ func _interaction(target: Vector2i) -> Interaction:
 	for pass_approach in scenery.closed_passes:
 		if at.distance_to(pass_approach) <= 1.8:
 			return Interaction.CLOSED_PASS
-	return Interaction.PLOT if target != NO_PLOT else Interaction.NONE
+	if target != NO_PLOT:
+		return Interaction.PLOT
+	return Interaction.NONE if world.nearby(at).is_empty() else Interaction.WORLD
 
 
 func _nearby_fishing_spot() -> Vector3:
@@ -522,6 +579,8 @@ func _choose_catch(spot: int) -> int:
 	var chance: float = water.rare
 	if clock.hour >= 18.0 or weather.kind == Weather.Kind.RAIN:
 		chance = maxf(chance, MOONFIN_CHANCE)
+	if world.luck:
+		chance = maxf(chance, WorldInteractions.LUCKY_MOONFIN)
 	if randf() < chance:
 		return Catalog.MOONFIN
 	return POND_FISH.get(water.fish, Catalog.POND_PERCH)
@@ -611,9 +670,10 @@ func _exhaustion_message() -> void:
 
 
 func _blocked_by_fatigue(action: Interaction) -> bool:
-	return _is_exhausted() and action in [
+	return _is_exhausted() and (action in [
 		Interaction.PLOT, Interaction.SEEDS, Interaction.FOOD, Interaction.REPAIR,
-		Interaction.ORCHARD, Interaction.FISHING, Interaction.FORAGE]
+		Interaction.ORCHARD, Interaction.FISHING, Interaction.FORAGE] or (
+		action == Interaction.WORLD and world.tiring(world.nearby(player.position))))
 
 
 func _interact() -> void:
@@ -644,6 +704,8 @@ func _interact() -> void:
 			_pick_apple()
 		Interaction.FORAGE:
 			_gather_forage()
+		Interaction.WORLD:
+			world.use(world.nearby(player.position))
 		Interaction.RESIDENT:
 			_talk_to_resident(village.nearby(player.position))
 		Interaction.PICNIC:
@@ -756,8 +818,8 @@ func _set_indoors(entering: bool) -> void:
 func _try_sleep() -> void:
 	if not indoors or player.position.distance_to(bed_point) > 1.25:
 		return
-	if clock.fatigue < FarmClock.SLEEP_FATIGUE:
-		message = "Too early to sleep. Fatigue must reach %d%%." % int(FarmClock.SLEEP_FATIGUE)
+	if clock.fatigue < FarmClock.SLEEP_FATIGUE and clock.hour < BEDTIME_HOUR:
+		message = "Too early to sleep. Come back after %d:00 or when you are tired." % int(BEDTIME_HOUR)
 		return
 	clock.rest()
 	player.halt()
@@ -829,6 +891,7 @@ func _advance_day() -> void:
 	_update_orchard()
 	picked_forage.clear()
 	_update_forage()
+	world.new_day(day)
 	if changed:
 		completed_orders = 0
 	_update_weather()
@@ -859,6 +922,7 @@ func _advance_day() -> void:
 		message = "Good morning! %d plot(s) are ready to harvest." % ripe
 	if changed:
 		scenery.set_season(season)
+		sound.play_season(season)
 		message = "%s has begun. New delivery orders are in your journal." % Catalog.SEASONS[season]
 	if watered > 0:
 		message += " Rain watered %d plot(s)." % watered
@@ -889,9 +953,10 @@ func _ready() -> void:
 	kitchen_point = (interior.get_node("Kitchen") as Marker3D).global_position
 	player.setup(layout, scenery.obstacles, interior.position)
 	village.populate(layout, scenery.obstacles, scenery.resident_doors)
+	world.setup(self)
 	_fill_resident_test_picker()
 	_apply_settings()
-	sound.music.play()
+	sound.play_season(season, true)
 	player.position = layout.grounded(layout.anchor("spawn"))
 	player.face(player.facing_angle)
 	_update_held_tool()
@@ -946,6 +1011,7 @@ func _save_farm() -> Error:
 		"village": village.state(),
 		"coins": coins, "bread": rations, "seeds": seed_bag, "produce": produce,
 		"shipments": shipments, "picked_apple_trees": picked_apple_trees.keys(), "picked_forage": picked_forage.keys(),
+		"world": world.state(),
 		"tool": equipped_tool, "seed": equipped_seed, "slots": inventory_grid.save_slots(),
 		"backpack_rows": inventory_grid.unlocked_rows, "hotbar_slot": hotbar_slot,
 		"hour": clock.hour, "hunger": clock.hunger, "fatigue": clock.fatigue,
@@ -973,6 +1039,8 @@ func _load_farm() -> void:
 	_restore_stock(seed_bag, state.get("seeds"), Catalog.SEED_COUNT)
 	_restore_stock(produce, state.get("produce"))
 	_restore_stock(shipments, state.get("shipments"))
+	world.restore(state.get("world"))
+	world.show_day(day)
 	var gathered: Variant = state.get("picked_forage")
 	if gathered is Array:
 		for at: Variant in gathered:
@@ -992,6 +1060,7 @@ func _load_farm() -> void:
 	if cottage_repaired:
 		_show_cottage_repair()
 	scenery.set_season(season)
+	sound.play_season(season, true)
 	_update_forage()
 	_restore_plots(state.get("plots"))
 	_restore_position(state)
@@ -1146,6 +1215,7 @@ func _update_interaction_targets() -> void:
 		if not Catalog.crops[plant.id].grows_in(season):
 			hud.crop_label.text = "%s  ·  Dormant" % name
 	var prompt := ""
+	var world_hint := ""
 	var action := _interaction(target)
 	match action:
 		Interaction.PLOT:
@@ -1170,6 +1240,10 @@ func _update_interaction_targets() -> void:
 		Interaction.FORAGE:
 			var spot: Dictionary = scenery.forage_spots[_nearby_forage()]
 			prompt = "Gather %s" % Catalog.crops[FORAGE_ITEMS[spot.item]].label
+		Interaction.WORLD:
+			var thing := world.nearby(player.position)
+			prompt = thing.prompt
+			world_hint = str(thing.get("blocked", ""))
 		Interaction.FISHING:
 			prompt = "Cast a line"
 		Interaction.KITCHEN:
@@ -1181,7 +1255,9 @@ func _update_interaction_targets() -> void:
 		Interaction.CLOSED_PASS:
 			prompt = "Inspect the closed pass"
 	var required := _required_tool(target) if action == Interaction.PLOT else Tool.HANDS
-	if active_menu != null or prompt.is_empty():
+	if active_menu == null and not world_hint.is_empty():
+		hud.set_prompt(world_hint, false)
+	elif active_menu != null or prompt.is_empty():
 		hud.set_prompt("", false)
 	elif _blocked_by_fatigue(action):
 		hud.set_prompt("Exhausted  ·  Eat or sleep before working", false)
@@ -1598,6 +1674,7 @@ func _update_collection() -> void:
 		"%s · Less fatigue from plot work" % skills.progress_text(Skills.Skill.FARMING),
 		"%s · More time to reel in" % skills.progress_text(Skills.Skill.FISHING),
 		"%s · Meals relieve more fatigue" % skills.progress_text(Skills.Skill.COOKING),
+		"Places discovered · %d of %d" % [world.discovered_count(), scenery.landmarks.size()],
 		"Collection complete" if donated_specimens == COMPLETE_COLLECTION else (
 			"Valley classics on display · %d/%d specimens · Complete it for %d coins." % [
 				_donated_count(), SPECIMENS.size(), FULL_COLLECTION_REWARD]

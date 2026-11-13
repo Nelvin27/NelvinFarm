@@ -49,6 +49,7 @@ func _ready() -> void:
 		var button := slot as Button
 		var index := slots.size()
 		button.pressed.connect(_select.bind(index))
+		button.gui_input.connect(_slot_input.bind(index))
 		button.set_drag_forwarding(_drag_slot.bind(index), _can_drop_on_slot.bind(index),
 			_drop_on_slot.bind(index))
 		slots.append(button)
@@ -281,7 +282,7 @@ func _draw_slots() -> void:
 	var selected := stack_at(selection)
 	item_type.text = "IN YOUR BAG" if selected == null else ITEM_TYPES[selected.kind].to_upper()
 	preview_icon.texture = selected.texture if selected != null else null
-	details.text = "Select an item. Drag stacks to rearrange them." if selected == null else (
+	details.text = "Select an item. Drag stacks to rearrange them.\nRight-click or double-click to use one." if selected == null else (
 		"%s ×%d%s" % [selected.title, selected.quantity, "\nEquipped" if selected.equipped else ""])
 	use_button.text = selected.action if selected != null and not selected.action.is_empty() else "Use item"
 	use_button.disabled = selected == null or selected.action.is_empty()
@@ -292,6 +293,48 @@ func _draw_slots() -> void:
 	following.disabled = page == _last_page()
 	page_label.text = "%d / %d slots unlocked  ·  First row is the hotbar" % [
 		unlocked_rows * ROW_SIZE, PAGE_SIZE] if page == 0 else "Reserve · %d / %d" % [page, _last_page()]
+
+
+## Right-click or double-click uses an item straight from its slot.
+func _slot_input(event: InputEvent, index: int) -> void:
+	var click := event as InputEventMouseButton
+	if click == null or not click.pressed:
+		return
+	if click.button_index == MOUSE_BUTTON_RIGHT or (click.button_index == MOUSE_BUTTON_LEFT and click.double_click):
+		var slot := page * PAGE_SIZE + index
+		if stack_at(slot) != null:
+			selection = slot
+			use_slot(slot)
+			_draw_slots()
+
+
+## Tidies the bag: merges split stacks and orders them tools, seeds, provisions, then harvest.
+func sort() -> void:
+	var merged: Dictionary[Vector2i, Stack] = {}
+	for stack in stacks:
+		if stack == null:
+			continue
+		if merged.has(stack.key()):
+			merged[stack.key()].quantity += stack.quantity
+		else:
+			merged[stack.key()] = _copy_stack(stack, stack.quantity)
+	var order := merged.keys()
+	var rank := {Kind.TOOL: 0, Kind.SEED: 1, Kind.BREAD: 2, Kind.HARVEST: 3}
+	order.sort_custom(func(a: Vector2i, b: Vector2i) -> bool:
+		return rank[a.x] < rank[b.x] or (rank[a.x] == rank[b.x] and a.y < b.y))
+	stacks.clear()
+	for key: Vector2i in order:
+		var total := merged[key].quantity
+		while total > 0:
+			var slot := _empty_slot()
+			if slot >= stacks.size():
+				stacks.resize(slot + 1)
+			stacks[slot] = _copy_stack(merged[key], mini(total, STACK_LIMIT))
+			total -= mini(total, STACK_LIMIT)
+	selection = -1
+	page = 0
+	_draw_slots()
+	stacks_changed.emit()
 
 
 func _select(index: int) -> void:

@@ -7,7 +7,9 @@ const Layout := preload("res://world_layout.gd")
 ## Flat-footprint kinds and their half extents (paths and ponds use their size).
 const FLAT := {"resident_house": Vector2(2.0, 1.6), "picnic": Vector2(1.0, 0.9), "fence": Vector2(0.4, 0.4),
 	"plot": Vector2(0.4, 0.4), "cottage": Vector2(0.4, 0.4), "seed_market": Vector2(0.4, 0.4),
-	"bakery": Vector2(0.4, 0.4), "bunting": Vector2(0.4, 0.4), "sign": Vector2(0.4, 0.4)}
+	"bakery": Vector2(0.4, 0.4), "bunting": Vector2(0.4, 0.4), "sign": Vector2(0.4, 0.4),
+	"well": Vector2(0.8, 0.8), "bell": Vector2(0.8, 0.3), "dig": Vector2(0.4, 0.4),
+	"ruin": Vector2(1.6, 1.3), "floodgate": Vector2(1.5, 0.4)}
 ## Trails deliberately climb the north peak and the east knoll.
 const TRAIL_AREAS := [Rect2(-15, -26, 10, 9), Rect2(88, 11, 9, 13), Rect2(9, -23, 5, 6)]
 
@@ -43,7 +45,7 @@ func _check_level_ground(layout) -> void:
 	for e: Dictionary in layout.entities:
 		var at := Layout.position_of(e)
 		var half: Vector2
-		if e.kind in ["path", "pond"]:
+		if e.kind in ["path", "pond", "stream", "bridge"]:
 			var size: Array = e.get("size", [1, 1])
 			half = Vector2(size[0], size[1]) * 0.5
 		elif FLAT.has(e.kind):
@@ -78,6 +80,17 @@ func _check_reachable(farm) -> void:
 	for spot: Vector3 in farm.scenery.picnic_spots:
 		if spot.y == 0.0:   # the summit table is reached by climbing, which villager paths don't model
 			spots["picnic table (%.0f, %.0f)" % [spot.x, spot.z]] = spot + Vector3(0, 0, 1.4)
+	for dig: Dictionary in farm.scenery.dig_spots:
+		spots["dig spot (%.0f, %.0f)" % [dig.at.x, dig.at.z]] = dig.at
+	for sign: Dictionary in farm.scenery.signs:
+		spots["sign (%.0f, %.0f)" % [sign.at.x, sign.at.z]] = sign.at + Vector3(0, 0, 0.8)
+	for landmark: Dictionary in farm.scenery.landmarks:
+		if landmark.at.y == 0.0:
+			spots[landmark.name] = landmark.at
+	if farm.scenery.well.is_finite():
+		spots["wishing well"] = farm.scenery.well + Vector3(0, 0, 1.4)
+	if farm.scenery.bell.is_finite():
+		spots["town bell"] = farm.scenery.bell + Vector3(0, 0, 1.0)
 	for forage: Dictionary in farm.scenery.forage_spots:
 		spots["%s forage (%.0f, %.0f)" % [forage.item, forage.at.x, forage.at.z]] = forage.at
 	for name: String in spots:

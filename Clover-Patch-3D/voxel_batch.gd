@@ -58,6 +58,16 @@ func set_part_color(part_index: int, color: Color, force := false) -> void:
 		batch.set_instance_color(instance, color)
 
 
+## Tilts one copy about its base, for rustling trees and bushes. Zero angles restore it.
+func tilt(instance: int, lean_x: float, lean_z: float) -> void:
+	if instance < 0 or instance >= _transforms.size() or _nodes.is_empty():
+		return
+	var base := _transforms[instance]
+	var leaned := Transform3D(Basis(Vector3.RIGHT, lean_x) * Basis(Vector3.BACK, lean_z) * base.basis, base.origin)
+	for index in range(parts.size()):
+		_nodes[index].multimesh.set_instance_transform(instance, leaned * Transform3D(Basis.IDENTITY, parts[index][0]))
+
+
 func set_visible(visible: bool) -> void:
 	for node in _nodes:
 		node.visible = visible

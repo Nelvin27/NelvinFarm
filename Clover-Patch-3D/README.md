@@ -8,9 +8,9 @@ In the Godot Project Manager, select **Import**, pick this folder's `project.god
 
 ## 2. Grow your first turnip
 
-Walk with **WASD** or the **arrow keys** and orbit the camera with the **mouse**. Face a nearby garden plot to highlight it. Press **E** with the **Hoe** equipped to till. Press **E** again to plant the equipped seed, then press **3** to equip the **Watering Can** and press **E** to water. The **Sickle** is required to harvest spinach and fodder grass. Pick other ripe crops with **E**, regardless of the tool you are holding. A turnip planted and watered on Spring 1 is ready on Spring 5 if you water it every day. The plot tooltip shows the number of watered nights remaining.
+Walk with **WASD** or the **arrow keys** and orbit the camera with the **mouse**. Hold **Shift** to run. Face a nearby garden plot to highlight it. Press **E** (or **left-click**) to till it, again to plant the equipped seed, and again to water. The farmer picks up the right tool for each job: the **Hoe** for bare soil, the **Watering Can** for a planted crop, and the **Sickle** for spinach and fodder grass. Hold **E** while walking along a row to work each plot once as you pass it. A turnip planted and watered on Spring 1 is ready on Spring 5 if you water it every day. The plot tooltip shows the number of watered nights remaining.
 
-The clock advances while you play. Follow the farm lane southwest to the cottage. Press **E** by the door to enter, and press **E** beside the bed once fatigue reaches **65%**. Sleeping starts the next morning and advances watered crops. Use the doormat to leave. Press **E** near the outside repair sign to fix the roof and window for **10 coins**. The same upgrade replaces the damaged floorboard and adds a rug and curtains inside.
+The clock advances while you play. Follow the farm lane southwest to the cottage. Press **E** by the door to enter, and press **E** beside the bed after **18:00**, or earlier once fatigue reaches **65%**. Sleeping starts the next morning and advances watered crops. Use the doormat to leave. Press **E** near the outside repair sign to fix the roof and window for **10 coins**. The same upgrade replaces the damaged floorboard and adds a rug and curtains inside.
 
 Fatigue stages are **Rested**, **Getting tired** (30%), **Tired** (65%), and **Exhausted** (90%). The food meter warns when you're **Hungry** (below 45%) or **Very hungry** (below 20%). Hunger and fatigue can slow walking. At 90% fatigue, farming, shopping, equipping seeds, and cottage repairs are blocked. You can still walk home, use the door, sleep, or eat. Bread reduces fatigue by 22 points. Edible crops reduce it by 14.
 
@@ -25,13 +25,15 @@ Crop timing reference: [Spring](https://fogu.com/sos3/farm/spring_crops.html), [
 ## 4. Food shop, inventory, and testing
 
 - Visit the **Valley Bakery** southeast of the home garden and press **E** by its stall. Bread costs **2 coins** and restores 35 food when eaten.
-- Use **1** for empty hands, **2** for the Hoe, **3** for the Watering Can, and **4** for the Sickle. **E** works the highlighted plot or uses the nearby object.
+- **E** or **left-click** works the highlighted plot or uses the nearby object. **F** or **right-click** uses the selected hotbar item. You can still pick a tool yourself with **1** (empty hands), **2** (Hoe), **3** (Watering Can), and **4** (Sickle).
+- **Shift + mouse wheel** zooms the camera in and out.
+- When the equipped seed runs out, the farmer switches to another in-season seed from the bag.
 - Press **Tab** to free the cursor. Click a hotbar slot, Bag, Journal, Pause, or the nearby action prompt. Press **Tab** again or click the world to return to camera control.
 - The hotbar mirrors the first 12 slots of the Farm Bag. Scroll the mouse wheel or click a slot to select it. Selecting a tool or seed equips it when available. Press **F** to use the selected item. Drag stacks in the bag to reorder the hotbar.
 - The backpack starts with 12 slots. Buy expansions in the Farm Bag to unlock 24 slots for **30 coins**, then 36 slots for **80 coins**. Older stacks beyond the unlocked rows and guaranteed rewards that exceed capacity remain accessible on the Reserve page.
-- Press **I** to open your bag. Drag stacks between slots on the current page. Matching stacks merge up to 64, and different items swap positions. Select an illustrated item slot to equip a tool or seed, or eat that item. Select the equipped tool again to put it away. Stacks hold up to 64 items, and more pages appear as your bag fills.
+- Press **I** to open your bag. Drag stacks between slots on the current page. Matching stacks merge up to 64, and different items swap positions. Select an illustrated item slot to equip a tool or seed, or eat that item. Select the equipped tool again to put it away. **Right-click** or **double-click** a slot to use it at once, and press **Sort bag** to merge split stacks and put tools and seeds first. Stacks hold up to 64 items, and more pages appear as your bag fills.
 - Press **F7** to open or close the Test menu. **Resident testing** lets you set exact favor, try the date and partnership thresholds, reset the selected resident’s romance or daily gift state, and stock their favorite and disliked gifts. You can open dialogue without earning the daily visit bonus, jump to the resident during work hours, or watch them leave home. The main menu still has the farm, time, and cottage shortcuts.
-- **E** prompts appear only within reach of the current plot, shop, door, bed, or repair sign.
+- **E** prompts appear only within reach of something you can use, such as a plot, shop, door, bed, sign, or tree.
 
 ## 5. Pause and settings
 
@@ -39,14 +41,30 @@ Press **Esc** during play to pause the world, including the clock, hunger, and f
 
 ## 6. Explore Clover Valley
 
-- Follow Market Lane east through the market square, past the fenced East Garden with 24 more plots, and on along Bread Lane, where Mara lives beside the bakery.
-- Take Council Row north from the main street to Iona's house and the petition boards. South of the main street, the Village Commons has a great oak, bunting, and picnic tables.
-- Take Orchard Lane north from the square to the fenced Apple Orchard. In fall, look for red apples on trees and press **E** nearby to pick one. Different trees bear fruit each morning. Eat the apples from your bag, sell them at the market, or ship them.
-- Pond Lane runs from the cottage past Willow Pond to the Commons. At the dock on the pond's north bank, press **E** to cast. Wait for the bite cue, then press **E** or choose **Reel in** before the meter empties. Pond Perch goes into your bag and can be eaten, cooked, sold, or shipped. Clover Meadow opens south of the lane.
-- Reedmere Walk leads east from the end of the main street to Clover Lake and Reedmere pond, each with its own fishing dock.
+- Follow Market Lane east through the market square and past the fenced East Garden with 24 more plots. The main street carries on east over Highwater Brook to Reedmere Walk.
+- Take Council Row north out of the square. A short walk up is the plaza with the petition boards and the town bell, and Iona's house stands at its head under the hill.
+- The orchard aisle leads east from the plaza into the fenced Apple Orchard. In fall, look for red apples on trees and press **E** nearby to pick one. Different trees bear fruit each morning. Eat the apples from your bag, sell them at the market, or ship them.
+- The Hilltop Trail leaves the plaza, loops behind the orchard, and comes back down to the main street.
+- Pond Lane runs from the cottage past Willow Pond to the bakery. At the dock on the pond's north bank, press **E** to cast. Wait for the bite cue, then press **E** or choose **Reel in** before the meter empties. Pond Perch goes into your bag and can be eaten, cooked, sold, or shipped.
+- Bread Lane continues east from the bakery to the Village Commons, with its great oak, bunting, and picnic tables. Mara's house is the first on the lane. Clover Meadow opens to the south.
+- Highwater Brook comes down from the Highbank hills, crosses the main street, and empties into Clover Lake. It can only be crossed at its four bridges. The clinic stands on its west bank. On the east bank, the Old Gate Route follows the water north to the old floodgate, and the foundations of three cottages lost to the flood stand beside Reedmere Walk.
+- Reedmere Walk leads from the east end of the main street to Clover Lake and Reedmere pond, each with its own fishing dock. A path loops all the way around Clover Lake.
 - Follow the lantern trail north from the home farm to the summit lookout on the north peak, where a table and lanterns overlook the valley, or take the short trail onto the east knoll. Walk toward a higher block to hop up, or walk off a ledge to drop to the lower terrace.
-- The Hilltop Trail climbs from the top of Orchard Lane over the second hill and comes down at Council Row. A path loops all the way around Clover Lake.
 - Not every place has a path. Look for a quiet glade deep in the northern woods, a ring of standing stones in the south meadow, and a hidden pond in the southern woods.
+
+### Things to touch
+
+Press **E** when the prompt appears. Plots, shops, residents, and fishing docks take priority when they are also in reach.
+
+- **Signs** can be read. The petition boards on Council Row post a daily notice: tomorrow's weather, a rumor about a buried find, and a fishing tip.
+- **Trees** can be shaken. Once a day each tree may drop berries (spring and summer), a chanterelle or apple (fall), or a few coins. Bushes rustle as you brush past.
+- **Ducks** take bread from any pond bank. The first feeding of the day raises the Moonfin chance to 35% everywhere until morning.
+- **The wishing well** in Market Square takes one coin, once a day. A wish may pay coins back, bring fishing luck, hint at a buried find, or ease fatigue.
+- **The town bell** on Council Row rings and tells the time.
+- **Buried finds** sparkle in four places each day. Dig them up with the Hoe for coins, a River Shell, seeds, or a lost coin purse.
+- **Places** are discovered by walking into them. Each of the 16 pays 2 coins, and finding them all pays 25 more. The Collection page keeps count.
+
+Shaking trees and digging are tiring work and are blocked when you are exhausted. Everything here is saved with the farm and resets each morning, except discovered places.
 
 ### Foraging and fishing
 
@@ -55,7 +73,7 @@ Press **Esc** during play to pause the world, including the clock, hunger, and f
 
 ### Night and weather
 
-Lanterns pool warm light on the paths from dusk to dawn, and fireflies drift over Clover Meadow on clear summer nights. Rain leaves puddles on the roads. Leaves turn orange in fall, and winter frosts the trees and settles snow on the roofs.
+Each season has its own music, and the theme changes on the first morning of a new season. Lanterns pool warm light on the paths from dusk to dawn, and fireflies drift over Clover Meadow on clear summer nights. Rain leaves puddles on the roads. Leaves turn orange in fall, and winter frosts the trees and settles snow on the roofs.
 
 ## 7. Change the world
 
@@ -120,6 +138,6 @@ From this folder, run `godot --headless --import` followed by `godot --headless 
 | Cottage, shops, fences, and signs | Block-built props, pixel-textured timber, and a stepped cottage roof with separate damaged and repaired states. |
 | Farmer, tools, and crops | Block silhouettes retain the farmer's straw hat and walk animation. Crop shapes distinguish leafy crops, flowers, and produce. |
 | Inventory and menus | Fifty original item icons are redrawn on a 16 × 16 pixel grid. Menus use squared panel corners. |
-| Audio | Original Clover Patch music and sound effects carry over from the previous build. |
+| Audio | Four original seasonal themes and all sound effects are synthesized by the scripts in `tools/audio/`, as a small pastoral band: flute or accordion lead, guitar, marimba, upright bass, and soft strings. No samples or existing melodies are used. |
 
 Villagers go inside their houses during home hours. Their doors open as they leave for scheduled stops and when they return. Resident interiors are reserved for future visits; players cannot enter them yet.

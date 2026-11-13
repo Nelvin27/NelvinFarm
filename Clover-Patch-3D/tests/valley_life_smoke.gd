@@ -24,6 +24,8 @@ func _run() -> void:
 	await _test_valley_edges_and_picnics()
 	await _test_collection_and_skills()
 	await _test_valley_extras()
+	await _test_world_interactions()
+	await _test_controls_and_bag()
 	await _test_village_story()
 	await _test_town_events()
 	await _test_resident_routines()
@@ -532,6 +534,273 @@ func _test_valley_extras() -> void:
 		and not farm.scenery._flowers._nodes[0].visible, "Winter adds snow to the roofs and hides the flowers.")
 	farm.scenery.set_season(Catalog.Season.SPRING)
 	_check(not farm.scenery._snow_caps[1].visible, "Snow melts in spring.")
+	farm.queue_free()
+	await process_frame
+
+
+## Stands the farmer within `radius` of `center` where E would use a world interaction of `kind`.
+func _reach(farm: Node, center: Vector3, radius: float, kind: int) -> bool:
+	for step in range(8):
+		var angle := step * TAU / 8.0
+		farm.player.position = farm.layout.grounded(
+			Vector3(center.x + cos(angle) * radius, 0, center.z + sin(angle) * radius))
+		if (farm._interaction(farm._target_plot()) == farm.Interaction.WORLD
+				and farm.world.nearby(farm.player.position).get("kind") == kind):
+			return true
+	return false
+
+
+func _carried(farm: Node) -> int:
+	var total: int = farm.coins
+	for count: int in farm.produce.values():
+		total += count
+	for count: int in farm.seed_bag.values():
+		total += count
+	return total
+
+
+func _test_world_interactions() -> void:
+	_check(Save.write({"day": 1, "coins": 5, "bread": 2}) == OK, "The world interactions fixture saves.")
+	var farm := FARM.instantiate()
+	root.add_child(farm)
+	var world: Node = farm.world
+	var scenery: Node = farm.scenery
+	var Kind: Dictionary = world.Kind
+	seed(11)
+
+	_check(farm.sound.music.playing and farm.sound.music.stream == farm.sound.SEASON_MUSIC[farm.season],
+		"The season's theme plays.")
+	farm.sound.play_season(Catalog.Season.WINTER, true)
+	_check(farm.sound.music.stream == farm.sound.SEASON_MUSIC[Catalog.Season.WINTER], "Each season has its own theme.")
+	farm.sound.play_season(farm.season, true)
+
+	# Signs and petition boards.
+	var plain := -1
+	var board := -1
+	for index in range(scenery.signs.size()):
+		var text: String = scenery.signs[index].text
+		if text.is_empty() or (plain >= 0 and not text.begins_with("@")) or (board >= 0 and text.begins_with("@")):
+			continue
+		if _reach(farm, scenery.signs[index].at, 0.7, Kind.SIGN) and world.nearby(farm.player.position).index == index:
+			_key(farm, KEY_E)
+			if text.begins_with("@"):
+				board = index
+				_check(farm.message.begins_with("Petition board") and "Tomorrow's sky" in farm.message,
+					"A petition board shows the daily notice with tomorrow's weather.")
+			else:
+				plain = index
+				_check(farm.message == text, "Reading a sign shows its text.")
+	_check(plain >= 0 and board >= 0, "A sign and a petition board can each be reached and read.")
+
+	# Tree shaking.
+	var tree := -1
+	for index in range(scenery.tree_spots.size()):
+		if _reach(farm, scenery.tree_spots[index], 0.7, Kind.TREE):
+			tree = world.nearby(farm.player.position).index
+			break
+	_check(tree >= 0, "A tree is in reach to shake.")
+	if tree >= 0:
+		var fatigue: float = farm.clock.fatigue
+		var before := _carried(farm)
+		_key(farm, KEY_E)
+		_check(world.shaken.has(tree) and farm.clock.fatigue > fatigue and _carried(farm) >= before,
+			"Shaking a tree tires the farmer, marks the tree, and never costs anything.")
+		_check(world._is_wobbling(scenery._trees, tree), "A shaken tree wobbles.")
+		world.update(1.0, farm.player.position, 0.0)
+		_check(not world._is_wobbling(scenery._trees, tree), "The wobble settles within a second.")
+		before = _carried(farm)
+		_key(farm, KEY_E)
+		_check(_carried(farm) == before and "shaken today" in farm.message, "A tree drops things once per day.")
+
+	# Feeding the ducks.
+	var pond := -1
+	for index in range(scenery.ponds.size()):
+		var area: Rect2 = scenery.ponds[index].area
+		var middle := area.get_center()
+		if scenery.ponds[index].ducks.is_empty():
+			continue
+		for bank: Vector2 in [Vector2(area.position.x - 0.6, middle.y), Vector2(area.end.x + 0.6, middle.y),
+				Vector2(middle.x, area.end.y + 0.6)]:
+			farm.player.position = farm.layout.grounded(Vector3(bank.x, 0, bank.y))
+			if (farm._interaction(farm._target_plot()) == farm.Interaction.WORLD
+					and world.nearby(farm.player.position).get("kind") == Kind.DUCKS):
+				pond = index
+				break
+		if pond >= 0:
+			break
+	_check(pond >= 0, "A pond with ducks has a bank to feed them from.")
+	if pond >= 0:
+		var unlucky := false
+		for attempt in range(60):
+			unlucky = unlucky or farm._choose_catch(-1) == Catalog.MOONFIN
+		_check(not unlucky, "Moonfin stays away from plain water on a clear morning.")
+		_key(farm, KEY_E)
+		_check(farm.rations == 1 and world.ducks_fed and world.luck, "Feeding the ducks costs a bread and brings luck.")
+		_check(scenery.ponds[pond].ducks[0].lure_time > 0.0, "Fed ducks swim toward the farmer.")
+		var lucky := false
+		for attempt in range(60):
+			lucky = lucky or farm._choose_catch(-1) == Catalog.MOONFIN
+		_check(lucky, "Duck luck lets Moonfin bite anywhere.")
+		_key(farm, KEY_E)
+		_check(farm.rations == 0 and not str(world.nearby(farm.player.position).get("blocked", "")).is_empty(),
+			"Without bread the ducks only show a hint.")
+		_key(farm, KEY_E)
+		_check(farm.rations == 0, "Feeding with no bread does nothing.")
+
+	# Wishing well.
+	_check(_reach(farm, scenery.well, 1.3, Kind.WELL), "The wishing well can be used from Market Square.")
+	var coins: int = farm.coins
+	_key(farm, KEY_E)
+	_check(world.wished and farm.coins in [coins - 1, coins + 3], "A wish costs one coin, and may pay four back.")
+	coins = farm.coins
+	_key(farm, KEY_E)
+	_check(farm.coins == coins and "already heard" in farm.message, "The well grants one wish a day.")
+
+	# Town bell.
+	_check(_reach(farm, scenery.bell, 1.2, Kind.BELL), "The town bell can be reached.")
+	_key(farm, KEY_E)
+	_check("bell rings" in farm.message and farm.clock.clock_text() in farm.message, "Ringing the bell tells the time.")
+
+	# Buried finds.
+	var digs: Array = world.active_digs()
+	_check(digs.size() == world.DIGS_PER_DAY, "Four buried finds sparkle each day.")
+	var spot: Dictionary = scenery.dig_spots[digs[0]]
+	_check(spot.sparkle.visible and _reach(farm, spot.at, 0.5, Kind.DIG), "Today's find sparkles and can be reached.")
+	_key(farm, KEY_3)
+	var held := _carried(farm)
+	_key(farm, KEY_E)
+	_check(farm.equipped_tool == farm.Tool.HOE, "Digging picks up the Hoe by itself.")
+	_check(world.dug.has(spot.at) and not spot.sparkle.visible and _carried(farm) > held,
+		"Digging gives a find and removes the sparkle.")
+	_check(world.nearby(farm.player.position).get("kind") != Kind.DIG, "A dug spot cannot be dug again.")
+
+	# Landmarks.
+	var total: int = scenery.landmarks.size()
+	var first: Dictionary = {}
+	for landmark: Dictionary in scenery.landmarks:
+		if not world.discovered.has(landmark.name):
+			first = landmark
+			break
+	_check(total > 0 and not first.is_empty(), "The valley has places left to discover.")
+	if not first.is_empty():
+		coins = farm.coins
+		world.update(0.0, first.at, 0.0)
+		_check(world.discovered.has(first.name) and farm.coins == coins + world.DISCOVERY_COINS
+			and farm.message.begins_with("Discovered " + first.name), "Walking into a landmark discovers it and pays 2 coins.")
+		coins = farm.coins
+		world.update(0.0, first.at, 0.0)
+		_check(farm.coins == coins, "A landmark pays once.")
+		var remaining: int = total - world.discovered_count()
+		for landmark: Dictionary in scenery.landmarks:
+			world.update(0.0, landmark.at, 0.0)
+		_check(world.discovered_count() == total
+			and farm.coins == coins + remaining * world.DISCOVERY_COINS + world.EXPLORER_REWARD,
+			"Finding every landmark pays the explorer reward.")
+		farm._open_collection()
+		_check(farm.find_children("*", "Label", true, false).any(func(label: Label) -> bool:
+			return "Places discovered · %d of %d" % [total, total] in label.text), "The Collection page shows the places found.")
+		_key(farm, KEY_ESCAPE)
+
+	# Save, reload, and the next morning.
+	_check(farm._save_farm() == OK, "World interaction state saves.")
+	farm.queue_free()
+	await process_frame
+	farm = FARM.instantiate()
+	root.add_child(farm)
+	world = farm.world
+	_check(world.shaken.has(tree) and world.dug.has(spot.at) and world.wished and world.ducks_fed and world.luck,
+		"Reloading keeps today's shaken tree, dug spot, wish, and duck luck.")
+	_check(world.discovered_count() == total, "Reloading keeps discovered landmarks.")
+	_check(world.active_digs() == digs and not farm.scenery.dig_spots[digs[0]].sparkle.visible,
+		"Reloading keeps today's finds, with the dug one still gone.")
+	farm._test_advance_day()
+	_check(world.shaken.is_empty() and world.dug.is_empty() and not world.wished and not world.ducks_fed and not world.luck,
+		"A new day resets trees, digs, the wish, and duck luck.")
+	_check(world.discovered_count() == total and world.active_digs().size() == world.DIGS_PER_DAY,
+		"A new day keeps discoveries and buries four new finds.")
+	farm.queue_free()
+	await process_frame
+
+
+func _test_controls_and_bag() -> void:
+	_check(Save.write({"day": 1, "coins": 5}) == OK, "The controls fixture saves.")
+	var farm := FARM.instantiate()
+	root.add_child(farm)
+	var tile: Vector2i = farm._target_plot()
+	_key(farm, KEY_4)
+	_key(farm, KEY_E)
+	_check(farm.plots[tile] == farm.Plot.TILLED and farm.equipped_tool == farm.Tool.HOE,
+		"E on bare soil picks up the Hoe and tills, whatever tool was held.")
+	_key(farm, KEY_E)
+	_key(farm, KEY_E)
+	_check(farm.plots[tile] == farm.Plot.WATERED and farm.equipped_tool == farm.Tool.WATERING_CAN,
+		"E plants, then picks up the Watering Can and waters.")
+	_check(farm.last_worked_plot == tile, "The farm remembers the last plot worked, so holding E moves on.")
+
+	var other := -1
+	for id in range(Catalog.SEED_COUNT):
+		if id != farm.equipped_seed and id != Catalog.GRASS and Catalog.crops[id].grows_in(farm.season):
+			other = id
+			break
+	farm.seed_bag.clear()
+	farm.seed_bag[farm.equipped_seed] = 1
+	farm.seed_bag[other] = 3
+	farm.plots[tile] = farm.Plot.TILLED
+	farm.growing.erase(tile)
+	_key(farm, KEY_E)
+	_check(farm.equipped_seed == other and farm.seed_bag[other] == 3,
+		"Planting the last seed switches to another in-season seed in the bag.")
+
+	var grid: Control = farm.inventory_grid
+	farm.rations = 2
+	farm.produce[Catalog.WILD_BERRIES] = 3
+	farm._update_bag()
+	var before := 0
+	for stack in grid.stacks:
+		before += stack.quantity if stack != null else 0
+	grid.stacks.reverse()
+	grid.stacks.insert(1, null)
+	grid.sort()
+	var after := 0
+	var ordered := true
+	var rank := {Bag.Kind.TOOL: 0, Bag.Kind.SEED: 1, Bag.Kind.BREAD: 2, Bag.Kind.HARVEST: 3}
+	for index in range(grid.stacks.size()):
+		ordered = ordered and grid.stacks[index] != null
+		if ordered:
+			after += grid.stacks[index].quantity
+			if index > 0:
+				ordered = rank[grid.stacks[index - 1].kind] <= rank[grid.stacks[index].kind]
+	_check(ordered and after == before and grid.stacks[0].kind == Bag.Kind.TOOL,
+		"Sorting the bag closes gaps, keeps every item, and puts tools first.")
+
+	farm.clock.hunger = 40.0
+	farm._update_bag()
+	var bread := -1
+	for index in range(grid.stacks.size()):
+		if grid.stacks[index] != null and grid.stacks[index].kind == Bag.Kind.BREAD:
+			bread = index
+	var click := InputEventMouseButton.new()
+	click.button_index = MOUSE_BUTTON_RIGHT
+	click.pressed = true
+	grid._slot_input(click, bread)
+	_check(farm.rations == 1, "Right-clicking a bag slot uses the item.")
+
+	var reach: float = farm.camera.distance
+	farm.camera.zoom(1)
+	_check(farm.camera.distance > reach, "The camera zooms out.")
+	for step in range(30):
+		farm.camera.zoom(-1)
+	_check(is_equal_approx(farm.camera.distance, farm.camera.MIN_DISTANCE), "The camera stops at its closest zoom.")
+
+	farm._set_indoors(true)
+	farm.player.position = farm.bed_point
+	farm.clock.fatigue = 0.0
+	farm.clock.hour = 10.0
+	farm._try_sleep()
+	_check(farm.day == 1, "A rested farmer cannot sleep in the morning.")
+	farm.clock.hour = 19.0
+	farm._try_sleep()
+	_check(farm.day == 2, "From 18:00 the farmer can go to bed without being tired.")
 	farm.queue_free()
 	await process_frame
 

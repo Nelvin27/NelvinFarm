@@ -4,6 +4,22 @@ Build a farming town where crops, animals, neighbors, collecting, and exploratio
 
 The next playable milestone is **a coop, one hen, and an egg at dawn**. Fodder grass already exists, the day transition already updates crops and shipping, and eggs can feed the cooking, market, and shipping loops. This is the shortest route from the current build to a farm that feels more alive.
 
+## Where the game stands (2026-11-13)
+
+The [game design reference](../docs/GAME-DESIGN.md) lists every rule in the current build. Since this roadmap was first written, parts of milestones 2 and 4 have shipped: three more fish and a rare catch, seasonal forage, dig spots, a nine-specimen collection, and a valley full of things to touch. The numbered milestones below are unchanged and still describe the full goal for each area.
+
+### Do first
+
+These are small, and each one fixes something the current build gets wrong.
+
+1. **Play-test the recent work.** Nothing added since 2026-11-12 has been played by a person. Watch the tree wobble, ducks, and bell; listen to the music and effects; try running and holding E.
+2. **Rebalance fatigue.** Walking alone exhausts the farmer in about five and a half minutes, and watering 15 crops does the same on a farm with 59 plots. Proposed: cut the passive rise to about a third, make planting cost 2 and watering 3, add a small cost to running, keep the shops open when exhausted, and pass out at 02:00 with a penalty the next morning.
+3. **Restore the cast.** Move the 30 parked residents back from `village/characters_disabled/`, give each a house in the district the story names, and update their routines. This is what makes the story playable again and clears the 10 failing smoke checks.
+4. **Finish the story's map.** Add Highbank Terrace with its uphill lamp route, and staff the clinic.
+5. **Rescore the mechanics comparison.** Its percentages predate the fishing, forage, and collection work.
+
+After those, the next playable milestone below still stands.
+
 ## Interface roadmap
 
 The tool belt and day panel put Stardew Valley-style shortcuts and Back to Nature-style daily status on the play screen. The Farm Bag keeps the stack grid and gives the selected item its own action card. The Valley Journal keeps Animal Crossing-inspired specimen donations and Rune Factory-inspired practice skills one click from the farm.

@@ -31,6 +31,10 @@ godot --headless --script res://tests/valley_life_smoke.gd
 - A `pond` takes `fish` (`perch`, `trout`, or `carp`) and an optional `rare` Moonfin chance. Its dock is built on the north bank.
 - A `forage` spot takes `item` (`berries`, `mushroom`, or `shell`). Seasons and daily refills are handled in `farm.gd`. Put spots on level ground the villagers' grid can reach; `check_world.gd` tests each one.
 - `bush`, `rock`, and `tuft` are batched ground cover with optional `scale`, `yaw`, and (tufts) `color`. The builder's fill pass adds them to any bare 5×5 cell.
+- A `stream` is a water strip (`size`) that blocks movement. A `bridge` fills a gap between two stream segments and takes `axis` (`x` or `z`, the walking direction) and `water` (the size of the water drawn under it).
+- `well` and `bell` are the wishing well and town bell; keep one of each. A `dig` is a buried-find spot; four are active each day. A `landmark` is an invisible named place with `name` and `radius` that the player discovers by walking in.
+- A `sign` takes `text`, shown when the player reads it. Text starting with `@` makes it a petition board with the daily notice. The interactions themselves live in `valley_interactions.gd`.
+- A `ruin` is a flooded cottage foundation (optional `yaw`), and `floodgate` sits across a `stream`. Both are solid.
 - A 1×1 `mountain` makes a single raised column. The standing stones use this.
 - New entity kinds need a validator entry in `world_layout.gd` and rendering in `farm_scenery.gd`.
 - Keep the 3D world free of text labels. A sign's `label` is only a note in the JSON.

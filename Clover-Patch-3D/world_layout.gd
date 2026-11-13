@@ -15,6 +15,9 @@ const LABELS := {
 	"mountain": "Mountain", "resident_house": "Resident house", "lamp": "Lantern post",
 	"ridge_barrier": "Ridge barrier", "closed_pass": "Closed pass", "picnic": "Picnic table",
 	"bunting": "Bunting", "butterflies": "Butterflies", "forage": "Forage spot", "bush": "Bush", "rock": "Rock", "tuft": "Grass tuft",
+	"stream": "Stream", "bridge": "Bridge", "well": "Wishing well", "bell": "Town bell", "dig": "Dig spot",
+	"landmark": "Landmark",
+	"ruin": "Flooded ruin", "floodgate": "Floodgate",
 }
 
 var bounds := Rect2()
@@ -47,7 +50,7 @@ func read(path: String) -> Error:
 		var at := position_of(item)
 		if not next_bounds.has_point(Vector2(at.x, at.z)):
 			return ERR_INVALID_DATA
-		if kind in ["path", "pond", "mountain", "ridge_barrier"] and item.has("size"):
+		if kind in ["path", "pond", "mountain", "ridge_barrier", "stream", "bridge"] and item.has("size"):
 			if not _numbers(item["size"], 2) or item["size"][0] <= 0 or item["size"][1] <= 0 or item["size"][0] > 200 or item["size"][1] > 200:
 				return ERR_INVALID_DATA
 		if kind == "mountain":
